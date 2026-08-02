@@ -56,13 +56,13 @@ HTML_CONTENT = """
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 12px;
             margin-bottom: 15px; border: 1px solid rgba(241, 196, 15, 0.2);
-            font-size: 15px; font-weight: bold;
+            font-size: 15px; font-weight: bold; width: 100%; box-sizing: border-box;
         }
         .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 5px; }
 
         input {
             padding: 14px; font-size: 16px; border: 2px solid #34495e; border-radius: 12px;
-            margin: 10px 0; width: 85%; background: rgba(0, 0, 0, 0.5);
+            margin: 10px 0; width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.5);
             color: #fff; text-align: center; outline: none; transition: 0.3s;
         }
         input:focus { border-color: #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.4); }
@@ -70,7 +70,7 @@ HTML_CONTENT = """
         button {
             padding: 14px 24px; font-size: 16px; font-weight: bold;
             color: white; border: none; border-radius: 12px; cursor: pointer; 
-            margin: 10px auto; width: 92%; display: block;
+            margin: 10px 0; width: 100%; box-sizing: border-box; display: block;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.2s;
         }
         button:hover { transform: translateY(-3px); filter: brightness(1.1); }
@@ -80,31 +80,32 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
 
+        /* តារាងក្ដារអុកលំអរ (Width ស្មើប៊ូតុង និង Height auto) */
+        .deco-board-container {
+            margin: 15px 0; width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
+        .deco-board {
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, auto); gap: 1px;
+            border: 3px solid #8e44ad; background-color: #8e44ad;
+            border-radius: 10px; width: 100%; height: auto; aspect-ratio: 1 / 1;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); box-sizing: border-box;
+        }
+        .deco-square {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; user-select: none;
+        }
+        .deco-light { background-color: #f5cba7; color: #000; }
+        .deco-dark { background-color: #d35400; color: #fff; }
+
         /* តារាងជើងខ្លាំង (Leaderboard) */
         .leaderboard-box {
             margin-top: 15px; background: rgba(0, 0, 0, 0.4);
             border-radius: 12px; padding: 12px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; max-height: 160px; overflow-y: auto;
+            text-align: left; max-height: 160px; overflow-y: auto; width: 100%; box-sizing: border-box;
         }
         .leaderboard-title { color: #f1c40f; font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 8px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        .deco-board-container {
-            margin-top: 15px; display: flex; flex-direction: column; align-items: center;
-        }
-        .deco-board {
-            display: grid; grid-template-columns: repeat(8, 22px);
-            grid-template-rows: repeat(8, 22px); gap: 1px;
-            border: 2px solid #8e44ad; background-color: #8e44ad;
-            border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-        .deco-square {
-            width: 22px; height: 22px; display: flex;
-            align-items: center; justify-content: center;
-            font-size: 14px; user-select: none;
-        }
-        .deco-light { background-color: #f5cba7; color: #000; }
-        .deco-dark { background-color: #d35400; color: #fff; }
 
         #board {
             display: grid; grid-template-columns: repeat(8, 42px);
@@ -151,24 +152,27 @@ HTML_CONTENT = """
 
         <!-- ម៉ឺនុយដើម (ទំព័រទី២) -->
         <div id="main-menu" class="card hidden">
+            <!-- ឈ្មោះ និងកាក់ (ស្ថិតនៅខាងលើគេ) -->
             <div class="user-profile">
                 <span id="welcome-msg" style="color: #f1c40f;"></span>
                 <span class="coin-badge">🪙 <span id="userCoins">0</span> កាក់</span>
             </div>
+
+            <!-- ក្ដារអុកលំអរ (ស្ថិតនៅក្រោមឈ្មោះ និងលើប៊ូតុងទាំងអស់) -->
+            <div class="deco-board-container">
+                <div class="deco-board" id="decoBoard"></div>
+            </div>
+
+            <!-- ប៊ូតុងនិងប្រអប់ផ្សេងៗ -->
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
-            <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)"><br>
+            <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
 
             <!-- តារាងបង្ហាញជើងខ្លាំង -->
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងជើងខ្លាំងប្រចាំសង្វៀន 🏆</div>
                 <div id="leaderboardList">កំពុងទាញយក...</div>
-            </div>
-
-            <!-- ក្ដារអុកលំអរនៅលើម៉ឺនុយដើម -->
-            <div class="deco-board-container">
-                <div class="deco-board" id="decoBoard"></div>
             </div>
         </div>
 
@@ -177,7 +181,7 @@ HTML_CONTENT = """
             <h3 id="room-title" style="color: #f1c40f; margin: 5px 0;">បន្ទប់ប្រកួត</h3>
             <div id="status" style="background: rgba(0,0,0,0.6); padding: 8px 18px; border-radius: 20px; display:inline-block; font-weight:bold; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
-            <button class="btn-red" style="width: 220px; margin-top: 15px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 15px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
         </div>
     </div>
 
@@ -240,7 +244,6 @@ HTML_CONTENT = """
         }
         renderDecoBoard();
 
-        // មុខងារទាញយកតារាងជើងខ្លាំង (Leaderboard)
         function loadLeaderboard() {
             const usersRef = ref(db, 'users');
             onValue(usersRef, (snapshot) => {
@@ -257,7 +260,6 @@ HTML_CONTENT = """
                         coins: usersData[u].coins || 0
                     });
                 }
-                // រៀបលំដាប់ពីអ្នកមានកាក់ច្រើនជាងគេទៅតិច
                 usersArray.sort((a, b) => b.coins - a.coins);
 
                 lbEl.innerHTML = "";
@@ -403,10 +405,10 @@ HTML_CONTENT = """
                     gameOver = true;
                     if (myRole !== "observer") {
                         if (data.winnerRole === myRole) {
-                            myCoins += 100; // ឈ្នះបាន +100 កាក់
+                            myCoins += 100; 
                             alert("🎉 សូមអបអរសាទរ! អ្នកឈ្នះការប្រកួត (+100 កាក់)!");
                         } else {
-                            myCoins = Math.max(0, myCoins - 100); // ចាញ់កាត់ -100 កាក់
+                            myCoins = Math.max(0, myCoins - 100); 
                             alert("😔 អ្នកបានចាញ់ការប្រកួត (-100 កាក់)!");
                         }
                         await update(ref(db, `users/${myName}`), { coins: myCoins });
