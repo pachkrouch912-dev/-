@@ -1,7 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+import json
 
 app = FastAPI()
+
+# เก็บข้อมูลห้องเล่นเกม (Rooms)
+rooms = {}
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -9,7 +13,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហ្គេមអុកខ្មែរ (Ok Chaktrong Standard)</title>
+    <title>ហ្គេមអុកខ្មែរអនឡាញ (Ok Chaktrong Online)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -19,10 +23,33 @@ HTML_CONTENT = """
             padding: 20px;
             color: #333;
         }
-        h1 {
-            color: #8B0000;
-            margin-bottom: 5px;
+        h1 { color: #8B0000; margin-bottom: 5px; }
+        #menu, #game-container { margin-top: 20px; }
+        .box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #8B0000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #a80000; }
         #status {
             font-size: 18px;
             font-weight: bold;
@@ -72,15 +99,31 @@ HTML_CONTENT = """
             color: #111111;
             text-shadow: 1px 1px 2px #fff, 0 0 1em #fff, 0 0 0.2em #fff;
         }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <h1>♟️ ហ្គេមអុកខ្មែរ (Ok Chaktrong) ♟️</h1>
-    <div id="status">វេនអ្នកលេង៖ ស (ខាងក្រោម)</div>
-    <div id="board"></div>
+    <h1>♟️ ហ្គេមអុកខ្មែរអនឡាញ (Ok Chaktrong) ♟️</h1>
+
+    <!-- ប្រអប់ចូលបន្ទប់ -->
+    <div id="menu" class="box">
+        <h3>ចូលបន្ទប់លេងហ្គេម</h3>
+        <input type="text" id="roomInput" placeholder="បញ្ចូលលេខបន្ទប់ (ឧ. 123)"><br>
+        <button onclick="joinRoom()">ចូលលេង</button>
+    </div>
+
+    <!-- ប្រអប់បង្ហាញហ្គេម -->
+    <div id="game-container" class="hidden">
+        <div id="status">កំពុងរង់ចាំគូប្រកួត...</div>
+        <div id="board"></div>
+    </div>
 
     <script>
+        let ws = null;
+        let myRole = null; // 'white' ឬ 'black'
+        let roomCode = null;
+
         const initialBoard = [
             ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
             ["", "", "", "", "", "", "", ""],
@@ -96,7 +139,41 @@ HTML_CONTENT = """
         let selectedPiece = null;
         let turn = 'white'; 
         let validMoves = [];
-        let gameOver = false; // បន្ថែមអង្សរសម្រាប់កំណត់ស្ថានភាពចប់ហ្គេម
+        let gameOver = false;
+
+        function joinRoom() {
+            roomCode = document.getElementById("roomInput").value.trim();
+            if (!roomCode) {
+                alert("សូមបញ្ចូលលេខបន្ទប់ជាមុនសិន!");
+                return;
+            }
+
+            document.getElementById("menu").classList.add("hidden");
+            document.getElementById("game-container").classList.remove("hidden");
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws/${roomCode}`);
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === "init") {
+                    myRole = data.role;
+                    document.getElementById("status").textContent = `អ្នកគឺជាភាគី៖ ${myRole === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
+                } else if (data.type === "update" || data.type === "game_over") {
+                    board = data.board;
+                    turn = data.turn;
+                    gameOver = data.gameOver;
+                    document.getElementById("status").textContent = data.message;
+                    selectedPiece = null;
+                    validMoves = [];
+                    renderBoard();
+                } else if (data.type === "error") {
+                    alert(data.message);
+                    location.reload();
+                }
+            };
+        }
 
         function isWhitePiece(piece) {
             return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(piece);
@@ -176,7 +253,6 @@ HTML_CONTENT = """
                     }
                 }
             }
-
             return moves;
         }
 
@@ -217,7 +293,11 @@ HTML_CONTENT = """
         }
 
         function handleSquareClick(r, c) {
-            if (gameOver) return; // បើហ្គេមចប់ហើយ មិនបាច់ឱ្យចុចដើរទៀតទេ
+            if (gameOver) return;
+            if (turn !== myRole) {
+                alert("មិនទាន់ដល់វេនរបស់អ្នកទេ!");
+                return;
+            }
 
             const clickedPiece = board[r][c];
 
@@ -226,54 +306,153 @@ HTML_CONTENT = """
                 if (isValid) {
                     let targetPiece = board[r][c];
                     let movingPiece = selectedPiece.piece;
+                    let isGameOver = false;
+                    let message = "";
 
-                    // ពិនិត្យមើលថាតើបានស៊ីគ្រាប់រាជ (King) ដែរឬទេ
                     if (targetPiece === "♚") {
-                        gameOver = true;
-                        document.getElementById("status").textContent = "🎉 អ្នកលេងភាគី «ស» បានឈ្នះ! (ស៊ីរាជខ្មៅបាន)";
+                        isGameOver = true;
+                        message = "🎉 ភាគី «ស» បានឈ្នះ!";
                     } else if (targetPiece === "♔") {
-                        gameOver = true;
-                        document.getElementById("status").textContent = "🎉 អ្នកលេងភាគី «ខ្មៅ» បានឈ្នះ! (ស៊ីរាជសបាន)";
+                        isGameOver = true;
+                        message = "🎉 ភាគី «ខ្មៅ» បានឈ្នះ!";
                     }
 
-                    // ក្បួនប្រែគ្រាប់ត្រី
-                    if (movingPiece === "♙" && r === 2) {
-                        movingPiece = "♕";
-                    } else if (movingPiece === "♟" && r === 5) {
-                        movingPiece = "♛";
-                    }
+                    if (movingPiece === "♙" && r === 2) movingPiece = "♕";
+                    else if (movingPiece === "♟" && r === 5) movingPiece = "♛";
 
                     board[r][c] = movingPiece;
                     board[selectedPiece.r][selectedPiece.c] = "";
 
-                    if (!gameOver) {
-                        turn = turn === 'white' ? 'black' : 'white';
-                        document.getElementById("status").textContent = `វេនអ្នកលេង៖ ${turn === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
+                    let nextTurn = turn === 'white' ? 'black' : 'white';
+                    if (!isGameOver) {
+                        message = `វេនអ្នកលេង៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`;
                     }
+
+                    // ផ្ញើទិន្នន័យទៅ Server តាម WebSocket
+                    ws.send(JSON.stringify({
+                        type: "move",
+                        board: board,
+                        turn: nextTurn,
+                        gameOver: isGameOver,
+                        message: message
+                    }));
                 }
                 selectedPiece = null;
                 validMoves = [];
                 renderBoard();
             } else if (clickedPiece !== "") {
-                if ((turn === 'white' && isWhitePiece(clickedPiece)) || (turn === 'black' && isBlackPiece(clickedPiece))) {
+                if ((myRole === 'white' && isWhitePiece(clickedPiece)) || (myRole === 'black' && isBlackPiece(clickedPiece))) {
                     selectedPiece = { r, c, piece: clickedPiece };
                     validMoves = getValidMoves(r, c, clickedPiece);
                     renderBoard();
                 }
             }
         }
-
-        renderBoard();
     </script>
-
 </body>
 </html>
 """
+
+# จัดการการเชื่อมต่อ WebSocket តាមห้อง
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: dict[str, list[WebSocket]] = {}
+
+    async def connect(self, room: str, websocket: WebSocket):
+        await websocket.accept()
+        if room not in self.active_connections:
+            self.active_connections[room] = []
+        self.active_connections[room].append(websocket)
+
+    def disconnect(self, room: str, websocket: WebSocket):
+        if room in self.active_connections:
+            self.active_connections[room].remove(websocket)
+            if not self.active_connections[room]:
+                del self.active_connections[room]
+
+    async def broadcast(self, room: str, message: dict):
+        if room in self.active_connections:
+            for connection in self.active_connections[room]:
+                await connection.send_text(json.dumps(message))
+
+manager = ConnectionManager()
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
     return HTML_CONTENT
 
+@app.websocket("/ws/{room_id}")
+async def websocket_endpoint(websocket: WebSocket, room_id: str):
+    if room_id not in rooms:
+        rooms[room_id] = {
+            "board": json.loads(json.dumps([
+                ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
+                ["", "", "", "", "", "", "", ""],
+                ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"],
+                ["", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", ""],
+                ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"],
+                ["", "", "", "", "", "", "", ""],
+                ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
+            ])),
+            "turn": "white",
+            "gameOver": False,
+            "message": "វេនអ្នកលេង៖ ស (ខាងក្រោម)",
+            "players": []
+        }
+
+    room = rooms[room_id]
+    
+    # កំណត់តួនាទីអ្នកចូលលេង (មនុស្សទី១ ជា ស, មនុស្សទី២ ជា ខ្មៅ)
+    if len(room["players"]) >= 2:
+        await websocket.accept()
+        await websocket.send_text(json.dumps({"type": "error", "message": "បន្ទប់នេះមានអ្នកចូលពេញហើយ!"}))
+        await websocket.close()
+        return
+
+    role = "white" if len(room["players"]) == 0 else "black"
+    room["players"].append(websocket)
+
+    await manager.connect(room_id, websocket)
+    
+    # ផ្ញើដំណឹងប្រាប់តួនាទី និងស្ថានភាពក្តារបច្ចុប្បន្ន
+    await websocket.send_text(json.dumps({
+        "type": "init",
+        "role": role
+    }))
+    
+    await manager.broadcast(room_id, {
+        "type": "update",
+        "board": room["board"],
+        "turn": room["turn"],
+        "gameOver": room["gameOver"],
+        "message": room["message"]
+    })
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            packet = json.loads(data)
+            
+            if packet["type"] == "move":
+                room["board"] = packet["board"]
+                room["turn"] = packet["turn"]
+                room["gameOver"] = packet["gameOver"]
+                room["message"] = packet["message"]
+
+                await manager.broadcast(room_id, {
+                    "type": "update",
+                    "board": room["board"],
+                    "turn": room["turn"],
+                    "gameOver": room["gameOver"],
+                    "message": room["message"]
+                })
+    except WebSocketDisconnect:
+        manager.disconnect(room_id, websocket)
+        if room_id in rooms and websocket in rooms[room_id]["players"]:
+            rooms[room_id]["players"].remove(websocket)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+
