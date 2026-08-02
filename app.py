@@ -1,18 +1,6 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
-import json
-import random
+from fastapi import FastAPI, HTMLResponse
 
 app = FastAPI()
-
-rooms = {}
-players_db = {} 
-tournament = {
-    "players": [],
-    "rounds": [], 
-    "current_round": 0,
-    "status": "waiting"
-}
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -20,158 +8,45 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>អុកខ្មែរអនឡាញ - 8 Ball Pool Style</title>
+    <title>អុកខ្មែរអនឡាញ - Firebase Realtime</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            color: #fff;
-            min-height: 100vh;
+            text-align: center; margin: 0; padding: 20px; color: #fff; min-height: 100vh;
         }
-        h1 { 
-            color: #f1c40f; 
-            margin-bottom: 5px; 
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-            animation: glow 2s infinite alternate;
-        }
-        @keyframes glow {
-            from { text-shadow: 0 0 5px #f1c40f; }
-            to { text-shadow: 0 0 20px #f39c12, 0 0 30px #e67e22; }
-        }
+        h1 { color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
         .card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            padding: 25px;
-            border-radius: 16px;
-            display: inline-block;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            margin-top: 15px;
-            max-width: 480px;
-            width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            animation: fadeIn 0.8s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px);
+            padding: 25px; border-radius: 16px; display: inline-block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 15px;
+            max-width: 480px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.15);
         }
         input {
-            padding: 12px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            margin: 10px 0;
-            width: 85%;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            text-align: center;
-            outline: none;
+            padding: 12px; font-size: 16px; border: none; border-radius: 8px;
+            margin: 10px 0; width: 85%; background: rgba(255, 255, 255, 0.9);
+            color: #333; text-align: center; outline: none;
         }
         button {
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            background-color: #e67e22;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 8px;
-            transition: all 0.3s ease;
+            padding: 12px 24px; font-size: 16px; font-weight: bold;
+            background-color: #e67e22; color: white; border: none;
+            border-radius: 8px; cursor: pointer; margin: 8px; width: 90%;
             box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
-            width: 90%;
         }
-        button:hover { 
-            background-color: #d35400; 
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 6px 20px rgba(230, 126, 34, 0.6);
-        }
-        .btn-green { background-color: #27ae60; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4); }
-        .btn-green:hover { background-color: #219653; box-shadow: 0 6px 20px rgba(39, 174, 96, 0.6); }
-        .btn-blue { background-color: #2980b9; box-shadow: 0 4px 15px rgba(41, 128, 185, 0.4); }
-        .btn-blue:hover { background-color: #1f618d; box-shadow: 0 6px 20px rgba(41, 128, 185, 0.6); }
+        button:hover { background-color: #d35400; transform: translateY(-2px); }
+        .btn-green { background-color: #27ae60; }
         
-        #wallet {
-            font-size: 20px;
-            font-weight: bold;
-            color: #f1c40f;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 20px;
-            border-radius: 30px;
-            display: inline-block;
-            margin-bottom: 15px;
-            border: 1px solid #f1c40f;
-            box-shadow: inset 0 0 10px rgba(241, 196, 15, 0.3);
-        }
-        .match-card {
-            background: rgba(0, 0, 0, 0.25);
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* ស្ទីលក្ដារអុកតូចមាន Animation នៅទំព័រដើម */
-        .preview-board {
-            display: grid;
-            grid-template-columns: repeat(8, 32px);
-            grid-template-rows: repeat(8, 32px);
-            gap: 1px;
-            justify-content: center;
-            margin: 15px auto;
-            border: 3px solid #5c3a21;
-            background-color: #5c3a21;
-            border-radius: 6px;
-            width: max-content;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-            animation: floatBoard 4s ease-in-out infinite alternate;
-        }
-        @keyframes floatBoard {
-            from { transform: translateY(0px); }
-            to { transform: translateY(-8px); }
-        }
-        .p-square {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .p-light { background-color: #f0d9b5; color: #000; }
-        .p-dark { background-color: #b58863; color: #000; }
-
-        /* ក្ដារអុកសម្រាប់លេងពិតប្រាកដ (ទំហំល្មមស្អាត 40px) */
         #board {
-            display: grid;
-            grid-template-columns: repeat(8, 40px);
-            grid-template-rows: repeat(8, 40px);
-            gap: 2px;
-            justify-content: center;
-            margin: 15px auto;
-            border: 4px solid #5c3a21;
-            background-color: #5c3a21;
-            border-radius: 6px;
-            width: max-content;
+            display: grid; grid-template-columns: repeat(8, 40px);
+            grid-template-rows: repeat(8, 40px); gap: 2px;
+            justify-content: center; margin: 15px auto;
+            border: 4px solid #5c3a21; background-color: #5c3a21;
+            border-radius: 6px; width: max-content;
         }
         .square {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
+            width: 40px; height: 40px; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 24px; font-weight: bold; cursor: pointer; user-select: none;
         }
         .light { background-color: #f0d9b5; color: #000; }
         .dark { background-color: #b58863; color: #000; }
@@ -184,43 +59,22 @@ HTML_CONTENT = """
 </head>
 <body>
 
-    <h1>♟️ អុកខ្មែរអនឡាញ (Ok Chaktrong) ♟️</h1>
+    <h1>♟️ អុកខ្មែរអនឡាញ (Firebase Realtime) ♟️</h1>
 
-    <!-- វគ្គចូលឈ្មោះ និងបង្ហាញក្ដារអុក Animation ខាងដើម -->
+    <!-- ផ្នែកចូលឈ្មោះ -->
     <div id="login-box" class="card">
         <h3>ចូលរួមលេងហ្គេម</h3>
-        <div class="preview-board" id="previewBoard"></div>
-        <p style="font-size: 13px; color: #f1c40f; margin: 5px 0 15px 0;">✨ សូមស្វាគមន៍មកកាន់ពិភពអុកខ្មែរដ៏រស់រវើក ✨</p>
         <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
         <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
     </div>
 
-    <!-- ម៉ឺនុយដើររចនាបថ 8 Ball Pool -->
+    <!-- ម៉ឺនុយដើម -->
     <div id="main-menu" class="card hidden">
-        <div id="wallet">💰 កាក់របស់អ្នក៖ <span id="coinBalance">100</span> 🪙</div><br>
+        <h3 id="welcome-msg"></h3>
         <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
-        <button class="btn-blue" onclick="showDirectPlay()">🎮 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន (1v1 Room)</button>
-        <button onclick="showTournament()">🏆 ប្រកួតជម្រុះ (4-5 Rounds)</button>
     </div>
 
-    <!-- ប្រអប់លេង ១ទល់១ (1v1 Direct Play) -->
-    <div id="direct-play-box" class="card hidden">
-        <h3>លេង ១ទល់១ ជាមួយមិត្តភក្តិ</h3>
-        <input type="text" id="roomInput" placeholder="បញ្ចូលលេខបន្ទប់ (ឧ. 101)"><br>
-        <button class="btn-green" onclick="joinRoom('1v1')">ចូលបន្ទប់លេង</button>
-        <button onclick="backToMenu()">ថយក្រោយ</button>
-    </div>
-
-    <!-- ប្រអប់តារាងប្រកួតជម្រុះ (Tournament Lobby) -->
-    <div id="tournament-lobby" class="card hidden">
-        <h3>🏆 វគ្គប្រកួតជម្រុះ (Tournament)</h3>
-        <p id="tour-status">ស្វែងរកអ្នកលេងគ្រប់គ្រាន់ដើម្បីចាប់ផ្តើម...</p>
-        <div id="match-list"></div>
-        <button id="start-tour-btn" class="hidden btn-green" onclick="startTournament()">ចាប់ផ្តើមប្រកួតជម្រុះ</button>
-        <button onclick="backToMenu()">ថយក្រោយ</button>
-    </div>
-
-    <!-- កន្លែងលេងហ្គេមអុក -->
+    <!-- កន្លែងលេងអុក -->
     <div id="game-container" class="hidden">
         <h3 id="room-title">បន្ទប់ប្រកួត</h3>
         <div id="status" style="background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 15px; display:inline-block; font-weight:bold; margin-bottom: 10px;">រង់ចាំគូប្រកួត...</div>
@@ -228,11 +82,24 @@ HTML_CONTENT = """
         <button class="btn-green" style="width: 200px; margin-top: 15px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
     </div>
 
-    <script>
-        let ws = null;
-        let myName = null;
-        let myRole = null;
-        let currentRoom = null;
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2A-i0K1APedqO21pllsOisHIu-gb4HeI",
+            authDomain: "ouk-e348e.firebaseapp.com",
+            databaseURL: "https://ouk-e348e-default-rtdb.firebaseio.com",
+            projectId: "ouk-e348e",
+            storageBucket: "ouk-e348e.firebasestorage.app",
+            messagingSenderId: "166337664392",
+            appId: "1:166337664392:web:ae5740689b1f62ecbd163d",
+            measurementId: "G-QZY7PJNR11"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
         const initialBoard = [
             ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
@@ -245,147 +112,98 @@ HTML_CONTENT = """
             ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
         ];
 
-        function renderPreviewBoard() {
-            const previewEl = document.getElementById("previewBoard");
-            previewEl.innerHTML = "";
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const sq = document.createElement("div");
-                    sq.className = "p-square " + ((r + c) % 2 === 0 ? "p-light" : "p-dark");
-                    let p = initialBoard[r][c];
-                    if (p !== "") {
-                        let span = document.createElement("span");
-                        span.textContent = p;
-                        span.style.color = ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p) ? "#fff" : "#111";
-                        span.style.textShadow = "1px 1px 2px rgba(0,0,0,0.5)";
-                        sq.appendChild(span);
-                    }
-                    previewEl.appendChild(sq);
-                }
-            }
-        }
-        renderPreviewBoard();
-
+        let myName = "";
+        let currentRoomId = "";
+        let myRole = ""; 
         let board = JSON.parse(JSON.stringify(initialBoard));
-        let selectedPiece = null;
-        let turn = 'white';
-        let validMoves = [];
+        let turn = "white";
         let gameOver = false;
+        let selectedPiece = null;
+        let validMoves = [];
+        let roomListener = null;
 
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        let globalWs = null;
-
-        function loginUser() {
+        window.loginUser = function() {
             myName = document.getElementById("playerName").value.trim();
-            if (!myName) {
-                alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!");
-                return;
-            }
+            if (!myName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
             document.getElementById("login-box").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
+            document.getElementById("welcome-msg").textContent = `សួស្តី, ${myName}`;
+        }
 
-            globalWs = new WebSocket(`${protocol}//${window.location.host}/ws/global?name=${encodeURIComponent(myName)}`);
-            globalWs.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                if (data.type === "wallet_update") {
-                    document.getElementById("coinBalance").textContent = data.coins;
-                } else if (data.type === "tour_update") {
-                    updateTournamentUI(data);
+        window.quickJoinRoom = async function() {
+            const roomsRef = ref(db, 'rooms');
+            const snapshot = await get(roomsRef);
+            let targetRoom = null;
+
+            if (snapshot.exists()) {
+                const rooms = snapshot.val();
+                for (let rId in rooms) {
+                    let rData = rooms[rId];
+                    let players = rData.players || {};
+                    let playerCount = Object.keys(players).length;
+                    if (playerCount < 2 && !rData.gameOver) {
+                        targetRoom = rId;
+                        break;
+                    }
                 }
-            };
-        }
-
-        async function quickJoinRoom() {
-            let response = await fetch('/api/get-waiting-room');
-            let data = await response.json();
-            
-            if (data.room_id) {
-                currentRoom = data.room_id;
-            } else {
-                currentRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
             }
-            joinRoom('quick');
-        }
 
-        function showDirectPlay() {
-            document.getElementById("main-menu").classList.add("hidden");
-            document.getElementById("direct-play-box").classList.remove("hidden");
-        }
-
-        function showTournament() {
-            document.getElementById("main-menu").classList.add("hidden");
-            document.getElementById("tournament-lobby").classList.remove("hidden");
-            globalWs.send(JSON.stringify({ type: "join_tournament" }));
-        }
-
-        function backToMenu() {
-            document.getElementById("direct-play-box").classList.add("hidden");
-            document.getElementById("tournament-lobby").classList.add("hidden");
-            document.getElementById("main-menu").classList.remove("hidden");
-        }
-
-        function joinRoom(mode) {
-            let roomCode = (mode === '1v1') ? document.getElementById("roomInput").value.trim() : currentRoom;
-            if (!roomCode) {
-                alert("សូមបញ្ចូលលេខបន្ទប់!");
-                return;
-            }
-            currentRoom = roomCode;
-            document.getElementById("direct-play-box").classList.add("hidden");
-            document.getElementById("tournament-lobby").classList.add("hidden");
-            document.getElementById("main-menu").classList.add("hidden");
-            document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `បន្ទប់៖ ${roomCode}`;
-
-            renderBoard();
-
-            ws = new WebSocket(`${protocol}//${window.location.host}/ws/room/${roomCode}?name=${encodeURIComponent(myName)}`);
-
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                if (data.type === "init") {
-                    myRole = data.role;
-                    document.getElementById("status").textContent = `ភាគី៖ ${myRole === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
-                    renderBoard();
-                } else if (data.type === "update") {
-                    board = data.board;
-                    turn = data.turn;
-                    gameOver = data.gameOver;
-                    document.getElementById("status").textContent = data.message;
-                    selectedPiece = null;
-                    validMoves = [];
-                    renderBoard();
-                }
-            };
-        }
-
-        function leaveRoom() {
-            if (ws) ws.close();
-            document.getElementById("game-container").classList.add("hidden");
-            document.getElementById("main-menu").classList.remove("hidden");
-        }
-
-        function updateTournamentUI(data) {
-            const listDiv = document.getElementById("match-list");
-            listDiv.innerHTML = `<h4>ចំនួនអ្នកចូលរួម៖ ${data.players.length} នាក់ (វគ្គទី ${data.current_round} / 5)</h4>`;
-            
-            if (data.matches.length > 0) {
-                data.matches.forEach((m, idx) => {
-                    listDiv.innerHTML += `
-                        <div class="match-card">
-                            <span>គូទី ${idx+1}: ${m.white} vs ${m.black}</span>
-                            ${(myName === m.white || myName === m.black) && m.status === 'ongoing' ? `<button onclick="currentRoom='${m.room}'; joinRoom('tour')">ចូលលេង</button>` : `<span>${m.status}</span>`}
-                        </div>
-                    `;
+            if (!targetRoom) {
+                targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
+                await set(ref(db, `rooms/${targetRoom}`), {
+                    board: initialBoard,
+                    turn: "white",
+                    gameOver: false,
+                    message: "រង់ចាំគូប្រកួត...",
+                    players: {}
                 });
             }
-            if (data.players.length >= 2 && data.status === "waiting") {
-                document.getElementById("start-tour-btn").classList.remove("hidden");
+
+            currentRoomId = targetRoom;
+            
+            const playerRef = ref(db, `rooms/${currentRoomId}/players`);
+            const pSnap = await get(playerRef);
+            let players = pSnap.exists() ? pSnap.val() : {};
+
+            if (!players.white) {
+                myRole = "white";
+                players.white = myName;
+            } else if (!players.black) {
+                myRole = "black";
+                players.black = myName;
+            } else {
+                myRole = "observer";
             }
+
+            await update(ref(db, `rooms/${currentRoomId}`), { players: players });
+
+            document.getElementById("main-menu").classList.add("hidden");
+            document.getElementById("game-container").classList.remove("hidden");
+            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
+
+            listenToRoom();
+            renderBoard();
         }
 
-        function startTournament() {
-            globalWs.send(JSON.stringify({ type: "start_tournament" }));
+        function listenToRoom() {
+            const roomRef = ref(db, `rooms/${currentRoomId}`);
+            roomListener = onValue(roomRef, (snapshot) => {
+                if (!snapshot.exists()) return;
+                const data = snapshot.val();
+                board = data.board;
+                turn = data.turn;
+                gameOver = data.gameOver;
+                
+                let pCount = data.players ? Object.keys(data.players).length : 0;
+                if (pCount < 2) {
+                    document.getElementById("status").textContent = "កំពុងរង់ចាំគូប្រកួតចូលលេង...";
+                } else {
+                    document.getElementById("status").textContent = data.message || `វេនអ្នកលេង៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
+                }
+                selectedPiece = null;
+                validMoves = [];
+                renderBoard();
+            });
         }
 
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
@@ -407,7 +225,7 @@ HTML_CONTENT = """
             return moves;
         }
 
-        function renderBoard() {
+        window.renderBoard = function() {
             const boardEl = document.getElementById("board");
             boardEl.innerHTML = "";
             for (let r = 0; r < 8; r++) {
@@ -440,14 +258,19 @@ HTML_CONTENT = """
                     let isOver = false;
                     let msg = "";
 
-                    if (target === "♚") { isOver = true; msg = "🎉 ស ឈ្នះការប្រកួត (+50 កាក់)!"; }
-                    else if (target === "♔") { isOver = true; msg = "🎉 ខ្មៅ ឈ្នះការប្រកួត (+50 កាក់)!"; }
+                    if (target === "♚") { isOver = true; msg = "🎉 ភាគី ស ឈ្នះការប្រកួត!"; }
+                    else if (target === "♔") { isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះការប្រកួត!"; }
 
                     board[r][c] = moving;
                     board[selectedPiece.r][selectedPiece.c] = "";
                     let nextTurn = turn === 'white' ? 'black' : 'white';
 
-                    ws.send(JSON.stringify({ type: "move", board, turn: nextTurn, gameOver: isOver, message: msg }));
+                    update(ref(db, `rooms/${currentRoomId}`), {
+                        board: board,
+                        turn: nextTurn,
+                        gameOver: isOver,
+                        message: msg || `វេនអ្នកលេង៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`
+                    });
                 }
                 selectedPiece = null;
                 validMoves = [];
@@ -460,156 +283,22 @@ HTML_CONTENT = """
                 }
             }
         }
+
+        window.leaveRoom = function() {
+            document.getElementById("game-container").classList.add("hidden");
+            document.getElementById("main-menu").classList.remove("hidden");
+            location.reload();
+        }
     </script>
 </body>
 </html>
 """
 
-global_connections = []
-
-async def broadcast_global():
-    for name, data in players_db.items():
-        try:
-            await data["ws"].send_text(json.dumps({"type": "wallet_update", "coins": data["coins"]}))
-        except:
-            pass
-
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return HTML_CONTENT
 
-@app.get("/api/get-waiting-room")
-async def get_waiting_room():
-    for room_id, room_data in rooms.items():
-        if len(room_data["players"]) < 2 and not room_data["gameOver"]:
-            return {"room_id": room_id}
-    return {"room_id": None}
-
-@app.websocket("/ws/global")
-async def global_ws(websocket: WebSocket, name: str):
-    await websocket.accept()
-    if name not in players_db:
-        players_db[name] = {"coins": 100, "ws": websocket}
-    else:
-        players_db[name]["ws"] = websocket
-
-    global_connections.append(websocket)
-    await websocket.send_text(json.dumps({"type": "wallet_update", "coins": players_db[name]["coins"]}))
-    
-    try:
-        while True:
-            data = await websocket.receive_text()
-            packet = json.loads(data)
-            if packet["type"] == "join_tournament":
-                if name not in tournament["players"]:
-                    tournament["players"].append(name)
-                tour_payload = json.dumps({"type": "tour_update", **tournament})
-                for conn in global_connections:
-                    await conn.send_text(tour_payload)
-            elif packet["type"] == "start_tournament":
-                player_list = tournament["players"]
-                random.shuffle(player_list)
-                tournament["matches"] = []
-                tournament["current_round"] += 1
-                for i in range(0, len(player_list) - 1, 2):
-                    room_id = f"tour_r{tournament['current_round']}_m{i//2 + 1}"
-                    tournament["matches"].append({
-                        "room": room_id,
-                        "white": player_list[i],
-                        "black": player_list[i+1],
-                        "status": "ongoing"
-                    })
-                    rooms[room_id] = {
-                        "board": json.loads(json.dumps(initial_board)),
-                        "turn": "white",
-                        "gameOver": False,
-                        "message": "វេនអ្នកលេង៖ ស",
-                        "players": {}
-                    }
-                tournament["status"] = "ongoing"
-                tour_payload = json.dumps({"type": "tour_update", **tournament})
-                for conn in global_connections:
-                    await conn.send_text(tour_payload)
-    except WebSocketDisconnect:
-        global_connections.remove(websocket)
-
-@app.websocket("/ws/room/{room_id}")
-async def room_ws(websocket: WebSocket, room_id: str, name: str):
-    await websocket.accept()
-    if room_id not in rooms:
-        rooms[room_id] = {
-            "board": json.loads(json.dumps(initial_board)),
-            "turn": "white",
-            "gameOver": False,
-            "message": "វេនអ្នកលេង៖ ស",
-            "players": {}
-        }
-    
-    room = rooms[room_id]
-    
-    if "white" not in room["players"]:
-        role = "white"
-    elif "black" not in room["players"]:
-        role = "black"
-    else:
-        role = "observer"
-
-    if role != "observer":
-        room["players"][role] = {"ws": websocket, "name": name}
-
-    await websocket.send_text(json.dumps({"type": "init", "role": role}))
-
-    if len(room["players"]) == 2:
-        room["message"] = "វេនអ្នកលេង៖ ស"
-        for p in room["players"].values():
-            await p["ws"].send_text(json.dumps({
-                "type": "update",
-                "board": room["board"],
-                "turn": room["turn"],
-                "gameOver": room["gameOver"],
-                "message": room["message"]
-            }))
-    
-    try:
-        while True:
-            data = await websocket.receive_text()
-            packet = json.loads(data)
-            if packet["type"] == "move":
-                room["board"] = packet["board"]
-                room["turn"] = packet["turn"]
-                room["gameOver"] = packet["gameOver"]
-                room["message"] = packet["message"]
-
-                if packet["gameOver"]:
-                    winner_role = "white" if "ស" in packet["message"] else "black"
-                    winner_name = room["players"].get(winner_role, {}).get("name")
-                    if winner_name and winner_name in players_db:
-                        players_db[winner_name]["coins"] += 50
-                        await broadcast_global()
-
-                for p in room["players"].values():
-                    await p["ws"].send_text(json.dumps({
-                        "type": "update",
-                        "board": room["board"],
-                        "turn": room["turn"],
-                        "gameOver": room["gameOver"],
-                        "message": room["message"]
-                    }))
-    except WebSocketDisconnect:
-        for r, p in list(room["players"].items()):
-            if p["ws"] == websocket:
-                del room["players"][r]
-                room["message"] = "គូប្រកួតបានចាកចេញ..."
-                for remaining_p in room["players"].values():
-                    await remaining_p["ws"].send_text(json.dumps({
-                        "type": "update",
-                        "board": room["board"],
-                        "turn": room["turn"],
-                        "gameOver": room["gameOver"],
-                        "message": room["message"]
-                    }))
-        pass
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+
