@@ -62,17 +62,20 @@ HTML_CONTENT = """
     <div id="board"></div>
 
     <script>
-        // កូដតំណាងគ្រាប់អុកខ្មែរ៖
-        // ♔/♚ = រាជ, ♕/♛ = នាង, ♖/♜ = គូទ, ♘/♞ = សេះ, ♗/♝ = គោ, ♙/♟ = ត្រី
+        // ការរៀបចំទីតាំងដំបូងត្រឹមត្រូវតាមក្បួនអុកខ្មែរ៖
+        // ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ = គ្រាប់ខ្មៅ (ຢູ່ជួរទី 0)
+        // ♟ = ត្រីខ្មៅ (ຢູ່ជួរទី 2)
+        // ♙ = ត្រីស (ຢູ່ជួរទី 5)
+        // ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ = គ្រាប់ស (ຢູ່ជួរទី 7)
         const initialBoard = [
-            ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"], // ខ្មៅ (ខាងលើ)
-            ["", "", "", "", "", "", "", ""],
-            ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"], // ត្រីខ្មៅ ຢູ່ແຖວទី 3
-            ["", "", "", "", "", "", "", ""],
-            ["", "", "", "", "", "", "", ""],
-            ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"], // ត្រីស ຢູ່ແຖວទី 6
-            ["", "", "", "", "", "", "", ""],
-            ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]  // ស (ខាងក្រោម)
+            ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"], // 0: គ្រាប់ខ្មៅ
+            ["", "", "", "", "", "", "", ""],         // 1: ទទេ
+            ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"], // 2: ត្រីខ្មៅ
+            ["", "", "", "", "", "", "", ""],         // 3: ទទេ
+            ["", "", "", "", "", "", "", ""],         // 4: ទទេ
+            ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"], // 5: ត្រីស
+            ["", "", "", "", "", "", "", ""],         // 6: ទទេ
+            ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]  // 7: គ្រាប់ស
         ];
 
         let board = JSON.parse(JSON.stringify(initialBoard));
@@ -92,22 +95,20 @@ HTML_CONTENT = """
             let moves = [];
             let isWhite = isWhitePiece(piece);
 
-            // ១. ច្បាប់គ្រាប់ត្រី (♙ សម្រាប់ស, ♟ សម្រាប់ខ្មៅ)
-            if (piece === "♙") { // ត្រីស ដើរឡើងលើ (-1)
+            // ១. ច្បាប់គ្រាប់ត្រី (♙ សម្រាប់ស ដើរឡើងលើ, ♟ សម្រាប់ខ្មៅ ដើរចុះក្រោម)
+            if (piece === "♙") { 
                 let nr = r - 1;
                 if (nr >= 0 && board[nr][c] === "") moves.push({r: nr, c: c});
-                // ស៊ីទាស់
                 if (r - 1 >= 0 && c - 1 >= 0 && isBlackPiece(board[r-1][c-1])) moves.push({r: r-1, c: c-1});
                 if (r - 1 >= 0 && c + 1 < 8 && isBlackPiece(board[r-1][c+1])) moves.push({r: r-1, c: c+1});
-            } else if (piece === "♟") { // ត្រីខ្មៅ ដើរចុះក្រោម (+1)
+            } else if (piece === "♟") { 
                 let nr = r + 1;
                 if (nr < 8 && board[nr][c] === "") moves.push({r: nr, c: c});
-                // ស៊ីទាស់
                 if (r + 1 < 8 && c - 1 >= 0 && isWhitePiece(board[r+1][c-1])) moves.push({r: r+1, c: c-1});
                 if (r + 1 < 8 && c + 1 < 8 && isWhitePiece(board[r+1][c+1])) moves.push({r: r+1, c: c+1});
             }
 
-            // ២. ច្បាប់គ្រាប់រាជ (♔/♚) និង នាង (♕/♛) - ដើរបាន ១ អូគ្រប់ទិស
+            // ២. ច្បាប់គ្រាប់រាជ និង នាង - ដើរបាន ១ អូគ្រប់ទិស
             else if (piece === "♔" || piece === "♚" || piece === "♕" || piece === "♛") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
@@ -121,7 +122,7 @@ HTML_CONTENT = """
                 }
             }
 
-            // ៣. ច្បាប់គ្រាប់គូទ (♖/♜) - ដើរបណ្តោយបញ្ឈរ និងផ្ដេកឆ្ងាយ
+            // ៣. ច្បាប់គ្រាប់គូទ - ដើរបណ្តោយបញ្ឈរ និងផ្ដេកឆ្ងាយ
             else if (piece === "♖" || piece === "♜") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1]];
                 for (let d of directions) {
@@ -143,7 +144,7 @@ HTML_CONTENT = """
                 }
             }
 
-            // ៤. ច្បាប់គ្រាប់សេះ (♘/♞) - ដើរអក្សរ L
+            // ៤. ច្បាប់គ្រាប់សេះ - ដើរអក្សរ L
             else if (piece === "♘" || piece === "♞") {
                 let knightMoves = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
                 for (let m of knightMoves) {
@@ -157,11 +158,11 @@ HTML_CONTENT = """
                 }
             }
 
-            // ៥. ច្បាប់គ្រាប់គោ (♗/♝) - ដើរទម្រេត ១ អូគ្រប់ទិស ឬទៅមុខ ១ អូ
+            // ៥. ច្បាប់គ្រាប់គោ - ដើរទម្រេត ១ អូគ្រប់ទិស ឬទៅមុខ ១ អូ
             else if (piece === "♗" || piece === "♝") {
                 let elephantMoves = [
-                    [-1,-1], [-1,1], [1,-1], [1,1], // ទម្រេត ៤ ជ្រុង
-                    isWhite ? [-1,0] : [1,0]        // ទៅមុខ ១ អូ
+                    [-1,-1], [-1,1], [1,-1], [1,1],
+                    isWhite ? [-1,0] : [1,0]
                 ];
                 for (let m of elephantMoves) {
                     let nr = r + m[0], nc = c + m[1];
@@ -191,7 +192,6 @@ HTML_CONTENT = """
                         square.classList.add("selected");
                     }
 
-                    // បង្ហាញកន្លែងដែលສາມາດដើរបាន
                     if (validMoves.some(m => m.r === r && m.c === c)) {
                         square.classList.add("highlight");
                     }
@@ -207,17 +207,15 @@ HTML_CONTENT = """
             const clickedPiece = board[r][c];
 
             if (selectedPiece) {
-                // ពិនិត្យមើលថាតើទិសដៅដែលចុចត្រឹមត្រូវតាមច្បាប់ដែរឬទេ
                 let isValid = validMoves.some(m => m.r === r && m.c === c);
                 if (isValid) {
                     board[r][c] = selectedPiece.piece;
                     board[selectedPiece.r][selectedPiece.c] = "";
 
-                    // ក្បួនប្រែក្លាយគ្រាប់ត្រីទៅជានាង (Promotion)
-                    if (selectedPiece.piece === "♙" && r === 2) board[r][c] = "♕"; // ត្រីសដល់ជួរទី 3 (ពីលើរាប់ចុះ) ក្លាយជានាង
-                    if (selectedPiece.piece === "♟" && r === 5) board[r][c] = "♛"; // ត្រីខ្មៅដល់ជួរទី 6 ក្លាយជានាង
+                    // ក្បួនប្រែក្លាយគ្រាប់ត្រីទៅជានាងពេលដល់ជួរកំណត់
+                    if (selectedPiece.piece === "♙" && r === 3) board[r][c] = "♕"; 
+                    if (selectedPiece.piece === "♟" && r === 4) board[r][c] = "♛"; 
 
-                    // ប្តូរវេនលេង
                     turn = turn === 'white' ? 'black' : 'white';
                     document.getElementById("status").textContent = `វេនអ្នកលេង៖ ${turn === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
                 }
@@ -225,7 +223,6 @@ HTML_CONTENT = """
                 validMoves = [];
                 renderBoard();
             } else if (clickedPiece !== "") {
-                // ត្រួតពិនិត្យថាជាគ្រាប់របស់ខ្លួនឯងឬអត់
                 if ((turn === 'white' && isWhitePiece(clickedPiece)) || (turn === 'black' && isBlackPiece(clickedPiece))) {
                     selectedPiece = { r, c, piece: clickedPiece };
                     validMoves = getValidMoves(r, c, clickedPiece);
