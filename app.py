@@ -9,18 +9,18 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហ្គេមអុកខ្មែរអនឡាញ</title>
+    <title>ហ្គេមអុកខ្មែរ (Ok Chaktrong Standard)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f4f6f9;
             text-align: center;
             margin: 0;
             padding: 20px;
             color: #333;
         }
         h1 {
-            color: #b30000;
+            color: #8B0000;
             margin-bottom: 5px;
         }
         #status {
@@ -30,7 +30,7 @@ HTML_CONTENT = """
             color: #444;
             background: #fff;
             display: inline-block;
-            padding: 8px 20px;
+            padding: 8px 25px;
             border-radius: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -72,16 +72,16 @@ HTML_CONTENT = """
     <div id="board"></div>
 
     <script>
-        // ការរៀបចំទីតាំងដំបូងត្រឹមត្រូវតាមក្បួនអុកខ្មែរ
+        // ការរៀបចំក្តារខៀនដំបូងតាមស្តង់ដារអុកខ្មែរ
         const initialBoard = [
-            ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"], // 0: គ្រាប់ធំខ្មៅ
-            ["", "", "", "", "", "", "", ""],         // 1: ទទេ
-            ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"], // 2: ត្រីខ្មៅ
-            ["", "", "", "", "", "", "", ""],         // 3: ទទេ
-            ["", "", "", "", "", "", "", ""],         // 4: ទទេ
-            ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"], // 5: ត្រីស
-            ["", "", "", "", "", "", "", ""],         // 6: ទទេ
-            ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]  // 7: គ្រាប់ធំស
+            ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"], // ជួរ 0: គ្រាប់ធំខ្មៅ
+            ["", "", "", "", "", "", "", ""],         // ជួរ 1: ទទេ
+            ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"], // ជួរ 2: ត្រីខ្មៅ
+            ["", "", "", "", "", "", "", ""],         // ជួរ 3: ទទេ
+            ["", "", "", "", "", "", "", ""],         // ជួរ 4: ទទេ
+            ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"], // ជួរ 5: ត្រីស
+            ["", "", "", "", "", "", "", ""],         // ជួរ 6: ទទេ
+            ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]  // ជួរ 7: គ្រាប់ធំស
         ];
 
         let board = JSON.parse(JSON.stringify(initialBoard));
@@ -101,7 +101,7 @@ HTML_CONTENT = """
             let moves = [];
             let isWhite = isWhitePiece(piece);
 
-            // ច្បាប់គ្រាប់ត្រី (ដើរទៅមុខ ១ អូ និងស៊ីទាស់)
+            // ១. ច្បាប់គ្រាប់ត្រី (ដើរទៅមុខ ១ អូ និងស៊ីទាស់ខ្វែង ១ អូ)
             if (piece === "♙") { 
                 let nr = r - 1;
                 if (nr >= 0 && board[nr][c] === "") moves.push({r: nr, c: c});
@@ -114,7 +114,7 @@ HTML_CONTENT = """
                 if (r + 1 < 8 && c + 1 < 8 && isWhitePiece(board[r+1][c+1])) moves.push({r: r+1, c: c+1});
             }
 
-            // រាជ និង នាង (ដើរ ១ អូគ្រប់ទិស)
+            // ២. រាជ និង នាង (ដើរ ១ អូគ្រប់ទិសទាំង ៨)
             else if (piece === "♔" || piece === "♚" || piece === "♕" || piece === "♛") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
@@ -128,7 +128,7 @@ HTML_CONTENT = """
                 }
             }
 
-            // គូទ (ដើរបណ្តោយបញ្ឈរ និងផ្ដេក)
+            // ៣. គូទ (ដើរបណ្តោយបញ្ឈរ និងផ្តេក ចម្ងាយគ្មានកំណត់)
             else if (piece === "♖" || piece === "♜") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1]];
                 for (let d of directions) {
@@ -150,7 +150,7 @@ HTML_CONTENT = """
                 }
             }
 
-            // សេះ (ដើរអក្សរ L)
+            // ៤. សេះ (ដើរលោតរូបអក្សរ L)
             else if (piece === "♘" || piece === "♞") {
                 let knightMoves = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
                 for (let m of knightMoves) {
@@ -164,7 +164,7 @@ HTML_CONTENT = """
                 }
             }
 
-            // គោ (ដើរទម្រេត ១ អូ ឬទៅមុខ ១ អូ)
+            // ៥. គោ (ដើរទម្រេត ១ អូគ្រប់ទិស ឬទៅមុខ ១ អូ)
             else if (piece === "♗" || piece === "♝") {
                 let elephantMoves = [
                     [-1,-1], [-1,1], [1,-1], [1,1],
@@ -217,8 +217,9 @@ HTML_CONTENT = """
                 if (isValid) {
                     let movingPiece = selectedPiece.piece;
 
-                    // ក្បួនប្រែក្លាយគ្រាប់ត្រីទៅជានាង៖ 
-                    // ត្រីស (♙) ដល់ជួរទី 2 (index 2) ឬត្រីខ្មៅ (♟) ដល់ជួរទី 5 (index 5)
+                    // ច្បាប់ស្តង់ដារអុកខ្មែរ៖ 
+                    // - ត្រីស (♙) ដើរដល់ជួរទី 3 ពីលើ (Index 2) ប្រែក្លាយជานាង (♕)
+                    // - ត្រីខ្មៅ (♟) ដើរដល់ជួរទី 6 ពីលើ (Index 5) ប្រែក្លាយជានាង (♛)
                     if (movingPiece === "♙" && r === 2) {
                         movingPiece = "♕";
                     } else if (movingPiece === "♟" && r === 5) {
