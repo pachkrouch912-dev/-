@@ -9,7 +9,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>អុកខ្មែរអនឡាញ - 8-Ball Pool Style</title>
+    <title>អុកខ្មែរអនឡាញ </title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -80,7 +80,6 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
 
-        /* ក្ដារអុកលំអរ (Deco Board) មាន Width = Height ស្មើគ្នា */
         .deco-board-container {
             margin: 15px 0; width: 100%; display: flex; flex-direction: column; align-items: center;
         }
@@ -106,7 +105,6 @@ HTML_CONTENT = """
         .leaderboard-title { color: #f1c40f; font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 8px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* ក្ដារអុកប្រកួត (Game Board) ឱ្យ Width = Height ស្មើគ្នា (1:1) យ៉ាងល្អឥតខ្ចោះ */
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
@@ -142,14 +140,12 @@ HTML_CONTENT = """
     <div class="container">
         <h1>♟️ អុកខ្មែរអនឡាញ (8-Ball Pool Style) ♟️</h1>
 
-        <!-- ផ្នែកចូលឈ្មោះ -->
         <div id="login-box" class="card">
             <h3 style="color: #f1c40f; margin-top: 0;">ចូលរួមលេងហ្គេម</h3>
             <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
             <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
         </div>
 
-        <!-- ម៉ឺនុយដើម -->
         <div id="main-menu" class="card hidden">
             <div class="user-profile">
                 <span id="welcome-msg" style="color: #f1c40f;"></span>
@@ -171,7 +167,6 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- កន្លែងលេងអុក -->
         <div id="game-container" class="hidden">
             <h3 id="room-title" style="color: #f1c40f; margin: 5px 0;">បន្ទប់ប្រកួត</h3>
             <div id="status" style="background: rgba(0,0,0,0.6); padding: 8px 18px; border-radius: 20px; display:inline-block; font-weight:bold; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
@@ -180,7 +175,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -327,7 +321,7 @@ HTML_CONTENT = """
                 await joinRoomProcess(targetRoom);
             } catch (error) {
                 console.error("Quick Match Error: ", error);
-                alert("មានបញ្ហាក្នុងការចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
+                alert("មានបញ្ហាក្នុងการចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
             }
         }
 
@@ -439,16 +433,107 @@ HTML_CONTENT = """
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
+        // កែសម្រួលច្បាប់ដើររបស់គ្រាប់អុកខ្មែរនីមួយៗឱ្យបានត្រឹមត្រូវ
         function getValidMoves(r, c, piece) {
             let moves = [];
             let isWhite = isWhitePiece(piece);
-            let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
-            for (let d of directions) {
-                let nr = r + d[0], nc = c + d[1];
-                if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                    let target = board[nr][nc];
-                    if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                        moves.push({r: nr, c: nc});
+
+            // 1. សលក (King): ដើរ ១ ក្រឡាគ្រប់ទិស
+            if (piece === "♔" || piece === "♚") {
+                let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
+                for (let d of directions) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = board[nr][nc];
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            }
+            // 2. នាង (Queen): ដើរ ១ ក្រឡាតាមអង្កត់ទ្រូងទាំង ៤
+            else if (piece === "♕" || piece === "♛") {
+                let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
+                for (let d of directions) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = board[nr][nc];
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            }
+            // 3. គោ (Bishop): ដើរ ១ ក្រឡាតាមទ្រូង ឬ ១ក្រឡាទៅមុខត្រង់
+            else if (piece === "♗" || piece === "♝") {
+                let directions = isWhite ? [[-1,0], [-1,-1], [-1,1], [1,-1], [1,1]] : [[1,0], [-1,-1], [-1,1], [1,-1], [1,1]];
+                for (let d of directions) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = board[nr][nc];
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            }
+            // 4. សេះ (Knight): រាងអក្សរ L (លោតបាន)
+            else if (piece === "♘" || piece === "♞") {
+                let jmps = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
+                for (let d of jmps) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = board[nr][nc];
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            }
+            // 5. ទូក (Rook): ដើរបញ្ឈរ និងផ្តេក បានច្រើនក្រឡា
+            else if (piece === "♖" || piece === "♜") {
+                let directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                for (let d of directions) {
+                    let step = 1;
+                    while (true) {
+                        let nr = r + d[0] * step, nc = c + d[1] * step;
+                        if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
+                        let target = board[nr][nc];
+                        if (target === "") {
+                            moves.push({r: nr, c: nc});
+                        } else {
+                            if ((isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                                moves.push({r: nr, c: nc});
+                            }
+                            break;
+                        }
+                        step++;
+                    }
+                }
+            }
+            // 6. ត្រី / កង (Pawn): ដើរ ១ ក្រឡាទៅមុខ, ស៊ីទិសទ្រូង ១ ក្រឡា
+            else if (piece === "♙" || piece === "♟") {
+                let fwd = isWhite ? -1 : 1;
+                // ដើរទៅមុខត្រង់
+                let nr = r + fwd, nc = c;
+                if (nr >= 0 && nr < 8 && board[nr][nc] === "") {
+                    moves.push({r: nr, c: nc});
+                }
+                // ស៊ី oblique (ឆៀងឆ្វេង/ស្តាំ)
+                let leftCol = c - 1;
+                let rightCol = c + 1;
+                if (nr >= 0 && nr < 8) {
+                    if (leftCol >= 0) {
+                        let targetLeft = board[nr][leftCol];
+                        if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) {
+                            moves.push({r: nr, c: leftCol});
+                        }
+                    }
+                    if (rightCol < 8) {
+                        let targetRight = board[nr][rightCol];
+                        if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) {
+                            moves.push({r: nr, c: rightCol});
+                        }
                     }
                 }
             }
@@ -549,4 +634,3 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
-
