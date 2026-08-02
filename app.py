@@ -80,6 +80,24 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
 
+        /* ក្ដារអុកសម្រាប់លំអរលើទំព័រដើម */
+        .deco-board-container {
+            margin-top: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+        .deco-board {
+            display: grid; grid-template-columns: repeat(8, 26px);
+            grid-template-rows: repeat(8, 26px); gap: 1px;
+            border: 3px solid #8e44ad; background-color: #8e44ad;
+            border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .deco-square {
+            width: 26px; height: 26px; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 16px; user-select: none;
+        }
+        .deco-light { background-color: #f5cba7; color: #000; }
+        .deco-dark { background-color: #d35400; color: #fff; }
+
         #board {
             display: grid; grid-template-columns: repeat(8, 42px);
             grid-template-rows: repeat(8, 42px); gap: 2px;
@@ -133,6 +151,12 @@ HTML_CONTENT = """
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)"><br>
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
+
+            <!-- ក្ដារអុកលំអរនៅលើម៉ឺនុយដើម -->
+            <div class="deco-board-container">
+                <div style="font-size: 13px; color: #f1c40f; margin-bottom: 6px;">✨ សង្វៀនអុកខ្មែរ ✨</div>
+                <div class="deco-board" id="decoBoard"></div>
+            </div>
         </div>
 
         <!-- កន្លែងលេងអុក -->
@@ -184,11 +208,30 @@ HTML_CONTENT = """
         let selectedPiece = null;
         let validMoves = [];
 
+        // បង្កើតក្ដារអុកលំអរពេលបើកទំព័រ
+        function renderDecoBoard() {
+            const decoEl = document.getElementById("decoBoard");
+            decoEl.innerHTML = "";
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const sq = document.createElement("div");
+                    sq.className = "deco-square " + ((r + c) % 2 === 0 ? "deco-light" : "deco-dark");
+                    let p = initialBoard[r][c];
+                    if (p !== "") {
+                        sq.textContent = p;
+                        sq.style.color = ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p) ? "#fff" : "#111";
+                        sq.style.textShadow = "0 1px 2px #000";
+                    }
+                    decoEl.appendChild(sq);
+                }
+            }
+        }
+        renderDecoBoard();
+
         window.loginUser = async function() {
             let rawName = document.getElementById("playerName").value.trim();
             if (!rawName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
             
-            // ការពារសញ្ញាពិសេសក្នុង Firebase Key
             myName = rawName.replace(/[.#$\/\[\]]/g, "_");
 
             const userRef = ref(db, `users/${myName}`);
@@ -197,7 +240,7 @@ HTML_CONTENT = """
             if (userSnap.exists()) {
                 myCoins = userSnap.val().coins || 1000;
             } else {
-                myCoins = 1000; // ចំនួនកាក់ពេលបង្កើតគណនីថ្មីដំបូង
+                myCoins = 1000; 
                 await set(userRef, { name: myName, coins: myCoins });
             }
 
@@ -311,11 +354,10 @@ HTML_CONTENT = """
                 board = data.board;
                 turn = data.turn;
                 
-                // ប្រសិនបើមានអ្នកឈ្នះ ហើយទើបតែដូរស្ថានភាពហ្គេម
                 if (data.gameOver && !gameOver) {
                     gameOver = true;
                     if (data.winnerRole === myRole) {
-                        myCoins += 100; // បានរង្វាន់ 100 កាក់ពេលឈ្នះ
+                        myCoins += 100; 
                         await update(ref(db, `users/${myName}`), { coins: myCoins });
                         document.getElementById("userCoins").textContent = myCoins;
                         alert("🎉 សូមអបអរសាទរ! អ្នកទទួលបាន 100 កាក់!");
