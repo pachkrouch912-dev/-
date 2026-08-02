@@ -6,11 +6,10 @@ import random
 app = FastAPI()
 
 rooms = {}
-# ប្រព័ន្ធគ្រប់គ្រងអ្នកលេង កាក់ និងទួរនេម៉ង់
-players_db = {} # {"ឈ្មោះ": {"coins": 100, "ws": websocket}}
+players_db = {} 
 tournament = {
     "players": [],
-    "rounds": [], # រក្សាទុកវគ្គនីមួយៗនៃការប្រកួត (ចន្លោះពី 4 ទៅ 5 វគ្គ)
+    "rounds": [], 
     "current_round": 0,
     "status": "waiting"
 }
@@ -21,28 +20,43 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហ្គេមអុកខ្មែរអនឡាញ - 8 Ball Pool Style</title>
+    <title>អុកខ្មែរអនឡាញ - 8 Ball Pool Style</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             text-align: center;
             margin: 0;
             padding: 20px;
             color: #fff;
+            min-height: 100vh;
         }
-        h1 { color: #f1c40f; margin-bottom: 5px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        h1 { 
+            color: #f1c40f; 
+            margin-bottom: 5px; 
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #f1c40f; }
+            to { text-shadow: 0 0 20px #f39c12, 0 0 30px #e67e22; }
+        }
         .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
             padding: 25px;
-            border-radius: 15px;
+            border-radius: 16px;
             display: inline-block;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            margin-top: 20px;
-            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-top: 15px;
+            max-width: 480px;
             width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         input {
             padding: 12px;
@@ -54,6 +68,7 @@ HTML_CONTENT = """
             background: rgba(255, 255, 255, 0.9);
             color: #333;
             text-align: center;
+            outline: none;
         }
         button {
             padding: 12px 24px;
@@ -65,29 +80,34 @@ HTML_CONTENT = """
             border-radius: 8px;
             cursor: pointer;
             margin: 8px;
-            transition: 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
             width: 90%;
         }
-        button:hover { background-color: #d35400; transform: translateY(-2px); }
-        .btn-green { background-color: #27ae60; }
-        .btn-green:hover { background-color: #219653; }
-        .btn-blue { background-color: #2980b9; }
-        .btn-blue:hover { background-color: #1f618d; }
+        button:hover { 
+            background-color: #d35400; 
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(230, 126, 34, 0.6);
+        }
+        .btn-green { background-color: #27ae60; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4); }
+        .btn-green:hover { background-color: #219653; box-shadow: 0 6px 20px rgba(39, 174, 96, 0.6); }
+        .btn-blue { background-color: #2980b9; box-shadow: 0 4px 15px rgba(41, 128, 185, 0.4); }
+        .btn-blue:hover { background-color: #1f618d; box-shadow: 0 6px 20px rgba(41, 128, 185, 0.6); }
         
         #wallet {
             font-size: 20px;
             font-weight: bold;
             color: #f1c40f;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             padding: 10px 20px;
             border-radius: 30px;
             display: inline-block;
             margin-bottom: 15px;
             border: 1px solid #f1c40f;
+            box-shadow: inset 0 0 10px rgba(241, 196, 15, 0.3);
         }
         .match-card {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.25);
             padding: 10px;
             margin: 8px 0;
             border-radius: 8px;
@@ -95,7 +115,41 @@ HTML_CONTENT = """
             justify-content: space-between;
             align-items: center;
             font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
+
+        /* ស្ទីលក្ដារអុកតូចមាន Animation នៅទំព័រដើម */
+        .preview-board {
+            display: grid;
+            grid-template-columns: repeat(8, 32px);
+            grid-template-rows: repeat(8, 32px);
+            gap: 1px;
+            justify-content: center;
+            margin: 15px auto;
+            border: 3px solid #5c3a21;
+            background-color: #5c3a21;
+            border-radius: 6px;
+            width: max-content;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            animation: floatBoard 4s ease-in-out infinite alternate;
+        }
+        @keyframes floatBoard {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-8px); }
+        }
+        .p-square {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .p-light { background-color: #f0d9b5; color: #000; }
+        .p-dark { background-color: #b58863; color: #000; }
+
+        /* ក្ដារអុកសម្រាប់លេងពិតប្រាកដ */
         #board {
             display: grid;
             grid-template-columns: repeat(8, 48px);
@@ -132,9 +186,12 @@ HTML_CONTENT = """
 
     <h1>♟️ អុកខ្មែរអនឡាញ (Ok Chaktrong) ♟️</h1>
 
-    <!-- វគ្គចូលឈ្មោះ និងបង្ហាញកាក់ -->
+    <!-- វគ្គចូលឈ្មោះ និងបង្ហាញក្ដារអុក Animation ខាងដើម -->
     <div id="login-box" class="card">
         <h3>ចូលរួមលេងហ្គេម</h3>
+        <!-- ក្ដារអុកតូចមាន Animation រស់រវើក -->
+        <div class="preview-board" id="previewBoard"></div>
+        <p style="font-size: 13px; color: #f1c40f; margin: 5px 0 15px 0;">✨ សូមស្វាគមន៍មកកាន់ពិភពអុកខ្មែរដ៏រស់រវើក ✨</p>
         <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
         <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
     </div>
@@ -187,6 +244,29 @@ HTML_CONTENT = """
             ["", "", "", "", "", "", "", ""],
             ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
         ];
+
+        // បង្កើតក្ដារអុក Animation តូចនៅទំព័រដើម
+        function renderPreviewBoard() {
+            const previewEl = document.getElementById("previewBoard");
+            previewEl.innerHTML = "";
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const sq = document.createElement("div");
+                    sq.className = "p-square " + ((r + c) % 2 === 0 ? "p-light" : "p-dark");
+                    let p = initialBoard[r][c];
+                    if (p !== "") {
+                        let span = document.createElement("span");
+                        span.textContent = p;
+                        span.style.color = ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p) ? "#fff" : "#111";
+                        span.style.textShadow = "1px 1px 2px rgba(0,0,0,0.5)";
+                        sq.appendChild(span);
+                    }
+                    previewEl.appendChild(sq);
+                }
+            }
+        }
+        renderPreviewBoard();
+
         let board = JSON.parse(JSON.stringify(initialBoard));
         let selectedPiece = null;
         let turn = 'white';
@@ -293,7 +373,7 @@ HTML_CONTENT = """
             globalWs.send(JSON.stringify({ type: "start_tournament" }));
         }
 
-        //  logic ដើរគ្រាប់អុក
+        // Logic ដើរគ្រាប់អុក
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
@@ -388,7 +468,7 @@ async def root():
 async def global_ws(websocket: WebSocket, name: str):
     await websocket.accept()
     if name not in players_db:
-        players_db[name] = {"coins": 100, "ws": websocket} # 🎁 ផ្ដល់ជូនកាក់ស្វាគមន៍ ១០០ ពេលចូលដំបូង
+        players_db[name] = {"coins": 100, "ws": websocket}
     else:
         players_db[name]["ws"] = websocket
 
@@ -402,7 +482,6 @@ async def global_ws(websocket: WebSocket, name: str):
             if packet["type"] == "join_tournament":
                 if name not in tournament["players"]:
                     tournament["players"].append(name)
-                # ส่งข้อมูลทัวร์นาเมนต์ให้ทุกคนเห็น
                 tour_payload = json.dumps({"type": "tour_update", **tournament})
                 for conn in global_connections:
                     await conn.send_text(tour_payload)
@@ -465,7 +544,7 @@ async def room_ws(websocket: WebSocket, room_id: str, name: str):
                     winner_role = "white" if "ស" in packet["message"] else "black"
                     winner_name = room["players"].get(winner_role, {}).get("name")
                     if winner_name and winner_name in players_db:
-                        players_db[winner_name]["coins"] += 50 # 💰 ឈ្នះបាន 50 កាក់បន្ថែម
+                        players_db[winner_name]["coins"] += 50
                         await broadcast_global()
 
                 for p in room["players"].values():
