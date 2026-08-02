@@ -4,7 +4,6 @@ import json
 
 app = FastAPI()
 
-# เก็บข้อมูลห้องเล่นเกม (Rooms)
 rooms = {}
 
 HTML_CONTENT = """
@@ -13,7 +12,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហ្គេមអុកខ្មែរអនឡាញ (Ok Chaktrong Online)</title>
+    <title>ហ្គេមអុកខ្មែរអនឡាញ (Ok Chaktrong + Score)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -50,10 +49,21 @@ HTML_CONTENT = """
             margin: 5px;
         }
         button:hover { background-color: #a80000; }
+        
+        #scoreboard {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2c3e50;
+            background: #eef2f7;
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 15px;
+        }
         #status {
             font-size: 18px;
             font-weight: bold;
-            margin: 15px 0;
+            margin: 10px 0;
             color: #444;
             background: #fff;
             display: inline-block;
@@ -100,28 +110,33 @@ HTML_CONTENT = """
             text-shadow: 1px 1px 2px #fff, 0 0 1em #fff, 0 0 0.2em #fff;
         }
         .hidden { display: none; }
+        #restart-btn {
+            background-color: #27ae60;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
     <h1>♟️ ហ្គេមអុកខ្មែរអនឡាញ (Ok Chaktrong) ♟️</h1>
 
-    <!-- ប្រអប់ចូលបន្ទប់ -->
     <div id="menu" class="box">
         <h3>ចូលបន្ទប់លេងហ្គេម</h3>
         <input type="text" id="roomInput" placeholder="បញ្ចូលលេខបន្ទប់ (ឧ. 123)"><br>
         <button onclick="joinRoom()">ចូលលេង</button>
     </div>
 
-    <!-- ប្រអប់បង្ហាញហ្គេម -->
     <div id="game-container" class="hidden">
+        <div id="scoreboard">ពិន្ទុ៖ ⚪ ស [ <span id="whiteScore">0</span> ] - [ <span id="blackScore">0</span> ] ⚫ ខ្មៅ</div><br>
         <div id="status">កំពុងរង់ចាំគូប្រកួត...</div>
         <div id="board"></div>
+        <button id="restart-btn" onclick="requestRestart()">លេងសារថ្មី (Restart)</button>
     </div>
 
     <script>
         let ws = null;
-        let myRole = null; // 'white' ឬ 'black'
+        let myRole = null;
         let roomCode = null;
 
         const initialBoard = [
@@ -165,6 +180,16 @@ HTML_CONTENT = """
                     turn = data.turn;
                     gameOver = data.gameOver;
                     document.getElementById("status").textContent = data.message;
+                    
+                    document.getElementById("whiteScore").textContent = data.whiteScore;
+                    document.getElementById("blackScore").textContent = data.blackScore;
+
+                    if (gameOver) {
+                        document.getElementById("restart-btn").style.display = "inline-block";
+                    } else {
+                        document.getElementById("restart-btn").style.display = "none";
+                    }
+
                     selectedPiece = null;
                     validMoves = [];
                     renderBoard();
@@ -173,6 +198,10 @@ HTML_CONTENT = """
                     location.reload();
                 }
             };
+        }
+
+        function requestRestart() {
+            ws.send(JSON.stringify({ type: "restart" }));
         }
 
         function isWhitePiece(piece) {
@@ -307,14 +336,14 @@ HTML_CONTENT = """
                     let targetPiece = board[r][c];
                     let movingPiece = selectedPiece.piece;
                     let isGameOver = false;
-                    let message = "";
+                    let winningColor = null;
 
                     if (targetPiece === "♚") {
                         isGameOver = true;
-                        message = "🎉 ភាគី «ស» បានឈ្នះ!";
+                        winningColor = "white";
                     } else if (targetPiece === "♔") {
                         isGameOver = true;
-                        message = "🎉 ភាគី «ខ្មៅ» បានឈ្នះ!";
+                        winningColor = "black";
                     }
 
                     if (movingPiece === "♙" && r === 2) movingPiece = "♕";
@@ -324,17 +353,13 @@ HTML_CONTENT = """
                     board[selectedPiece.r][selectedPiece.c] = "";
 
                     let nextTurn = turn === 'white' ? 'black' : 'white';
-                    if (!isGameOver) {
-                        message = `វេនអ្នកលេង៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`;
-                    }
 
-                    // ផ្ញើទិន្នន័យទៅ Server តាម WebSocket
                     ws.send(JSON.stringify({
                         type: "move",
                         board: board,
                         turn: nextTurn,
                         gameOver: isGameOver,
-                        message: message
+                        winningColor: winningColor
                     }));
                 }
                 selectedPiece = null;
@@ -353,7 +378,6 @@ HTML_CONTENT = """
 </html>
 """
 
-# จัดการการเชื่อมต่อ WebSocket តាមห้อง
 class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[str, list[WebSocket]] = {}
@@ -398,12 +422,13 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
             "turn": "white",
             "gameOver": False,
             "message": "វេនអ្នកលេង៖ ស (ខាងក្រោម)",
+            "whiteScore": 0,
+            "blackScore": 0,
             "players": []
         }
 
     room = rooms[room_id]
     
-    # កំណត់តួនាទីអ្នកចូលលេង (មនុស្សទី១ ជា ស, មនុស្សទី២ ជា ខ្មៅ)
     if len(room["players"]) >= 2:
         await websocket.accept()
         await websocket.send_text(json.dumps({"type": "error", "message": "បន្ទប់នេះមានអ្នកចូលពេញហើយ!"}))
@@ -415,7 +440,6 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
 
     await manager.connect(room_id, websocket)
     
-    # ផ្ញើដំណឹងប្រាប់តួនាទី និងស្ថានភាពក្តារបច្ចុប្បន្ន
     await websocket.send_text(json.dumps({
         "type": "init",
         "role": role
@@ -426,7 +450,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
         "board": room["board"],
         "turn": room["turn"],
         "gameOver": room["gameOver"],
-        "message": room["message"]
+        "message": room["message"],
+        "whiteScore": room["whiteScore"],
+        "blackScore": room["blackScore"]
     })
 
     try:
@@ -438,15 +464,53 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str):
                 room["board"] = packet["board"]
                 room["turn"] = packet["turn"]
                 room["gameOver"] = packet["gameOver"]
-                room["message"] = packet["message"]
+
+                if packet["gameOver"]:
+                    if packet["winningColor"] == "white":
+                        room["whiteScore"] += 1
+                        room["message"] = "🎉 ភាគី «ស» បានឈ្នះជុំនេះ!"
+                    else:
+                        room["blackScore"] += 1
+                        room["message"] = "🎉 ភាគី «ខ្មៅ» បានឈ្នះជុំនេះ!"
+                else:
+                    room["message"] = f"វេនអ្នកលេង៖ {'ស' if room['turn'] == 'white' else 'ខ្មៅ'}"
 
                 await manager.broadcast(room_id, {
                     "type": "update",
                     "board": room["board"],
                     "turn": room["turn"],
                     "gameOver": room["gameOver"],
-                    "message": room["message"]
+                    "message": room["message"],
+                    "whiteScore": room["whiteScore"],
+                    "blackScore": room["blackScore"]
                 })
+            
+            elif packet["type"] == "restart":
+                # កំណត់ក្តារខៀនសារថ្មីពេលចង់លេងតទៀត
+                room["board"] = json.loads(json.dumps([
+                    ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
+                    ["", "", "", "", "", "", "", ""],
+                    ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"],
+                    ["", "", "", "", "", "", "", ""],
+                    ["", "", "", "", "", "", "", ""],
+                    ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"],
+                    ["", "", "", "", "", "", "", ""],
+                    ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
+                ]))
+                room["turn"] = "white"
+                room["gameOver"] = False
+                room["message"] = "វេនអ្នកលេង៖ ស (ខាងក្រោម)"
+
+                await manager.broadcast(room_id, {
+                    "type": "update",
+                    "board": room["board"],
+                    "turn": room["turn"],
+                    "gameOver": room["gameOver"],
+                    "message": room["message"],
+                    "whiteScore": room["whiteScore"],
+                    "blackScore": room["blackScore"]
+                })
+
     except WebSocketDisconnect:
         manager.disconnect(room_id, websocket)
         if room_id in rooms and websocket in rooms[room_id]["players"]:
