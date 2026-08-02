@@ -198,7 +198,8 @@ HTML_CONTENT = """
     <!-- ម៉ឺនុយដើររចនាបថ 8 Ball Pool -->
     <div id="main-menu" class="card hidden">
         <div id="wallet">💰 កាក់របស់អ្នក៖ <span id="coinBalance">100</span> 🪙</div><br>
-        <button class="btn-blue" onclick="showDirectPlay()">🎮 លេង ១ទល់១ (1v1 Room)</button>
+        <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
+        <button class="btn-blue" onclick="showDirectPlay()">🎮 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន (1v1 Room)</button>
         <button onclick="showTournament()">🏆 ប្រកួតជម្រុះ (4-5 Rounds)</button>
     </div>
 
@@ -224,7 +225,6 @@ HTML_CONTENT = """
         <h3 id="room-title">បន្ទប់ប្រកួត</h3>
         <div id="status" style="background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 15px; display:inline-block; font-weight:bold; margin-bottom: 10px;">រង់ចាំគូប្រកួត...</div>
         <div id="board"></div>
-        <!-- ប៊ូតុងចាកចេញមានទំហំល្មមសមរម្យ -->
         <button class="btn-green" style="width: 200px; margin-top: 15px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
     </div>
 
@@ -295,6 +295,18 @@ HTML_CONTENT = """
             };
         }
 
+        async function quickJoinRoom() {
+            let response = await fetch('/api/get-waiting-room');
+            let data = await response.json();
+            
+            if (data.room_id) {
+                currentRoom = data.room_id;
+            } else {
+                currentRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
+            }
+            joinRoom('quick');
+        }
+
         function showDirectPlay() {
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("direct-play-box").classList.remove("hidden");
@@ -313,7 +325,7 @@ HTML_CONTENT = """
         }
 
         function joinRoom(mode) {
-            let roomCode = mode === '1v1' ? document.getElementById("roomInput").value.trim() : currentRoom;
+            let roomCode = (mode === '1v1') ? document.getElementById("roomInput").value.trim() : currentRoom;
             if (!roomCode) {
                 alert("សូមបញ្ចូលលេខបន្ទប់!");
                 return;
@@ -321,6 +333,7 @@ HTML_CONTENT = """
             currentRoom = roomCode;
             document.getElementById("direct-play-box").classList.add("hidden");
             document.getElementById("tournament-lobby").classList.add("hidden");
+            document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("room-title").textContent = `បន្ទប់៖ ${roomCode}`;
 
@@ -465,6 +478,13 @@ async def broadcast_global():
 async def root():
     return HTML_CONTENT
 
+@app.get("/api/get-waiting-room")
+async def get_waiting_room():
+    for room_id, room_data in rooms.items():
+        if len(room_data["players"]) < 2 and not room_data["gameOver"]:
+            return {"room_id": room_id}
+    return {"room_id": None}
+
 @app.websocket("/ws/global")
 async def global_ws(websocket: WebSocket, name: str):
     await websocket.accept()
@@ -539,7 +559,6 @@ async def room_ws(websocket: WebSocket, room_id: str, name: str):
 
     await websocket.send_text(json.dumps({"type": "init", "role": role}))
 
-    # 👉 ផ្ញើសារ Update ទៅគ្រប់គ្នាភ្លាមៗពេលមានអ្នកលេងចូលគ្រប់ ២នាក់
     if len(room["players"]) == 2:
         room["message"] = "វេនអ្នកលេង៖ ស"
         for p in room["players"].values():
@@ -594,4 +613,3 @@ async def room_ws(websocket: WebSocket, room_id: str, name: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
-
