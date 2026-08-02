@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-
 app = FastAPI()
 
 HTML_CONTENT = """
@@ -37,6 +36,7 @@ HTML_CONTENT = """
         }
         button:hover { background-color: #d35400; transform: translateY(-2px); }
         .btn-green { background-color: #27ae60; }
+        .btn-blue { background-color: #2980b9; }
         
         #board {
             display: grid; grid-template-columns: repeat(8, 40px);
@@ -70,10 +70,13 @@ HTML_CONTENT = """
         <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
     </div>
 
-    <!-- ម៉ឺនុយដើម -->
+    <!-- ម៉ឺនុយដើម (មានប៊ូតុងទាំង៣ពេញលេញ) -->
     <div id="main-menu" class="card hidden">
         <h3 id="welcome-msg"></h3>
         <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
+        <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
+        <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)"><br>
+        <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
     </div>
 
     <!-- កន្លែងលេងអុក -->
@@ -122,7 +125,6 @@ HTML_CONTENT = """
         let gameOver = false;
         let selectedPiece = null;
         let validMoves = [];
-        let roomListener = null;
 
         window.loginUser = function() {
             myName = document.getElementById("playerName").value.trim();
@@ -161,8 +163,37 @@ HTML_CONTENT = """
                 });
             }
 
-            currentRoomId = targetRoom;
+            await joinRoomProcess(targetRoom);
+        }
+
+        window.createPrivateRoom = async function() {
+            const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
+            await set(ref(db, `rooms/${targetRoom}`), {
+                board: initialBoard,
+                turn: "white",
+                gameOver: false,
+                message: "រង់ចាំគូប្រកួត...",
+                players: {}
+            });
+            await joinRoomProcess(targetRoom);
+            alert(`បានបង្កើតបន្ទប់ដោយជោគជ័យ!\nកូដបន្ទប់របស់អ្នកគឺ៖ ${targetRoom}\nសូមផ្ញើកូដនេះទៅកាន់មិត្តភក្តិរបស់អ្នកដើម្បីចូលលេង។`);
+        }
+
+        window.joinPrivateRoom = async function() {
+            const rCode = document.getElementById("roomCodeInput").value.trim();
+            if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
             
+            const roomRef = ref(db, `rooms/${rCode}`);
+            const snapshot = await get(roomRef);
+            if (!snapshot.exists()) {
+                alert("រកមិនឃើញបន្ទប់នេះទេ!");
+                return;
+            }
+            await joinRoomProcess(rCode);
+        }
+
+        async function joinRoomProcess(roomId) {
+            currentRoomId = roomId;
             const playerRef = ref(db, `rooms/${currentRoomId}/players`);
             const pSnap = await get(playerRef);
             let players = pSnap.exists() ? pSnap.val() : {};
@@ -181,7 +212,7 @@ HTML_CONTENT = """
 
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
+            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : (myRole === 'black' ? 'ខ្មៅ' : 'អ្នកទស្សនា')})`;
 
             listenToRoom();
             renderBoard();
@@ -189,7 +220,7 @@ HTML_CONTENT = """
 
         function listenToRoom() {
             const roomRef = ref(db, `rooms/${currentRoomId}`);
-            roomListener = onValue(roomRef, (snapshot) => {
+            onValue(roomRef, (snapshot) => {
                 if (!snapshot.exists()) return;
                 const data = snapshot.val();
                 board = data.board;
@@ -198,7 +229,7 @@ HTML_CONTENT = """
                 
                 let pCount = data.players ? Object.keys(data.players).length : 0;
                 if (pCount < 2) {
-                    document.getElementById("status").textContent = "កំពុងរង់ចាំគូប្រកួតចូលលេង...";
+                    document.getElementById("status").textContent = `បន្ទប់៖ ${currentRoomId} - កំពុងរង់ចាំគូប្រកួត...`;
                 } else {
                     document.getElementById("status").textContent = data.message || `វេនអ្នកលេង៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
                 }
@@ -303,4 +334,3 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
-
