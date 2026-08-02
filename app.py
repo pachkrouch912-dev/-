@@ -31,18 +31,18 @@ HTML_CONTENT = """
             100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
         }
 
-        .container { position: relative; z-index: 1; }
+        .container { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; }
         
         h1 { 
             color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.7);
-            font-size: 26px; margin-bottom: 10px; letter-spacing: 1px;
+            font-size: 24px; margin-bottom: 10px; letter-spacing: 1px;
         }
 
         .card {
             background: rgba(15, 25, 35, 0.85); backdrop-filter: blur(15px);
-            padding: 25px; border-radius: 20px; display: inline-block;
+            padding: 20px; border-radius: 20px; display: inline-block;
             box-shadow: 0 15px 35px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
-            margin-top: 15px; max-width: 420px; width: 90%; 
+            margin-top: 15px; width: 100%; box-sizing: border-box;
             border: 2px solid rgba(241, 196, 15, 0.3);
             animation: fadeIn 0.5s ease-in-out;
         }
@@ -80,20 +80,28 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
 
-        /* ក្ដារអុកសម្រាប់លំអរលើទំព័រដើម */
+        /* តារាងជើងខ្លាំង (Leaderboard) */
+        .leaderboard-box {
+            margin-top: 15px; background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px; padding: 12px; border: 1px solid rgba(241, 196, 15, 0.2);
+            text-align: left; max-height: 160px; overflow-y: auto;
+        }
+        .leaderboard-title { color: #f1c40f; font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 8px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
         .deco-board-container {
-            margin-top: 20px; display: flex; flex-direction: column; align-items: center;
+            margin-top: 15px; display: flex; flex-direction: column; align-items: center;
         }
         .deco-board {
-            display: grid; grid-template-columns: repeat(8, 26px);
-            grid-template-rows: repeat(8, 26px); gap: 1px;
-            border: 3px solid #8e44ad; background-color: #8e44ad;
-            border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: grid; grid-template-columns: repeat(8, 22px);
+            grid-template-rows: repeat(8, 22px); gap: 1px;
+            border: 2px solid #8e44ad; background-color: #8e44ad;
+            border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
         .deco-square {
-            width: 26px; height: 26px; display: flex;
+            width: 22px; height: 22px; display: flex;
             align-items: center; justify-content: center;
-            font-size: 16px; user-select: none;
+            font-size: 14px; user-select: none;
         }
         .deco-light { background-color: #f5cba7; color: #000; }
         .deco-dark { background-color: #d35400; color: #fff; }
@@ -152,9 +160,14 @@ HTML_CONTENT = """
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)"><br>
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
 
+            <!-- តារាងបង្ហាញជើងខ្លាំង -->
+            <div class="leaderboard-box">
+                <div class="leaderboard-title">🏆 តារាងជើងខ្លាំងប្រចាំសង្វៀន 🏆</div>
+                <div id="leaderboardList">កំពុងទាញយក...</div>
+            </div>
+
             <!-- ក្ដារអុកលំអរនៅលើម៉ឺនុយដើម -->
             <div class="deco-board-container">
-                <div style="font-size: 13px; color: #f1c40f; margin-bottom: 6px;">✨ សង្វៀនអុកខ្មែរ ✨</div>
                 <div class="deco-board" id="decoBoard"></div>
             </div>
         </div>
@@ -199,6 +212,7 @@ HTML_CONTENT = """
         ];
 
         let myName = "";
+        let rawDisplayName = "";
         let myCoins = 0;
         let currentRoomId = "";
         let myRole = ""; 
@@ -208,7 +222,6 @@ HTML_CONTENT = """
         let selectedPiece = null;
         let validMoves = [];
 
-        // បង្កើតក្ដារអុកលំអរពេលបើកទំព័រ
         function renderDecoBoard() {
             const decoEl = document.getElementById("decoBoard");
             decoEl.innerHTML = "";
@@ -220,7 +233,6 @@ HTML_CONTENT = """
                     if (p !== "") {
                         sq.textContent = p;
                         sq.style.color = ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p) ? "#fff" : "#111";
-                        sq.style.textShadow = "0 1px 2px #000";
                     }
                     decoEl.appendChild(sq);
                 }
@@ -228,11 +240,42 @@ HTML_CONTENT = """
         }
         renderDecoBoard();
 
+        // មុខងារទាញយកតារាងជើងខ្លាំង (Leaderboard)
+        function loadLeaderboard() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                const lbEl = document.getElementById("leaderboardList");
+                if (!snapshot.exists()) {
+                    lbEl.innerHTML = "<div style='text-align:center; color:#888;'>មិនទាន់មានទិន្នន័យ</div>";
+                    return;
+                }
+                let usersData = snapshot.val();
+                let usersArray = [];
+                for (let u in usersData) {
+                    usersArray.push({
+                        name: usersData[u].name || u,
+                        coins: usersData[u].coins || 0
+                    });
+                }
+                // រៀបលំដាប់ពីអ្នកមានកាក់ច្រើនជាងគេទៅតិច
+                usersArray.sort((a, b) => b.coins - a.coins);
+
+                lbEl.innerHTML = "";
+                usersArray.slice(0, 5).forEach((user, index) => {
+                    let rankIcon = index === 0 ? "🥇" : (index === 1 ? "🥈" : (index === 2 ? "🥉" : `${index + 1}.`));
+                    let item = document.createElement("div");
+                    item.className = "lb-item";
+                    item.innerHTML = `<span>${rankIcon} ${user.name}</span> <span style="color:#f1c40f;">🪙 ${user.coins}</span>`;
+                    lbEl.appendChild(item);
+                });
+            });
+        }
+
         window.loginUser = async function() {
-            let rawName = document.getElementById("playerName").value.trim();
-            if (!rawName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
+            rawDisplayName = document.getElementById("playerName").value.trim();
+            if (!rawDisplayName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
             
-            myName = rawName.replace(/[.#$\/\[\]]/g, "_");
+            myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
 
             const userRef = ref(db, `users/${myName}`);
             const userSnap = await get(userRef);
@@ -241,13 +284,15 @@ HTML_CONTENT = """
                 myCoins = userSnap.val().coins || 1000;
             } else {
                 myCoins = 1000; 
-                await set(userRef, { name: myName, coins: myCoins });
+                await set(userRef, { name: rawDisplayName, coins: myCoins });
             }
 
             document.getElementById("login-box").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
-            document.getElementById("welcome-msg").textContent = `${rawName}`;
+            document.getElementById("welcome-msg").textContent = `${rawDisplayName}`;
             document.getElementById("userCoins").textContent = myCoins;
+
+            loadLeaderboard();
         }
 
         window.quickJoinRoom = async function() {
@@ -356,11 +401,16 @@ HTML_CONTENT = """
                 
                 if (data.gameOver && !gameOver) {
                     gameOver = true;
-                    if (data.winnerRole === myRole) {
-                        myCoins += 100; 
+                    if (myRole !== "observer") {
+                        if (data.winnerRole === myRole) {
+                            myCoins += 100; // ឈ្នះបាន +100 កាក់
+                            alert("🎉 សូមអបអរសាទរ! អ្នកឈ្នះការប្រកួត (+100 កាក់)!");
+                        } else {
+                            myCoins = Math.max(0, myCoins - 100); // ចាញ់កាត់ -100 កាក់
+                            alert("😔 អ្នកបានចាញ់ការប្រកួត (-100 កាក់)!");
+                        }
                         await update(ref(db, `users/${myName}`), { coins: myCoins });
                         document.getElementById("userCoins").textContent = myCoins;
-                        alert("🎉 សូមអបអរសាទរ! អ្នកទទួលបាន 100 កាក់!");
                     }
                 } else {
                     gameOver = data.gameOver;
