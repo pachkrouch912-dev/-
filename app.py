@@ -5,12 +5,12 @@ import random
 
 app = FastAPI()
 
-# ទុកទិន្នន័យបន្ទប់ និងទួរនេម៉ង់
 rooms = {}
+# បន្ថែមទិន្នន័យសម្រាប់គ្រប់គ្រងកាក់របស់អ្នកលេង និងបញ្ជីឈ្មោះ
 tournament = {
-    "players": [],
+    "players": {}, # រក្សាទុក ឈ្មោះ: ចំនួនកាក់ (ឧ. {" Dara": 100 })
     "matches": [],
-    "status": "waiting" # waiting, ongoing, finished
+    "status": "waiting"
 }
 
 HTML_CONTENT = """
@@ -19,7 +19,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ប្រព័ន្ធប្រកួតអុកខ្មែរអនឡាញ (Tournament)</title>
+    <title>ប្រព័ន្ធប្រកួតអុកខ្មែរ + កាក់ផ្ទាល់ខ្លួន</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -68,6 +68,17 @@ HTML_CONTENT = """
             justify-content: space-between;
             align-items: center;
         }
+        #wallet {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d4af37;
+            background: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: inline-block;
+            margin-bottom: 15px;
+        }
         #game-container, #tournament-lobby { margin-top: 20px; }
         #board {
             display: grid;
@@ -103,24 +114,22 @@ HTML_CONTENT = """
 </head>
 <body>
 
-    <h1>♟️ ប្រកួតអុកខ្មែរជម្រុះ (Ok Chaktrong Tournament) ♟️</h1>
+    <h1>♟️ ប្រកួតអុកខ្មែរ និងប្រព័ន្ធកាក់ ♟️</h1>
 
-    <!-- បន្ទប់ចុះឈ្មោះចូលរួមការប្រកួត -->
     <div id="register-box" class="box">
         <h3>ចុះឈ្មោះចូលរួមប្រកួត</h3>
         <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
-        <button onclick="registerPlayer()">ចុះឈ្មោះ</button>
+        <button onclick="registerPlayer()">ចូលលេង</button>
     </div>
 
-    <!-- តារាងបង្ហាញការប្រកួត (Tournament Lobby) -->
     <div id="tournament-lobby" class="box hidden">
-        <h3>តារាងការប្រកួត (Tournament Bracket)</h3>
-        <p id="lobby-status">កំពុងរង់ចាំអ្នកលេង...</p>
+        <div id="wallet">💰 កាក់របស់អ្នក៖ <span id="coinBalance">0</span> 🪙</div>
+        <h3>តារាងការប្រកួត (Tournament Lobby)</h3>
+        <p id="lobby-status">កំពុងរង់ចាំអ្នកលេងផ្សេងទៀត...</p>
         <div id="match-list"></div>
         <button id="start-tour-btn" class="hidden" onclick="startTournament()">ចាប់ផ្ដើមការប្រកួត</button>
     </div>
 
-    <!-- កន្លែងលេងហ្គេមអុក -->
     <div id="game-container" class="hidden">
         <h3 id="room-title">បន្ទប់ប្រកួត</h3>
         <div id="status">កំពុងរង់ចាំគូប្រកួត...</div>
@@ -150,7 +159,6 @@ HTML_CONTENT = """
         let validMoves = [];
         let gameOver = false;
 
-        // เชื่อมต่อ WebSocket ส่วนกลางสำหรับ Lobby
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const lobbyWs = new WebSocket(`${protocol}//${window.location.host}/ws/lobby`);
 
@@ -173,8 +181,14 @@ HTML_CONTENT = """
         }
 
         function updateLobbyUI(players, matches, status) {
+            // អាប់ដេតចំនួនកាក់របស់អ្នកលេងផ្ទាល់ខ្លួន
+            if (players[myName] !== undefined) {
+                document.getElementById("coinBalance").textContent = players[myName];
+            }
+
             const listDiv = document.getElementById("match-list");
-            listDiv.innerHTML = `<h4>អ្នកលេងសរុប (${players.length} នាក់): ${players.join(', ')}</h4>`;
+            let playerNames = Object.keys(players);
+            listDiv.innerHTML = `<h4>អ្នកលេងសរុប (${playerNames.length} នាក់)</h4>`;
             
             if (matches.length > 0) {
                 listDiv.innerHTML += "<h4>គូប្រកួត៖</h4>";
@@ -188,7 +202,7 @@ HTML_CONTENT = """
                 });
             }
 
-            if (players.length >= 2 && status === "waiting") {
+            if (playerNames.length >= 2 && status === "waiting") {
                 document.getElementById("start-tour-btn").classList.remove("hidden");
             }
         }
@@ -228,7 +242,6 @@ HTML_CONTENT = """
             document.getElementById("tournament-lobby").classList.remove("hidden");
         }
 
-        // Logic ដើរគ្រាប់អុក
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
@@ -291,8 +304,8 @@ HTML_CONTENT = """
                     let isOver = false;
                     let msg = "";
 
-                    if (target === "♚") { isOver = true; msg = "🎉 ស ឈ្នះការប្រកួត!"; }
-                    else if (target === "♔") { isOver = true; msg = "🎉 ខ្មៅ ឈ្នះការប្រកួត!"; }
+                    if (target === "♚") { isOver = true; msg = "🎉 ស ឈ្នះការប្រកួត (+50 កាក់)!"; }
+                    else if (target === "♔") { isOver = true; msg = "🎉 ខ្មៅ ឈ្នះការប្រកួត (+50 កាក់)!"; }
 
                     board[r][c] = moving;
                     board[selectedPiece.r][selectedPiece.c] = "";
@@ -317,10 +330,9 @@ HTML_CONTENT = """
 """
 
 lobby_connections = []
-tour_data = {"players": [], "matches": [], "status": "waiting"}
 
 async def broadcast_lobby():
-    data = json.dumps({"type": "lobby_update", **tour_data})
+    data = json.dumps({"type": "lobby_update", **tournament})
     for conn in lobby_connections:
         await conn.send_text(data)
 
@@ -332,27 +344,26 @@ async def root():
 async def lobby_ws(websocket: WebSocket):
     await websocket.accept()
     lobby_connections.append(websocket)
-    await websocket.send_text(json.dumps({"type": "lobby_update", **tour_data}))
+    await websocket.send_text(json.dumps({"type": "lobby_update", **tournament}))
     try:
         while True:
             data = await websocket.receive_text()
             packet = json.loads(data)
             if packet["type"] == "register":
                 name = packet["name"]
-                if name not in tour_data["players"]:
-                    tour_data["players"].append(name)
+                if name not in tournament["players"]:
+                    tournament["players"][name] = 100  # 🎁 ផ្ដល់ជូនកាក់ស្វាគមន៍ចំនួន 100 កាក់ពេលចុះឈ្មោះដំបូង
                 await broadcast_lobby()
             elif packet["type"] == "start_tournament":
-                players = tour_data["players"]
-                random.shuffle(players)
-                tour_data["matches"] = []
-                # จับคู่เป็นคูໆ (เช่น 10 คน ได้ 5 คู่)
-                for i in range(0, len(players) - 1, 2):
+                player_names = list(tournament["players"].keys())
+                random.shuffle(player_names)
+                tournament["matches"] = []
+                for i in range(0, len(player_names) - 1, 2):
                     room_id = f"room_{i//2 + 1}"
-                    tour_data["matches"].append({
+                    tournament["matches"].append({
                         "room": room_id,
-                        "white": players[i],
-                        "black": players[i+1],
+                        "white": player_names[i],
+                        "black": player_names[i+1],
                         "status": "ongoing"
                     })
                     rooms[room_id] = {
@@ -362,7 +373,7 @@ async def lobby_ws(websocket: WebSocket):
                         "message": "វេនអ្នកលេង៖ ស",
                         "players": {}
                     }
-                tour_data["status"] = "ongoing"
+                tournament["status"] = "ongoing"
                 await broadcast_lobby()
     except WebSocketDisconnect:
         lobby_connections.remove(websocket)
@@ -372,8 +383,8 @@ async def room_ws(websocket: WebSocket, room_id: str, name: str):
     await websocket.accept()
     room = rooms[room_id]
     
-    role = "white" if name == room["matches"]["white"] if False else ("white" if len(room["players"]) == 0 else "black")
-    room["players"][role] = websocket
+    role = "white" if len(room["players"]) == 0 else "black"
+    room["players"][role] = {"ws": websocket, "name": name}
 
     await websocket.send_text(json.dumps({"type": "init", "role": role}))
     
@@ -387,8 +398,16 @@ async def room_ws(websocket: WebSocket, room_id: str, name: str):
                 room["gameOver"] = packet["gameOver"]
                 room["message"] = packet["message"]
 
-                for conn in room["players"].values():
-                    await conn.send_text(json.dumps({
+                # ប្រសិនបើចប់ហ្គេម ផ្ដល់រង្វាន់កាក់ដល់អ្នកឈ្នះ ៥០កាក់
+                if packet["gameOver"]:
+                    winner_role = "white" if "ស" in packet["message"] else "black"
+                    winner_name = room["players"].get(winner_role, {}).get("name")
+                    if winner_name and winner_name in tournament["players"]:
+                        tournament["players"][winner_name] += 50
+                    await broadcast_lobby()
+
+                for p in room["players"].values():
+                    await p["ws"].send_text(json.dumps({
                         "type": "update",
                         "board": room["board"],
                         "turn": room["turn"],
