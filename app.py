@@ -321,7 +321,7 @@ HTML_CONTENT = """
                 await joinRoomProcess(targetRoom);
             } catch (error) {
                 console.error("Quick Match Error: ", error);
-                alert("មានបញ្ហាក្នុងการចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
+                alert("មានបញ្ហាក្នុងការចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
             }
         }
 
@@ -433,12 +433,12 @@ HTML_CONTENT = """
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
-        // កែសម្រួលច្បាប់ដើររបស់គ្រាប់អុកខ្មែរនីមួយៗឱ្យបានត្រឹមត្រូវ
+        // កែសម្រួលច្បាប់ដើររបស់គ្រាប់អុកខ្មែរឱ្យត្រូវតាមស្តង់ដារពិតប្រាកដ
         function getValidMoves(r, c, piece) {
             let moves = [];
             let isWhite = isWhitePiece(piece);
 
-            // 1. សលក (King): ដើរ ១ ក្រឡាគ្រប់ទិស
+            // 1. សលក (King): ដើរ ១ ក្រឡាគ្រប់ទិស (ជុំវិញខ្លួន)
             if (piece === "♔" || piece === "♚") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
@@ -511,28 +511,45 @@ HTML_CONTENT = """
                     }
                 }
             }
-            // 6. ត្រី / កង (Pawn): ដើរ ១ ក្រឡាទៅមុខ, ស៊ីទិសទ្រូង ១ ក្រឡា
+            // 6. កូនត្រី និងត្រីបក (Pawn)
             else if (piece === "♙" || piece === "♟") {
-                let fwd = isWhite ? -1 : 1;
-                // ដើរទៅមុខត្រង់
-                let nr = r + fwd, nc = c;
-                if (nr >= 0 && nr < 8 && board[nr][nc] === "") {
-                    moves.push({r: nr, c: nc});
-                }
-                // ស៊ី oblique (ឆៀងឆ្វេង/ស្តាំ)
-                let leftCol = c - 1;
-                let rightCol = c + 1;
-                if (nr >= 0 && nr < 8) {
-                    if (leftCol >= 0) {
-                        let targetLeft = board[nr][leftCol];
-                        if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) {
-                            moves.push({r: nr, c: leftCol});
+                // កំណត់ថាតើត្រីនេះបកហើយឬនៅ (ត្រីសបកនៅជួរទី 2 ខាងលើ r===1, ត្រីខ្មៅបកនៅជួរទី 5 ខាងក្រោម r===5)
+                let isBoked = isWhite ? (r === 1) : (r === 6);
+
+                if (isBoked) {
+                    // ត្រីបក៖ ដើរ និងស៊ីបានដូច "នាង" (១ក្រឡាតាមអង្កត់ទ្រូងទាំង ៤)
+                    let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
+                    for (let d of directions) {
+                        let nr = r + d[0], nc = c + d[1];
+                        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                            let target = board[nr][nc];
+                            if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                                moves.push({r: nr, c: nc});
+                            }
                         }
                     }
-                    if (rightCol < 8) {
-                        let targetRight = board[nr][rightCol];
-                        if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) {
-                            moves.push({r: nr, c: rightCol});
+                } else {
+                    // ត្រីធម្មតា៖ ដើរបានតែ ១ក្រឡាទៅមុខត្រង់ (បើទទេ) និងស៊ីឆៀង ១ក្រឡាទៅមុខ
+                    let fwd = isWhite ? -1 : 1;
+                    let nr = r + fwd, nc = c;
+                    if (nr >= 0 && nr < 8 && board[nr][nc] === "") {
+                        moves.push({r: nr, c: nc});
+                    }
+                    // ស៊ីឆៀង (ឆ្វេង និងស្តាំ)
+                    let leftCol = c - 1;
+                    let rightCol = c + 1;
+                    if (nr >= 0 && nr < 8) {
+                        if (leftCol >= 0) {
+                            let targetLeft = board[nr][leftCol];
+                            if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) {
+                                moves.push({r: nr, c: leftCol});
+                            }
+                        }
+                        if (rightCol < 8) {
+                            let targetRight = board[nr][rightCol];
+                            if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) {
+                                moves.push({r: nr, c: rightCol});
+                            }
                         }
                     }
                 }
@@ -587,6 +604,12 @@ HTML_CONTENT = """
 
                     board[r][c] = moving;
                     board[selectedPiece.r][selectedPiece.c] = "";
+
+                    // ពិនិត្យមើលការបកត្រី (ប្រសិនបើត្រីសដើរដល់ជួរទី១ ឬត្រីខ្មៅដើរដល់ជួរទី៦)
+                    if (moving === "♙" && r === 0) {
+                        // អាចរក្សាទុកជានិមិត្តសញ្ញា ឬរក្សាជាកូន♙ដដែលតែប្តូរច្បាប់ដើរ (ក្នុងកូដនេះយើងកំណត់លក្ខខណ្ឌ r===1 ខាងលើជាត្រីបក)
+                    }
+
                     let nextTurn = turn === 'white' ? 'black' : 'white';
 
                     update(ref(db, `rooms/${currentRoomId}`), {
@@ -634,3 +657,4 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+
