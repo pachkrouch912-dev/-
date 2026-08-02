@@ -9,7 +9,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>អុកខ្មែរអនឡាញ </title>
+    <title>អុកខ្មែរអនឡាញ - 8-Ball Pool Style</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -116,7 +116,7 @@ HTML_CONTENT = """
         .square {
             display: flex; align-items: center; justify-content: center;
             font-size: 26px; font-weight: bold; cursor: pointer; user-select: none;
-            width: 100%; height: 100%; transition: background 0.2s;
+            width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #f0d9b5; color: #000; }
         .dark { background-color: #b58863; color: #fff; }
@@ -124,6 +124,13 @@ HTML_CONTENT = """
         .highlight { background-color: #4cd137 !important; }
         .white-piece { color: #fff; text-shadow: 0 2px 4px #000; }
         .black-piece { color: #111; text-shadow: 0 2px 4px #fff; }
+        
+        /* សញ្ញាសម្គាល់ត្រីបក */
+        .boked-badge {
+            position: absolute; bottom: 2px; right: 2px; font-size: 9px;
+            background: #e74c3c; color: #fff; padding: 1px 3px; border-radius: 4px;
+            font-weight: bold;
+        }
         .hidden { display: none; }
     </style>
 </head>
@@ -193,15 +200,16 @@ HTML_CONTENT = """
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // រចនាសម្ព័ន្ធទិន្នន័យក្តារអុក៖ ប្រើ Object { piece: "♙", boked: false } ដើម្បីដឹងច្បាស់ថាតើគ្រាប់ណាបកហើយឬនៅ
         const initialBoard = [
-            ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
-            ["", "", "", "", "", "", "", ""],
-            ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"],
-            ["", "", "", "", "", "", "", ""],
-            ["", "", "", "", "", "", "", ""],
-            ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"],
-            ["", "", "", "", "", "", "", ""],
-            ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
+            [ {p:"♜", b:false}, {p:"♞", b:false}, {p:"♝", b:false}, {p:"♛", b:false}, {p:"♚", b:false}, {p:"♝", b:false}, {p:"♞", b:false}, {p:"♜", b:false} ],
+            [ {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false} ],
+            [ {p:"♟", b:false}, {p:"♟", b:false}, {p:"♟", b:false}, {p:"♟", b:false}, {p:"♟", b:false}, {p:"♟", b:false}, {p:"♟", b:false}, {p:"♟", b:false} ],
+            [ {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false} ],
+            [ {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false} ],
+            [ {p:"♙", b:false}, {p:"♙", b:false}, {p:"♙", b:false}, {p:"♙", b:false}, {p:"♙", b:false}, {p:"♙", b:false}, {p:"♙", b:false}, {p:"♙", b:false} ],
+            [ {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false} ],
+            [ {p:"♖", b:false}, {p:"♘", b:false}, {p:"♗", b:false}, {p:"♕", b:false}, {p:"♔", b:false}, {p:"♗", b:false}, {p:"♘", b:false}, {p:"♖", b:false} ]
         ];
 
         let myName = "";
@@ -223,10 +231,10 @@ HTML_CONTENT = """
                 for (let c = 0; c < 8; c++) {
                     const sq = document.createElement("div");
                     sq.className = "deco-square " + ((r + c) % 2 === 0 ? "deco-light" : "deco-dark");
-                    let p = initialBoard[r][c];
-                    if (p !== "") {
-                        sq.textContent = p;
-                        sq.style.color = ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p) ? "#fff" : "#111";
+                    let cell = initialBoard[r][c];
+                    if (cell.p !== "") {
+                        sq.textContent = cell.p;
+                        sq.style.color = ["♖", "♘", "♗", "♕", "♔", "♙"].includes(cell.p) ? "#fff" : "#111";
                     }
                     decoEl.appendChild(sq);
                 }
@@ -433,64 +441,65 @@ HTML_CONTENT = """
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
-        // កែសម្រួលច្បាប់ដើររបស់គ្រាប់អុកខ្មែរឱ្យត្រូវតាមស្តង់ដារពិតប្រាកដ
-        function getValidMoves(r, c, piece) {
+        // កូដគណនាទីតាំងដែលអាចដើរបាន ស្របតាមច្បាប់អុកខ្មែរពិតប្រាកដ
+        function getValidMoves(r, c, cell) {
             let moves = [];
+            let piece = cell.p;
             let isWhite = isWhitePiece(piece);
 
-            // 1. សលក (King): ដើរ ១ ក្រឡាគ្រប់ទិស (ជុំវិញខ្លួន)
+            // 1. សលក (King)
             if (piece === "♔" || piece === "♚") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc];
+                        let target = board[nr][nc].p;
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
                             moves.push({r: nr, c: nc});
                         }
                     }
                 }
             }
-            // 2. នាង (Queen): ដើរ ១ ក្រឡាតាមអង្កត់ទ្រូងទាំង ៤
+            // 2. នាង (Queen)
             else if (piece === "♕" || piece === "♛") {
                 let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc];
+                        let target = board[nr][nc].p;
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
                             moves.push({r: nr, c: nc});
                         }
                     }
                 }
             }
-            // 3. គោ (Bishop): ដើរ ១ ក្រឡាតាមទ្រូង ឬ ១ក្រឡាទៅមុខត្រង់
+            // 3. គោ (Bishop)
             else if (piece === "♗" || piece === "♝") {
                 let directions = isWhite ? [[-1,0], [-1,-1], [-1,1], [1,-1], [1,1]] : [[1,0], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc];
+                        let target = board[nr][nc].p;
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
                             moves.push({r: nr, c: nc});
                         }
                     }
                 }
             }
-            // 4. សេះ (Knight): រាងអក្សរ L (លោតបាន)
+            // 4. សេះ (Knight)
             else if (piece === "♘" || piece === "♞") {
                 let jmps = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
                 for (let d of jmps) {
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc];
+                        let target = board[nr][nc].p;
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
                             moves.push({r: nr, c: nc});
                         }
                     }
                 }
             }
-            // 5. ទូក (Rook): ដើរបញ្ឈរ និងផ្តេក បានច្រើនក្រឡា
+            // 5. ទូក (Rook)
             else if (piece === "♖" || piece === "♜") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1]];
                 for (let d of directions) {
@@ -498,7 +507,7 @@ HTML_CONTENT = """
                     while (true) {
                         let nr = r + d[0] * step, nc = c + d[1] * step;
                         if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
-                        let target = board[nr][nc];
+                        let target = board[nr][nc].p;
                         if (target === "") {
                             moves.push({r: nr, c: nc});
                         } else {
@@ -513,40 +522,36 @@ HTML_CONTENT = """
             }
             // 6. កូនត្រី និងត្រីបក (Pawn)
             else if (piece === "♙" || piece === "♟") {
-                // កំណត់ថាតើត្រីនេះបកហើយឬនៅ (ត្រីសបកនៅជួរទី 2 ខាងលើ r===1, ត្រីខ្មៅបកនៅជួរទី 5 ខាងក្រោម r===5)
-                let isBoked = isWhite ? (r === 1) : (r === 6);
-
-                if (isBoked) {
-                    // ត្រីបក៖ ដើរ និងស៊ីបានដូច "នាង" (១ក្រឡាតាមអង្កត់ទ្រូងទាំង ៤)
+                if (cell.b) {
+                    // ត្រីបក៖ ដើរ និងស៊ីបានដូច "នាង" (១ក្រឡាតាមអង្កត់ទ្រូងទាំង ៤ ទាំងទៅមុខ និងថយក្រោយ)
                     let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                     for (let d of directions) {
                         let nr = r + d[0], nc = c + d[1];
                         if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                            let target = board[nr][nc];
+                            let target = board[nr][nc].p;
                             if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
                                 moves.push({r: nr, c: nc});
                             }
                         }
                     }
                 } else {
-                    // ត្រីធម្មតា៖ ដើរបានតែ ១ក្រឡាទៅមុខត្រង់ (បើទទេ) និងស៊ីឆៀង ១ក្រឡាទៅមុខ
+                    // ត្រីធម្មតា៖ ដើរបានតែ ១ក្រឡាទៅមុខត្រង់ និងស៊ីឆៀង ១ក្រឡាទៅមុខ
                     let fwd = isWhite ? -1 : 1;
                     let nr = r + fwd, nc = c;
-                    if (nr >= 0 && nr < 8 && board[nr][nc] === "") {
+                    if (nr >= 0 && nr < 8 && board[nr][nc].p === "") {
                         moves.push({r: nr, c: nc});
                     }
-                    // ស៊ីឆៀង (ឆ្វេង និងស្តាំ)
                     let leftCol = c - 1;
                     let rightCol = c + 1;
                     if (nr >= 0 && nr < 8) {
                         if (leftCol >= 0) {
-                            let targetLeft = board[nr][leftCol];
+                            let targetLeft = board[nr][leftCol].p;
                             if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) {
                                 moves.push({r: nr, c: leftCol});
                             }
                         }
                         if (rightCol < 8) {
-                            let targetRight = board[nr][rightCol];
+                            let targetRight = board[nr][rightCol].p;
                             if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) {
                                 moves.push({r: nr, c: rightCol});
                             }
@@ -568,12 +573,20 @@ HTML_CONTENT = """
                     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) sq.classList.add("selected");
                     if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add("highlight");
                     
-                    let p = board[r][c];
-                    if (p !== "") {
+                    let cell = board[r][c];
+                    if (cell.p !== "") {
                         let span = document.createElement("span");
-                        span.textContent = p;
-                        span.className = isWhitePiece(p) ? "white-piece" : "black-piece";
+                        span.textContent = cell.p;
+                        span.className = isWhitePiece(cell.p) ? "white-piece" : "black-piece";
                         sq.appendChild(span);
+
+                        // បង្ហាញសញ្ញាអក្សរ "បក" តូចលើគ្រាប់ ដើម្បីដឹងថាវាបានបករួចហើយ
+                        if (cell.b) {
+                            let badge = document.createElement("div");
+                            badge.className = "boked-badge";
+                            badge.textContent = "បក";
+                            sq.appendChild(badge);
+                        }
                     }
                     sq.onclick = () => handleSquareClick(r, c);
                     boardEl.appendChild(sq);
@@ -583,32 +596,35 @@ HTML_CONTENT = """
 
         function handleSquareClick(r, c) {
             if (gameOver || turn !== myRole) return;
-            let clicked = board[r][c];
+            let clickedCell = board[r][c];
+
             if (selectedPiece) {
                 if (validMoves.some(m => m.r === r && m.c === c)) {
-                    let target = board[r][c];
-                    let moving = selectedPiece.piece;
+                    let targetPiece = clickedCell.p;
+                    let movingCell = selectedPiece.cell;
                     let isOver = false;
                     let msg = "";
                     let winRole = "";
 
-                    if (target === "♚") { 
+                    if (targetPiece === "♚") { 
                         isOver = true; 
                         msg = "🎉 ភាគី ស ឈ្នះការប្រកួត!"; 
                         winRole = "white";
-                    } else if (target === "♔") { 
+                    } else if (targetPiece === "♔") { 
                         isOver = true; 
                         msg = "🎉 ភាគី ខ្មៅ ឈ្នះការប្រកួត!"; 
                         winRole = "black";
                     }
 
-                    board[r][c] = moving;
-                    board[selectedPiece.r][selectedPiece.c] = "";
+                    // ពិនិត្យលក្ខខណ្ឌបកត្រី៖ 
+                    // - ត្រីស (♙) ដើរដល់ជួរទី០ (ជួរលើបំផុត)
+                    // - ត្រីខ្មៅ (♟) ដើរដល់ជួរទី៧ (ជួរក្រោមបំផុត)
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♙" && r === 0) isBokedNow = true;
+                    if (movingCell.p === "♟" && r === 7) isBokedNow = true;
 
-                    // ពិនិត្យមើលការបកត្រី (ប្រសិនបើត្រីសដើរដល់ជួរទី១ ឬត្រីខ្មៅដើរដល់ជួរទី៦)
-                    if (moving === "♙" && r === 0) {
-                        // អាចរក្សាទុកជានិមិត្តសញ្ញា ឬរក្សាជាកូន♙ដដែលតែប្តូរច្បាប់ដើរ (ក្នុងកូដនេះយើងកំណត់លក្ខខណ្ឌ r===1 ខាងលើជាត្រីបក)
-                    }
+                    board[r][c] = { p: movingCell.p, b: isBokedNow };
+                    board[selectedPiece.r][selectedPiece.c] = { p: "", b: false };
 
                     let nextTurn = turn === 'white' ? 'black' : 'white';
 
@@ -623,10 +639,10 @@ HTML_CONTENT = """
                 selectedPiece = null;
                 validMoves = [];
                 renderBoard();
-            } else if (clicked !== "") {
-                if ((myRole === 'white' && isWhitePiece(clicked)) || (myRole === 'black' && isBlackPiece(clicked))) {
-                    selectedPiece = { r, c, piece: clicked };
-                    validMoves = getValidMoves(r, c, clicked);
+            } else if (clickedCell.p !== "") {
+                if ((myRole === 'white' && isWhitePiece(clickedCell.p)) || (myRole === 'black' && isBlackPiece(clickedCell.p))) {
+                    selectedPiece = { r, c, cell: clickedCell };
+                    validMoves = getValidMoves(r, c, clickedCell);
                     renderBoard();
                 }
             }
