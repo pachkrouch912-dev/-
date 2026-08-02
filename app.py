@@ -64,7 +64,6 @@ HTML_CONTENT = """
         .selected { background-color: #7b61ff !important; }
         .highlight { background-color: #85c1e9 !important; }
 
-        /* កែពណ៌គ្រាប់អុកឱ្យដាច់ពីក្រឡា និងស្អាតងាយមើល */
         .white-piece {
             color: #ffffff;
             text-shadow: 1px 1px 2px #000, 0 0 1em #000, 0 0 0.2em #000;
@@ -97,6 +96,7 @@ HTML_CONTENT = """
         let selectedPiece = null;
         let turn = 'white'; 
         let validMoves = [];
+        let gameOver = false; // បន្ថែមអង្សរសម្រាប់កំណត់ស្ថានភាពចប់ហ្គេម
 
         function isWhitePiece(piece) {
             return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(piece);
@@ -217,13 +217,26 @@ HTML_CONTENT = """
         }
 
         function handleSquareClick(r, c) {
+            if (gameOver) return; // បើហ្គេមចប់ហើយ មិនបាច់ឱ្យចុចដើរទៀតទេ
+
             const clickedPiece = board[r][c];
 
             if (selectedPiece) {
                 let isValid = validMoves.some(m => m.r === r && m.c === c);
                 if (isValid) {
+                    let targetPiece = board[r][c];
                     let movingPiece = selectedPiece.piece;
 
+                    // ពិនិត្យមើលថាតើបានស៊ីគ្រាប់រាជ (King) ដែរឬទេ
+                    if (targetPiece === "♚") {
+                        gameOver = true;
+                        document.getElementById("status").textContent = "🎉 អ្នកលេងភាគី «ស» បានឈ្នះ! (ស៊ីរាជខ្មៅបាន)";
+                    } else if (targetPiece === "♔") {
+                        gameOver = true;
+                        document.getElementById("status").textContent = "🎉 អ្នកលេងភាគី «ខ្មៅ» បានឈ្នះ! (ស៊ីរាជសបាន)";
+                    }
+
+                    // ក្បួនប្រែគ្រាប់ត្រី
                     if (movingPiece === "♙" && r === 2) {
                         movingPiece = "♕";
                     } else if (movingPiece === "♟" && r === 5) {
@@ -233,8 +246,10 @@ HTML_CONTENT = """
                     board[r][c] = movingPiece;
                     board[selectedPiece.r][selectedPiece.c] = "";
 
-                    turn = turn === 'white' ? 'black' : 'white';
-                    document.getElementById("status").textContent = `វេនអ្នកលេង៖ ${turn === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
+                    if (!gameOver) {
+                        turn = turn === 'white' ? 'black' : 'white';
+                        document.getElementById("status").textContent = `វេនអ្នកលេង៖ ${turn === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
+                    }
                 }
                 selectedPiece = null;
                 validMoves = [];
@@ -262,4 +277,3 @@ async def read_root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
-
