@@ -80,20 +80,20 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
 
-        /* ក្ដារអុកលំអរពណ៌ត្នោតបែបបុរាណ ស្រួលភ្នែក */
+        /* ក្ដារអុកលំអរ (Deco Board) មាន Width = Height ស្មើគ្នា */
         .deco-board-container {
             margin: 15px 0; width: 100%; display: flex; flex-direction: column; align-items: center;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, auto); gap: 1px;
+            grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 3px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 10px; width: 100%; height: auto; aspect-ratio: 1 / 1;
+            border-radius: 10px; width: 100%; max-width: 340px; aspect-ratio: 1 / 1;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5); box-sizing: border-box;
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; user-select: none;
+            font-size: 22px; user-select: none; width: 100%; height: 100%;
         }
         .deco-light { background-color: #f0d9b5; color: #000; }
         .deco-dark { background-color: #b58863; color: #fff; }
@@ -106,20 +106,19 @@ HTML_CONTENT = """
         .leaderboard-title { color: #f1c40f; font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 8px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* ក្ដារអុកប្រកួតពណ៌ត្នោតស្អាត ស្រួលមើល */
+        /* ក្ដារអុកប្រកួត (Game Board) ឱ្យ Width = Height ស្មើគ្នា (1:1) យ៉ាងល្អឥតខ្ចោះ */
         #board {
-            display: grid; grid-template-columns: repeat(8, 42px);
-            grid-template-rows: repeat(8, 42px); gap: 2px;
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr); gap: 1px;
             justify-content: center; margin: 15px auto;
             border: 5px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 10px; width: max-content;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            border-radius: 10px; width: 100%; max-width: 360px; aspect-ratio: 1 / 1;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); box-sizing: border-box;
         }
         .square {
-            width: 42px; height: 42px; display: flex;
-            align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-size: 26px; font-weight: bold; cursor: pointer; user-select: none;
-            transition: background 0.2s;
+            width: 100%; height: 100%; transition: background 0.2s;
         }
         .light { background-color: #f0d9b5; color: #000; }
         .dark { background-color: #b58863; color: #fff; }
