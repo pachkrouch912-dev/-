@@ -18,7 +18,6 @@ HTML_CONTENT = """
             overflow-x: hidden; position: relative;
         }
 
-        /* Background Animated Chess Pieces */
         .bg-chess {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             overflow: hidden; z-index: 0; pointer-events: none; opacity: 0.15;
@@ -52,6 +51,14 @@ HTML_CONTENT = """
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .user-profile {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 12px;
+            margin-bottom: 15px; border: 1px solid rgba(241, 196, 15, 0.2);
+            font-size: 15px; font-weight: bold;
+        }
+        .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 5px; }
 
         input {
             padding: 14px; font-size: 16px; border: 2px solid #34495e; border-radius: 12px;
@@ -98,7 +105,6 @@ HTML_CONTENT = """
 </head>
 <body>
 
-    <!-- Background Animation Elements -->
     <div class="bg-chess">
         <div class="floating-piece" style="left: 10%; animation-duration: 7s;">♔</div>
         <div class="floating-piece" style="left: 30%; animation-duration: 10s; animation-delay: 2s;">♕</div>
@@ -119,7 +125,10 @@ HTML_CONTENT = """
 
         <!-- ម៉ឺនុយដើម (ទំព័រទី២) -->
         <div id="main-menu" class="card hidden">
-            <h3 id="welcome-msg" style="color: #f1c40f; margin-top: 0;"></h3>
+            <div class="user-profile">
+                <span id="welcome-msg" style="color: #f1c40f;"></span>
+                <span class="coin-badge">🪙 <span id="userCoins">0</span> កាក់</span>
+            </div>
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)"><br>
@@ -166,6 +175,7 @@ HTML_CONTENT = """
         ];
 
         let myName = "";
+        let myCoins = 0;
         let currentRoomId = "";
         let myRole = ""; 
         let board = JSON.parse(JSON.stringify(initialBoard));
@@ -174,12 +184,27 @@ HTML_CONTENT = """
         let selectedPiece = null;
         let validMoves = [];
 
-        window.loginUser = function() {
-            myName = document.getElementById("playerName").value.trim();
-            if (!myName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
+        window.loginUser = async function() {
+            let rawName = document.getElementById("playerName").value.trim();
+            if (!rawName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
+            
+            // ការពារសញ្ញាពិសេសក្នុង Firebase Key
+            myName = rawName.replace(/[.#$\/\[\]]/g, "_");
+
+            const userRef = ref(db, `users/${myName}`);
+            const userSnap = await get(userRef);
+
+            if (userSnap.exists()) {
+                myCoins = userSnap.val().coins || 1000;
+            } else {
+                myCoins = 1000; // ចំនួនកាក់ពេលបង្កើតគណនីថ្មីដំបូង
+                await set(userRef, { name: myName, coins: myCoins });
+            }
+
             document.getElementById("login-box").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
-            document.getElementById("welcome-msg").textContent = `សួស្តី, ${myName}`;
+            document.getElementById("welcome-msg").textContent = `${rawName}`;
+            document.getElementById("userCoins").textContent = myCoins;
         }
 
         window.quickJoinRoom = async function() {
@@ -285,7 +310,19 @@ HTML_CONTENT = """
 
                 board = data.board;
                 turn = data.turn;
-                gameOver = data.gameOver;
+                
+                // ប្រសិនបើមានអ្នកឈ្នះ ហើយទើបតែដូរស្ថានភាពហ្គេម
+                if (data.gameOver && !gameOver) {
+                    gameOver = true;
+                    if (data.winnerRole === myRole) {
+                        myCoins += 100; // បានរង្វាន់ 100 កាក់ពេលឈ្នះ
+                        await update(ref(db, `users/${myName}`), { coins: myCoins });
+                        document.getElementById("userCoins").textContent = myCoins;
+                        alert("🎉 សូមអបអរសាទរ! អ្នកទទួលបាន 100 កាក់!");
+                    }
+                } else {
+                    gameOver = data.gameOver;
+                }
                 
                 let pCount = data.players ? Object.keys(data.players).length : 0;
                 if (pCount < 2) {
@@ -350,9 +387,17 @@ HTML_CONTENT = """
                     let moving = selectedPiece.piece;
                     let isOver = false;
                     let msg = "";
+                    let winRole = "";
 
-                    if (target === "♚") { isOver = true; msg = "🎉 ភាគី ស ឈ្នះការប្រកួត!"; }
-                    else if (target === "♔") { isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះការប្រកួត!"; }
+                    if (target === "♚") { 
+                        isOver = true; 
+                        msg = "🎉 ភាគី ស ឈ្នះការប្រកួត!"; 
+                        winRole = "white";
+                    } else if (target === "♔") { 
+                        isOver = true; 
+                        msg = "🎉 ភាគី ខ្មៅ ឈ្នះការប្រកួត!"; 
+                        winRole = "black";
+                    }
 
                     board[r][c] = moving;
                     board[selectedPiece.r][selectedPiece.c] = "";
@@ -362,6 +407,7 @@ HTML_CONTENT = """
                         board: board,
                         turn: nextTurn,
                         gameOver: isOver,
+                        winnerRole: winRole,
                         message: msg || `វេនអ្នកលេង៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`
                     });
                 }
@@ -389,7 +435,6 @@ HTML_CONTENT = """
             }
             document.getElementById("game-container").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
-            location.reload();
         }
     </script>
 </body>
