@@ -526,10 +526,30 @@ async def room_ws(websocket: WebSocket, room_id: str, name: str):
         }
     
     room = rooms[room_id]
-    role = "white" if len(room["players"]) == 0 else "black"
-    room["players"][role] = {"ws": websocket, "name": name}
+    
+    if "white" not in room["players"]:
+        role = "white"
+    elif "black" not in room["players"]:
+        role = "black"
+    else:
+        role = "observer"
+
+    if role != "observer":
+        room["players"][role] = {"ws": websocket, "name": name}
 
     await websocket.send_text(json.dumps({"type": "init", "role": role}))
+
+    # 👉 ផ្ញើសារ Update ទៅគ្រប់គ្នាភ្លាមៗពេលមានអ្នកលេងចូលគ្រប់ ២នាក់
+    if len(room["players"]) == 2:
+        room["message"] = "វេនអ្នកលេង៖ ស"
+        for p in room["players"].values():
+            await p["ws"].send_text(json.dumps({
+                "type": "update",
+                "board": room["board"],
+                "turn": room["turn"],
+                "gameOver": room["gameOver"],
+                "message": room["message"]
+            }))
     
     try:
         while True:
@@ -557,6 +577,18 @@ async def room_ws(websocket: WebSocket, room_id: str, name: str):
                         "message": room["message"]
                     }))
     except WebSocketDisconnect:
+        for r, p in list(room["players"].items()):
+            if p["ws"] == websocket:
+                del room["players"][r]
+                room["message"] = "គូប្រកួតបានចាកចេញ..."
+                for remaining_p in room["players"].values():
+                    await remaining_p["ws"].send_text(json.dumps({
+                        "type": "update",
+                        "board": room["board"],
+                        "turn": room["turn"],
+                        "gameOver": room["gameOver"],
+                        "message": room["message"]
+                    }))
         pass
 
 if __name__ == "__main__":
