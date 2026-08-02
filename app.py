@@ -149,26 +149,26 @@ HTML_CONTENT = """
         .p-light { background-color: #f0d9b5; color: #000; }
         .p-dark { background-color: #b58863; color: #000; }
 
-        /* ក្ដារអុកសម្រាប់លេងពិតប្រាកដ */
+        /* ក្ដារអុកសម្រាប់លេងពិតប្រាកដ (ទំហំល្មមស្អាត 40px) */
         #board {
             display: grid;
-            grid-template-columns: repeat(8, 48px);
-            grid-template-rows: repeat(8, 48px);
+            grid-template-columns: repeat(8, 40px);
+            grid-template-rows: repeat(8, 40px);
             gap: 2px;
             justify-content: center;
-            margin: 10px auto;
+            margin: 15px auto;
             border: 4px solid #5c3a21;
             background-color: #5c3a21;
             border-radius: 6px;
             width: max-content;
         }
         .square {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
@@ -222,9 +222,10 @@ HTML_CONTENT = """
     <!-- កន្លែងលេងហ្គេមអុក -->
     <div id="game-container" class="hidden">
         <h3 id="room-title">បន្ទប់ប្រកួត</h3>
-        <div id="status" style="background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 15px; display:inline-block; font-weight:bold;">រង់ចាំគូប្រកួត...</div>
+        <div id="status" style="background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 15px; display:inline-block; font-weight:bold; margin-bottom: 10px;">រង់ចាំគូប្រកួត...</div>
         <div id="board"></div>
-        <button class="btn-green" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+        <!-- ប៊ូតុងចាកចេញមានទំហំល្មមសមរម្យ -->
+        <button class="btn-green" style="width: 200px; margin-top: 15px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
     </div>
 
     <script>
@@ -323,7 +324,6 @@ HTML_CONTENT = """
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("room-title").textContent = `បន្ទប់៖ ${roomCode}`;
 
-            // 👉 ហៅ renderBoard() ភ្លាមៗទីនេះ ដើម្បីកុំឱ្យក្ដារអុកជាប់គាំងពណ៌ទឹកក្រូចទទេរ
             renderBoard();
 
             ws = new WebSocket(`${protocol}//${window.location.host}/ws/room/${roomCode}?name=${encodeURIComponent(myName)}`);
