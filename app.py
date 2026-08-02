@@ -189,7 +189,6 @@ HTML_CONTENT = """
     <!-- វគ្គចូលឈ្មោះ និងបង្ហាញក្ដារអុក Animation ខាងដើម -->
     <div id="login-box" class="card">
         <h3>ចូលរួមលេងហ្គេម</h3>
-        <!-- ក្ដារអុកតូចមាន Animation រស់រវើក -->
         <div class="preview-board" id="previewBoard"></div>
         <p style="font-size: 13px; color: #f1c40f; margin: 5px 0 15px 0;">✨ សូមស្វាគមន៍មកកាន់ពិភពអុកខ្មែរដ៏រស់រវើក ✨</p>
         <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
@@ -245,7 +244,6 @@ HTML_CONTENT = """
             ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
         ];
 
-        // បង្កើតក្ដារអុក Animation តូចនៅទំព័រដើម
         function renderPreviewBoard() {
             const previewEl = document.getElementById("previewBoard");
             previewEl.innerHTML = "";
@@ -325,6 +323,9 @@ HTML_CONTENT = """
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("room-title").textContent = `បន្ទប់៖ ${roomCode}`;
 
+            // 👉 ហៅ renderBoard() ភ្លាមៗទីនេះ ដើម្បីកុំឱ្យក្ដារអុកជាប់គាំងពណ៌ទឹកក្រូចទទេរ
+            renderBoard();
+
             ws = new WebSocket(`${protocol}//${window.location.host}/ws/room/${roomCode}?name=${encodeURIComponent(myName)}`);
 
             ws.onmessage = function(event) {
@@ -332,6 +333,7 @@ HTML_CONTENT = """
                 if (data.type === "init") {
                     myRole = data.role;
                     document.getElementById("status").textContent = `ភាគី៖ ${myRole === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
+                    renderBoard();
                 } else if (data.type === "update") {
                     board = data.board;
                     turn = data.turn;
@@ -373,7 +375,6 @@ HTML_CONTENT = """
             globalWs.send(JSON.stringify({ type: "start_tournament" }));
         }
 
-        // Logic ដើរគ្រាប់អុក
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
