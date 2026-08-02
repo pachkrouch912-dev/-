@@ -80,13 +80,14 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
 
+        /* ក្ដារអុកលំអរពណ៌ត្នោតបែបបុរាណ ស្រួលភ្នែក */
         .deco-board-container {
             margin: 15px 0; width: 100%; display: flex; flex-direction: column; align-items: center;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, auto); gap: 1px;
-            border: 3px solid #8e44ad; background-color: #8e44ad;
+            border: 3px solid #5a3d28; background-color: #5a3d28;
             border-radius: 10px; width: 100%; height: auto; aspect-ratio: 1 / 1;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5); box-sizing: border-box;
         }
@@ -94,8 +95,8 @@ HTML_CONTENT = """
             display: flex; align-items: center; justify-content: center;
             font-size: 22px; user-select: none;
         }
-        .deco-light { background-color: #f5cba7; color: #000; }
-        .deco-dark { background-color: #d35400; color: #fff; }
+        .deco-light { background-color: #f0d9b5; color: #000; }
+        .deco-dark { background-color: #b58863; color: #fff; }
 
         .leaderboard-box {
             margin-top: 15px; background: rgba(0, 0, 0, 0.4);
@@ -105,11 +106,12 @@ HTML_CONTENT = """
         .leaderboard-title { color: #f1c40f; font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 8px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
+        /* ក្ដារអុកប្រកួតពណ៌ត្នោតស្អាត ស្រួលមើល */
         #board {
             display: grid; grid-template-columns: repeat(8, 42px);
             grid-template-rows: repeat(8, 42px); gap: 2px;
             justify-content: center; margin: 15px auto;
-            border: 5px solid #8e44ad; background-color: #8e44ad;
+            border: 5px solid #5a3d28; background-color: #5a3d28;
             border-radius: 10px; width: max-content;
             box-shadow: 0 10px 25px rgba(0,0,0,0.6);
         }
@@ -119,10 +121,10 @@ HTML_CONTENT = """
             font-size: 26px; font-weight: bold; cursor: pointer; user-select: none;
             transition: background 0.2s;
         }
-        .light { background-color: #f5cba7; color: #000; }
-        .dark { background-color: #d35400; color: #fff; }
-        .selected { background-color: #9b59b6 !important; box-shadow: inset 0 0 10px #fff; }
-        .highlight { background-color: #2ecc71 !important; }
+        .light { background-color: #f0d9b5; color: #000; }
+        .dark { background-color: #b58863; color: #fff; }
+        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
+        .highlight { background-color: #4cd137 !important; }
         .white-piece { color: #fff; text-shadow: 0 2px 4px #000; }
         .black-piece { color: #111; text-shadow: 0 2px 4px #fff; }
         .hidden { display: none; }
@@ -293,7 +295,6 @@ HTML_CONTENT = """
             loadLeaderboard();
         }
 
-        // កែសម្រួលមុខងារ Quick Match ឱ្យដំណើរការរលូន និងស្រួលចុចជាងមុន
         window.quickJoinRoom = async function() {
             try {
                 const roomsRef = ref(db, 'rooms');
@@ -306,7 +307,6 @@ HTML_CONTENT = """
                         let rData = rooms[rId];
                         let players = rData.players || {};
                         let playerCount = Object.keys(players).length;
-                        // រកបន្ទប់ណាដែលមានមនុស្សតិចជាង ២ និងមិនទាន់ចប់ហ្គេម
                         if (playerCount < 2 && !rData.gameOver) {
                             targetRoom = rId;
                             break;
@@ -328,7 +328,7 @@ HTML_CONTENT = """
                 await joinRoomProcess(targetRoom);
             } catch (error) {
                 console.error("Quick Match Error: ", error);
-                alert("មានបញ្ហាในการចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
+                alert("មានបញ្ហាក្នុងការចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
             }
         }
 
