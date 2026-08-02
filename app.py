@@ -80,7 +80,6 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
 
-        /* តារាងក្ដារអុកលំអរ (Width ស្មើប៊ូតុង និង Height auto) */
         .deco-board-container {
             margin: 15px 0; width: 100%; display: flex; flex-direction: column; align-items: center;
         }
@@ -98,7 +97,6 @@ HTML_CONTENT = """
         .deco-light { background-color: #f5cba7; color: #000; }
         .deco-dark { background-color: #d35400; color: #fff; }
 
-        /* តារាងជើងខ្លាំង (Leaderboard) */
         .leaderboard-box {
             margin-top: 15px; background: rgba(0, 0, 0, 0.4);
             border-radius: 12px; padding: 12px; border: 1px solid rgba(241, 196, 15, 0.2);
@@ -143,33 +141,29 @@ HTML_CONTENT = """
     <div class="container">
         <h1>♟️ អុកខ្មែរអនឡាញ (8-Ball Pool Style) ♟️</h1>
 
-        <!-- ផ្នែកចូលឈ្មោះ (ទំព័រទី១) -->
+        <!-- ផ្នែកចូលឈ្មោះ -->
         <div id="login-box" class="card">
             <h3 style="color: #f1c40f; margin-top: 0;">ចូលរួមលេងហ្គេម</h3>
             <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
             <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
         </div>
 
-        <!-- ម៉ឺនុយដើម (ទំព័រទី២) -->
+        <!-- ម៉ឺនុយដើម -->
         <div id="main-menu" class="card hidden">
-            <!-- ឈ្មោះ និងកាក់ (ស្ថិតនៅខាងលើគេ) -->
             <div class="user-profile">
                 <span id="welcome-msg" style="color: #f1c40f;"></span>
                 <span class="coin-badge">🪙 <span id="userCoins">0</span> កាក់</span>
             </div>
 
-            <!-- ក្ដារអុកលំអរ (ស្ថិតនៅក្រោមឈ្មោះ និងលើប៊ូតុងទាំងអស់) -->
             <div class="deco-board-container">
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <!-- ប៊ូតុងនិងប្រអប់ផ្សេងៗ -->
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
 
-            <!-- តារាងបង្ហាញជើងខ្លាំង -->
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងជើងខ្លាំងប្រចាំសង្វៀន 🏆</div>
                 <div id="leaderboardList">កំពុងទាញយក...</div>
@@ -228,6 +222,7 @@ HTML_CONTENT = """
 
         function renderDecoBoard() {
             const decoEl = document.getElementById("decoBoard");
+            if (!decoEl) return;
             decoEl.innerHTML = "";
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
@@ -248,6 +243,7 @@ HTML_CONTENT = """
             const usersRef = ref(db, 'users');
             onValue(usersRef, (snapshot) => {
                 const lbEl = document.getElementById("leaderboardList");
+                if (!lbEl) return;
                 if (!snapshot.exists()) {
                     lbEl.innerHTML = "<div style='text-align:center; color:#888;'>មិនទាន់មានទិន្នន័យ</div>";
                     return;
@@ -297,26 +293,48 @@ HTML_CONTENT = """
             loadLeaderboard();
         }
 
+        // កែសម្រួលមុខងារ Quick Match ឱ្យដំណើរការរលូន និងស្រួលចុចជាងមុន
         window.quickJoinRoom = async function() {
-            const roomsRef = ref(db, 'rooms');
-            const snapshot = await get(roomsRef);
-            let targetRoom = null;
+            try {
+                const roomsRef = ref(db, 'rooms');
+                const snapshot = await get(roomsRef);
+                let targetRoom = null;
 
-            if (snapshot.exists()) {
-                const rooms = snapshot.val();
-                for (let rId in rooms) {
-                    let rData = rooms[rId];
-                    let players = rData.players || {};
-                    let playerCount = Object.keys(players).length;
-                    if (playerCount < 2 && !rData.gameOver) {
-                        targetRoom = rId;
-                        break;
+                if (snapshot.exists()) {
+                    const rooms = snapshot.val();
+                    for (let rId in rooms) {
+                        let rData = rooms[rId];
+                        let players = rData.players || {};
+                        let playerCount = Object.keys(players).length;
+                        // រកបន្ទប់ណាដែលមានមនុស្សតិចជាង ២ និងមិនទាន់ចប់ហ្គេម
+                        if (playerCount < 2 && !rData.gameOver) {
+                            targetRoom = rId;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (!targetRoom) {
-                targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
+                if (!targetRoom) {
+                    targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
+                    await set(ref(db, `rooms/${targetRoom}`), {
+                        board: initialBoard,
+                        turn: "white",
+                        gameOver: false,
+                        message: "រង់ចាំគូប្រកួត...",
+                        players: {}
+                    });
+                }
+
+                await joinRoomProcess(targetRoom);
+            } catch (error) {
+                console.error("Quick Match Error: ", error);
+                alert("មានបញ្ហាในการចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
+            }
+        }
+
+        window.createPrivateRoom = async function() {
+            try {
+                const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
                 await set(ref(db, `rooms/${targetRoom}`), {
                     board: initialBoard,
                     turn: "white",
@@ -324,22 +342,11 @@ HTML_CONTENT = """
                     message: "រង់ចាំគូប្រកួត...",
                     players: {}
                 });
+                await joinRoomProcess(targetRoom);
+                alert(`បានបង្កើតបន្ទប់ដោយជោគជ័យ!\nកូដបន្ទប់របស់អ្នកគឺ៖ ${targetRoom}\nសូមផ្ញើកូដនេះទៅកាន់មិត្តភក្តិរបស់អ្នកដើម្បីចូលលេង។`);
+            } catch (error) {
+                console.error("Create Room Error: ", error);
             }
-
-            await joinRoomProcess(targetRoom);
-        }
-
-        window.createPrivateRoom = async function() {
-            const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
-            await set(ref(db, `rooms/${targetRoom}`), {
-                board: initialBoard,
-                turn: "white",
-                gameOver: false,
-                message: "រង់ចាំគូប្រកួត...",
-                players: {}
-            });
-            await joinRoomProcess(targetRoom);
-            alert(`បានបង្កើតបន្ទប់ដោយជោគជ័យ!\nកូដបន្ទប់របស់អ្នកគឺ៖ ${targetRoom}\nសូមផ្ញើកូដនេះទៅកាន់មិត្តភក្តិរបស់អ្នកដើម្បីចូលលេង។`);
         }
 
         window.joinPrivateRoom = async function() {
@@ -451,6 +458,7 @@ HTML_CONTENT = """
 
         window.renderBoard = function() {
             const boardEl = document.getElementById("board");
+            if (!boardEl) return;
             boardEl.innerHTML = "";
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
