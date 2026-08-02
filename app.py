@@ -1,10 +1,17 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 import json
+import random
 
 app = FastAPI()
 
+# ទុកទិន្នន័យបន្ទប់ និងទួរនេម៉ង់
 rooms = {}
+tournament = {
+    "players": [],
+    "matches": [],
+    "status": "waiting" # waiting, ongoing, finished
+}
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -12,7 +19,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ហ្គេមអុកខ្មែរអនឡាញ (Ok Chaktrong + Score)</title>
+    <title>ប្រព័ន្ធប្រកួតអុកខ្មែរអនឡាញ (Tournament)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -23,13 +30,15 @@ HTML_CONTENT = """
             color: #333;
         }
         h1 { color: #8B0000; margin-bottom: 5px; }
-        #menu, #game-container { margin-top: 20px; }
         .box {
             background: #fff;
             padding: 20px;
             border-radius: 10px;
             display: inline-block;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            max-width: 500px;
+            width: 100%;
         }
         input {
             padding: 10px;
@@ -37,6 +46,7 @@ HTML_CONTENT = """
             border: 1px solid #ccc;
             border-radius: 5px;
             margin: 5px;
+            width: 80%;
         }
         button {
             padding: 10px 20px;
@@ -49,95 +59,80 @@ HTML_CONTENT = """
             margin: 5px;
         }
         button:hover { background-color: #a80000; }
-        
-        #scoreboard {
-            font-size: 16px;
-            font-weight: bold;
-            margin: 10px 0;
-            color: #2c3e50;
+        .match-card {
             background: #eef2f7;
-            display: inline-block;
-            padding: 6px 20px;
-            border-radius: 15px;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        #status {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 10px 0;
-            color: #444;
-            background: #fff;
-            display: inline-block;
-            padding: 8px 25px;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+        #game-container, #tournament-lobby { margin-top: 20px; }
         #board {
             display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-template-rows: repeat(8, 60px);
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
             gap: 2px;
             justify-content: center;
             margin: 10px auto;
-            border: 5px solid #5c3a21;
+            border: 4px solid #5c3a21;
             background-color: #5c3a21;
             border-radius: 6px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
             width: max-content;
         }
         .square {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 34px;
+            font-size: 30px;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
-            transition: background 0.2s;
         }
         .light { background-color: #f0d9b5; }
         .dark { background-color: #b58863; }
         .selected { background-color: #7b61ff !important; }
         .highlight { background-color: #85c1e9 !important; }
-
-        .white-piece {
-            color: #ffffff;
-            text-shadow: 1px 1px 2px #000, 0 0 1em #000, 0 0 0.2em #000;
-        }
-        .black-piece {
-            color: #111111;
-            text-shadow: 1px 1px 2px #fff, 0 0 1em #fff, 0 0 0.2em #fff;
-        }
+        .white-piece { color: #fff; text-shadow: 1px 1px 2px #000; }
+        .black-piece { color: #111; text-shadow: 1px 1px 2px #fff; }
         .hidden { display: none; }
-        #restart-btn {
-            background-color: #27ae60;
-            margin-top: 10px;
-            display: none;
-        }
     </style>
 </head>
 <body>
 
-    <h1>♟️ ហ្គេមអុកខ្មែរអនឡាញ (Ok Chaktrong) ♟️</h1>
+    <h1>♟️ ប្រកួតអុកខ្មែរជម្រុះ (Ok Chaktrong Tournament) ♟️</h1>
 
-    <div id="menu" class="box">
-        <h3>ចូលបន្ទប់លេងហ្គេម</h3>
-        <input type="text" id="roomInput" placeholder="បញ្ចូលលេខបន្ទប់ (ឧ. 123)"><br>
-        <button onclick="joinRoom()">ចូលលេង</button>
+    <!-- បន្ទប់ចុះឈ្មោះចូលរួមការប្រកួត -->
+    <div id="register-box" class="box">
+        <h3>ចុះឈ្មោះចូលរួមប្រកួត</h3>
+        <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
+        <button onclick="registerPlayer()">ចុះឈ្មោះ</button>
     </div>
 
+    <!-- តារាងបង្ហាញការប្រកួត (Tournament Lobby) -->
+    <div id="tournament-lobby" class="box hidden">
+        <h3>តារាងការប្រកួត (Tournament Bracket)</h3>
+        <p id="lobby-status">កំពុងរង់ចាំអ្នកលេង...</p>
+        <div id="match-list"></div>
+        <button id="start-tour-btn" class="hidden" onclick="startTournament()">ចាប់ផ្ដើមការប្រកួត</button>
+    </div>
+
+    <!-- កន្លែងលេងហ្គេមអុក -->
     <div id="game-container" class="hidden">
-        <div id="scoreboard">ពិន្ទុ៖ ⚪ ស [ <span id="whiteScore">0</span> ] - [ <span id="blackScore">0</span> ] ⚫ ខ្មៅ</div><br>
+        <h3 id="room-title">បន្ទប់ប្រកួត</h3>
         <div id="status">កំពុងរង់ចាំគូប្រកួត...</div>
         <div id="board"></div>
-        <button id="restart-btn" onclick="requestRestart()">លេងសារថ្មី (Restart)</button>
+        <button onclick="leaveRoom()">ត្រឡប់ទៅតារាងប្រកួតវិញ</button>
     </div>
 
     <script>
         let ws = null;
+        let myName = null;
         let myRole = null;
-        let roomCode = null;
+        let currentRoom = null;
 
         const initialBoard = [
             ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
@@ -149,131 +144,109 @@ HTML_CONTENT = """
             ["", "", "", "", "", "", "", ""],
             ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
         ];
-
         let board = JSON.parse(JSON.stringify(initialBoard));
         let selectedPiece = null;
-        let turn = 'white'; 
+        let turn = 'white';
         let validMoves = [];
         let gameOver = false;
 
-        function joinRoom() {
-            roomCode = document.getElementById("roomInput").value.trim();
-            if (!roomCode) {
-                alert("សូមបញ្ចូលលេខបន្ទប់ជាមុនសិន!");
+        // เชื่อมต่อ WebSocket ส่วนกลางสำหรับ Lobby
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const lobbyWs = new WebSocket(`${protocol}//${window.location.host}/ws/lobby`);
+
+        lobbyWs.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === "lobby_update") {
+                updateLobbyUI(data.players, data.matches, data.status);
+            }
+        };
+
+        function registerPlayer() {
+            myName = document.getElementById("playerName").value.trim();
+            if (!myName) {
+                alert("សូមបញ្ចូលឈ្មោះរបស់អ្នកជាមុនសិន!");
                 return;
             }
+            document.getElementById("register-box").classList.add("hidden");
+            document.getElementById("tournament-lobby").classList.remove("hidden");
+            lobbyWs.send(JSON.stringify({ type: "register", name: myName }));
+        }
 
-            document.getElementById("menu").classList.add("hidden");
+        function updateLobbyUI(players, matches, status) {
+            const listDiv = document.getElementById("match-list");
+            listDiv.innerHTML = `<h4>អ្នកលេងសរុប (${players.length} នាក់): ${players.join(', ')}</h4>`;
+            
+            if (matches.length > 0) {
+                listDiv.innerHTML += "<h4>គូប្រកួត៖</h4>";
+                matches.forEach((m, index) => {
+                    listDiv.innerHTML += `
+                        <div class="match-card">
+                            <span>គូទី ${index+1}: ${m.white} (⚪ស) vs ${m.black} (⚫ខ្មៅ) [${m.status}]</span>
+                            ${(myName === m.white || myName === m.black) && m.status === 'ongoing' ? `<button onclick="joinMatch('${m.room}')">ចូលលេង</button>` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            if (players.length >= 2 && status === "waiting") {
+                document.getElementById("start-tour-btn").classList.remove("hidden");
+            }
+        }
+
+        function startTournament() {
+            lobbyWs.send(JSON.stringify({ type: "start_tournament" }));
+        }
+
+        function joinMatch(roomCode) {
+            currentRoom = roomCode;
+            document.getElementById("tournament-lobby").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
+            document.getElementById("room-title").textContent = `បន្ទប់ប្រកួត៖ ${roomCode}`;
 
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}/ws/${roomCode}`);
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws/room/${roomCode}?name=${encodeURIComponent(myName)}`);
 
             ws.onmessage = function(event) {
                 const data = JSON.parse(event.data);
-                
                 if (data.type === "init") {
                     myRole = data.role;
                     document.getElementById("status").textContent = `អ្នកគឺជាភាគី៖ ${myRole === 'white' ? 'ស (ខាងក្រោម)' : 'ខ្មៅ (ខាងលើ)'}`;
-                } else if (data.type === "update" || data.type === "game_over") {
+                } else if (data.type === "update") {
                     board = data.board;
                     turn = data.turn;
                     gameOver = data.gameOver;
                     document.getElementById("status").textContent = data.message;
-                    
-                    document.getElementById("whiteScore").textContent = data.whiteScore;
-                    document.getElementById("blackScore").textContent = data.blackScore;
-
-                    if (gameOver) {
-                        document.getElementById("restart-btn").style.display = "inline-block";
-                    } else {
-                        document.getElementById("restart-btn").style.display = "none";
-                    }
-
                     selectedPiece = null;
                     validMoves = [];
                     renderBoard();
-                } else if (data.type === "error") {
-                    alert(data.message);
-                    location.reload();
                 }
             };
         }
 
-        function requestRestart() {
-            ws.send(JSON.stringify({ type: "restart" }));
+        function leaveRoom() {
+            if(ws) ws.close();
+            document.getElementById("game-container").classList.add("hidden");
+            document.getElementById("tournament-lobby").classList.remove("hidden");
         }
 
-        function isWhitePiece(piece) {
-            return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(piece);
-        }
-
-        function isBlackPiece(piece) {
-            return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(piece);
-        }
+        // Logic ដើរគ្រាប់អុក
+        function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
+        function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
         function getValidMoves(r, c, piece) {
             let moves = [];
             let isWhite = isWhitePiece(piece);
-
-            if (piece === "♙") { 
-                let nr = r - 1;
-                if (nr >= 0 && board[nr][c] === "") moves.push({r: nr, c: c});
-                if (r - 1 >= 0 && c - 1 >= 0 && isBlackPiece(board[r-1][c-1])) moves.push({r: r-1, c: c-1});
-                if (r - 1 >= 0 && c + 1 < 8 && isBlackPiece(board[r-1][c+1])) moves.push({r: r-1, c: c+1});
-            } else if (piece === "♟") { 
-                let nr = r + 1;
-                if (nr < 8 && board[nr][c] === "") moves.push({r: nr, c: c});
-                if (r + 1 < 8 && c - 1 >= 0 && isWhitePiece(board[r+1][c-1])) moves.push({r: r+1, c: c-1});
-                if (r + 1 < 8 && c + 1 < 8 && isWhitePiece(board[r+1][c+1])) moves.push({r: r+1, c: c+1});
-            } else if (piece === "♔" || piece === "♚" || piece === "♕" || piece === "♛") {
+            if (piece === "♙") {
+                if (r-1 >= 0 && board[r-1][c] === "") moves.push({r: r-1, c: c});
+                if (r-1 >= 0 && c-1 >= 0 && isBlackPiece(board[r-1][c-1])) moves.push({r: r-1, c: c-1});
+                if (r-1 >= 0 && c+1 < 8 && isBlackPiece(board[r-1][c+1])) moves.push({r: r-1, c: c+1});
+            } else if (piece === "♟") {
+                if (r+1 < 8 && board[r+1][c] === "") moves.push({r: r+1, c: c});
+                if (r+1 < 8 && c-1 >= 0 && isWhitePiece(board[r+1][c-1])) moves.push({r: r+1, c: c-1});
+                if (r+1 < 8 && c+1 < 8 && isWhitePiece(board[r+1][c+1])) moves.push({r: r+1, c: c+1});
+            } else {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
-                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc];
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
-                    }
-                }
-            } else if (piece === "♖" || piece === "♜") {
-                let directions = [[-1,0], [1,0], [0,-1], [0,1]];
-                for (let d of directions) {
-                    let step = 1;
-                    while (true) {
-                        let nr = r + d[0] * step, nc = c + d[1] * step;
-                        if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
-                        let target = board[nr][nc];
-                        if (target === "") {
-                            moves.push({r: nr, c: nc});
-                        } else {
-                            if ((isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                                moves.push({r: nr, c: nc});
-                            }
-                            break;
-                        }
-                        step++;
-                    }
-                }
-            } else if (piece === "♘" || piece === "♞") {
-                let knightMoves = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
-                for (let m of knightMoves) {
-                    let nr = r + m[0], nc = c + m[1];
-                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc];
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
-                    }
-                }
-            } else if (piece === "♗" || piece === "♝") {
-                let elephantMoves = [
-                    [-1,-1], [-1,1], [1,-1], [1,1],
-                    isWhite ? [-1,0] : [1,0]
-                ];
-                for (let m of elephantMoves) {
-                    let nr = r + m[0], nc = c + m[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                         let target = board[nr][nc];
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
@@ -286,89 +259,54 @@ HTML_CONTENT = """
         }
 
         function renderBoard() {
-            const boardElement = document.getElementById("board");
-            boardElement.innerHTML = "";
-
+            const boardEl = document.getElementById("board");
+            boardEl.innerHTML = "";
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    const square = document.createElement("div");
-                    square.classList.add("square");
-                    square.classList.add((r + c) % 2 === 0 ? "light" : "dark");
+                    const sq = document.createElement("div");
+                    sq.className = "square " + ((r + c) % 2 === 0 ? "light" : "dark");
+                    if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) sq.classList.add("selected");
+                    if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add("highlight");
                     
-                    if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
-                        square.classList.add("selected");
+                    let p = board[r][c];
+                    if (p !== "") {
+                        let span = document.createElement("span");
+                        span.textContent = p;
+                        span.className = isWhitePiece(p) ? "white-piece" : "black-piece";
+                        sq.appendChild(span);
                     }
-
-                    if (validMoves.some(m => m.r === r && m.c === c)) {
-                        square.classList.add("highlight");
-                    }
-
-                    const piece = board[r][c];
-                    if (piece !== "") {
-                        const pieceSpan = document.createElement("span");
-                        pieceSpan.textContent = piece;
-                        if (isWhitePiece(piece)) {
-                            pieceSpan.classList.add("white-piece");
-                        } else {
-                            pieceSpan.classList.add("black-piece");
-                        }
-                        square.appendChild(pieceSpan);
-                    }
-
-                    square.addEventListener("click", () => handleSquareClick(r, c));
-                    boardElement.appendChild(square);
+                    sq.onclick = () => handleSquareClick(r, c);
+                    boardEl.appendChild(sq);
                 }
             }
         }
 
         function handleSquareClick(r, c) {
-            if (gameOver) return;
-            if (turn !== myRole) {
-                alert("មិនទាន់ដល់វេនរបស់អ្នកទេ!");
-                return;
-            }
-
-            const clickedPiece = board[r][c];
-
+            if (gameOver || turn !== myRole) return;
+            let clicked = board[r][c];
             if (selectedPiece) {
-                let isValid = validMoves.some(m => m.r === r && m.c === c);
-                if (isValid) {
-                    let targetPiece = board[r][c];
-                    let movingPiece = selectedPiece.piece;
-                    let isGameOver = false;
-                    let winningColor = null;
+                if (validMoves.some(m => m.r === r && m.c === c)) {
+                    let target = board[r][c];
+                    let moving = selectedPiece.piece;
+                    let isOver = false;
+                    let msg = "";
 
-                    if (targetPiece === "♚") {
-                        isGameOver = true;
-                        winningColor = "white";
-                    } else if (targetPiece === "♔") {
-                        isGameOver = true;
-                        winningColor = "black";
-                    }
+                    if (target === "♚") { isOver = true; msg = "🎉 ស ឈ្នះការប្រកួត!"; }
+                    else if (target === "♔") { isOver = true; msg = "🎉 ខ្មៅ ឈ្នះការប្រកួត!"; }
 
-                    if (movingPiece === "♙" && r === 2) movingPiece = "♕";
-                    else if (movingPiece === "♟" && r === 5) movingPiece = "♛";
-
-                    board[r][c] = movingPiece;
+                    board[r][c] = moving;
                     board[selectedPiece.r][selectedPiece.c] = "";
-
                     let nextTurn = turn === 'white' ? 'black' : 'white';
 
-                    ws.send(JSON.stringify({
-                        type: "move",
-                        board: board,
-                        turn: nextTurn,
-                        gameOver: isGameOver,
-                        winningColor: winningColor
-                    }));
+                    ws.send(JSON.stringify({ type: "move", board, turn: nextTurn, gameOver: isOver, message: msg }));
                 }
                 selectedPiece = null;
                 validMoves = [];
                 renderBoard();
-            } else if (clickedPiece !== "") {
-                if ((myRole === 'white' && isWhitePiece(clickedPiece)) || (myRole === 'black' && isBlackPiece(clickedPiece))) {
-                    selectedPiece = { r, c, piece: clickedPiece };
-                    validMoves = getValidMoves(r, c, clickedPiece);
+            } else if (clicked !== "") {
+                if ((myRole === 'white' && isWhitePiece(clicked)) || (myRole === 'black' && isBlackPiece(clicked))) {
+                    selectedPiece = { r, c, piece: clicked };
+                    validMoves = getValidMoves(r, c, clicked);
                     renderBoard();
                 }
             }
@@ -378,143 +316,87 @@ HTML_CONTENT = """
 </html>
 """
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: dict[str, list[WebSocket]] = {}
+lobby_connections = []
+tour_data = {"players": [], "matches": [], "status": "waiting"}
 
-    async def connect(self, room: str, websocket: WebSocket):
-        await websocket.accept()
-        if room not in self.active_connections:
-            self.active_connections[room] = []
-        self.active_connections[room].append(websocket)
-
-    def disconnect(self, room: str, websocket: WebSocket):
-        if room in self.active_connections:
-            self.active_connections[room].remove(websocket)
-            if not self.active_connections[room]:
-                del self.active_connections[room]
-
-    async def broadcast(self, room: str, message: dict):
-        if room in self.active_connections:
-            for connection in self.active_connections[room]:
-                await connection.send_text(json.dumps(message))
-
-manager = ConnectionManager()
+async def broadcast_lobby():
+    data = json.dumps({"type": "lobby_update", **tour_data})
+    for conn in lobby_connections:
+        await conn.send_text(data)
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root():
+async def root():
     return HTML_CONTENT
 
-@app.websocket("/ws/{room_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: str):
-    if room_id not in rooms:
-        rooms[room_id] = {
-            "board": json.loads(json.dumps([
-                ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
-                ["", "", "", "", "", "", "", ""],
-                ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"],
-                ["", "", "", "", "", "", "", ""],
-                ["", "", "", "", "", "", "", ""],
-                ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"],
-                ["", "", "", "", "", "", "", ""],
-                ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
-            ])),
-            "turn": "white",
-            "gameOver": False,
-            "message": "វេនអ្នកលេង៖ ស (ខាងក្រោម)",
-            "whiteScore": 0,
-            "blackScore": 0,
-            "players": []
-        }
-
-    room = rooms[room_id]
-    
-    if len(room["players"]) >= 2:
-        await websocket.accept()
-        await websocket.send_text(json.dumps({"type": "error", "message": "បន្ទប់នេះមានអ្នកចូលពេញហើយ!"}))
-        await websocket.close()
-        return
-
-    role = "white" if len(room["players"]) == 0 else "black"
-    room["players"].append(websocket)
-
-    await manager.connect(room_id, websocket)
-    
-    await websocket.send_text(json.dumps({
-        "type": "init",
-        "role": role
-    }))
-    
-    await manager.broadcast(room_id, {
-        "type": "update",
-        "board": room["board"],
-        "turn": room["turn"],
-        "gameOver": room["gameOver"],
-        "message": room["message"],
-        "whiteScore": room["whiteScore"],
-        "blackScore": room["blackScore"]
-    })
-
+@app.websocket("/ws/lobby")
+async def lobby_ws(websocket: WebSocket):
+    await websocket.accept()
+    lobby_connections.append(websocket)
+    await websocket.send_text(json.dumps({"type": "lobby_update", **tour_data}))
     try:
         while True:
             data = await websocket.receive_text()
             packet = json.loads(data)
-            
+            if packet["type"] == "register":
+                name = packet["name"]
+                if name not in tour_data["players"]:
+                    tour_data["players"].append(name)
+                await broadcast_lobby()
+            elif packet["type"] == "start_tournament":
+                players = tour_data["players"]
+                random.shuffle(players)
+                tour_data["matches"] = []
+                # จับคู่เป็นคูໆ (เช่น 10 คน ได้ 5 คู่)
+                for i in range(0, len(players) - 1, 2):
+                    room_id = f"room_{i//2 + 1}"
+                    tour_data["matches"].append({
+                        "room": room_id,
+                        "white": players[i],
+                        "black": players[i+1],
+                        "status": "ongoing"
+                    })
+                    rooms[room_id] = {
+                        "board": json.loads(json.dumps(initial_board)),
+                        "turn": "white",
+                        "gameOver": False,
+                        "message": "វេនអ្នកលេង៖ ស",
+                        "players": {}
+                    }
+                tour_data["status"] = "ongoing"
+                await broadcast_lobby()
+    except WebSocketDisconnect:
+        lobby_connections.remove(websocket)
+
+@app.websocket("/ws/room/{room_id}")
+async def room_ws(websocket: WebSocket, room_id: str, name: str):
+    await websocket.accept()
+    room = rooms[room_id]
+    
+    role = "white" if name == room["matches"]["white"] if False else ("white" if len(room["players"]) == 0 else "black")
+    room["players"][role] = websocket
+
+    await websocket.send_text(json.dumps({"type": "init", "role": role}))
+    
+    try:
+        while True:
+            data = await websocket.receive_text()
+            packet = json.loads(data)
             if packet["type"] == "move":
                 room["board"] = packet["board"]
                 room["turn"] = packet["turn"]
                 room["gameOver"] = packet["gameOver"]
+                room["message"] = packet["message"]
 
-                if packet["gameOver"]:
-                    if packet["winningColor"] == "white":
-                        room["whiteScore"] += 1
-                        room["message"] = "🎉 ភាគី «ស» បានឈ្នះជុំនេះ!"
-                    else:
-                        room["blackScore"] += 1
-                        room["message"] = "🎉 ភាគី «ខ្មៅ» បានឈ្នះជុំនេះ!"
-                else:
-                    room["message"] = f"វេនអ្នកលេង៖ {'ស' if room['turn'] == 'white' else 'ខ្មៅ'}"
-
-                await manager.broadcast(room_id, {
-                    "type": "update",
-                    "board": room["board"],
-                    "turn": room["turn"],
-                    "gameOver": room["gameOver"],
-                    "message": room["message"],
-                    "whiteScore": room["whiteScore"],
-                    "blackScore": room["blackScore"]
-                })
-            
-            elif packet["type"] == "restart":
-                # កំណត់ក្តារខៀនសារថ្មីពេលចង់លេងតទៀត
-                room["board"] = json.loads(json.dumps([
-                    ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
-                    ["", "", "", "", "", "", "", ""],
-                    ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"],
-                    ["", "", "", "", "", "", "", ""],
-                    ["", "", "", "", "", "", "", ""],
-                    ["♙", "♙", "♙", "♙", "♙", "♙", "♙", "♙"],
-                    ["", "", "", "", "", "", "", ""],
-                    ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"]
-                ]))
-                room["turn"] = "white"
-                room["gameOver"] = False
-                room["message"] = "វេនអ្នកលេង៖ ស (ខាងក្រោម)"
-
-                await manager.broadcast(room_id, {
-                    "type": "update",
-                    "board": room["board"],
-                    "turn": room["turn"],
-                    "gameOver": room["gameOver"],
-                    "message": room["message"],
-                    "whiteScore": room["whiteScore"],
-                    "blackScore": room["blackScore"]
-                })
-
+                for conn in room["players"].values():
+                    await conn.send_text(json.dumps({
+                        "type": "update",
+                        "board": room["board"],
+                        "turn": room["turn"],
+                        "gameOver": room["gameOver"],
+                        "message": room["message"]
+                    }))
     except WebSocketDisconnect:
-        manager.disconnect(room_id, websocket)
-        if room_id in rooms and websocket in rooms[room_id]["players"]:
-            rooms[room_id]["players"].remove(websocket)
+        pass
 
 if __name__ == "__main__":
     import uvicorn
