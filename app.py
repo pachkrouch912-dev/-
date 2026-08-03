@@ -57,9 +57,10 @@ HTML_CONTENT = """
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px;
             margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
-            font-size: 14px; font-weight: bold; width: 100%;
+            font-size: 13px; font-weight: bold; width: 100%;
         }
         .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
+        .stats-badge { color: #2ecc71; font-size: 11px; }
 
         input {
             padding: 9px; font-size: 14px; border: 2px solid #34495e; border-radius: 10px;
@@ -131,6 +132,21 @@ HTML_CONTENT = """
             background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 3px;
             font-weight: bold;
         }
+
+        /* Modal Popup សម្រាប់លទ្ធផលហ្គេម */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+            z-index: 10; backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: #1b2838; border: 2px solid #f1c40f; padding: 20px;
+            border-radius: 16px; text-align: center; width: 85%; max-width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+        }
+        .modal-title { font-size: 20px; color: #f1c40f; margin-bottom: 10px; font-weight: bold; }
+        .modal-text { font-size: 14px; margin-bottom: 15px; color: #ddd; }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -155,8 +171,11 @@ HTML_CONTENT = """
 
         <div id="main-menu" class="card hidden">
             <div class="user-profile">
-                <span id="welcome-msg" style="color: #f1c40f;"></span>
-                <span class="coin-badge">🪙 <span id="userCoins">0</span> កាក់</span>
+                <div>
+                    <span id="welcome-msg" style="color: #f1c40f; display: block;"></span>
+                    <span class="stats-badge">ឈ្នះ: <span id="statWins">0</span> | ចាញ់: <span id="statLosses">0</span></span>
+                </div>
+                <span class="coin-badge">🪙 <span id="userCoins">0</span></span>
             </div>
 
             <div class="deco-board-container">
@@ -180,6 +199,16 @@ HTML_CONTENT = """
             <div id="status" style="background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight:bold; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
             <button class="btn-red" style="width: 100%; margin-top: 4px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+        </div>
+    </div>
+
+    <!-- ផ្ទាំងលទ្ធផល និងប៊ូតុងលេងម្ដងទៀត -->
+    <div id="gameOverModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">លទ្ធផលហ្គេម</div>
+            <div class="modal-text" id="modalText">តើអ្នកចង់លេងម្ដងទៀតទេ?</div>
+            <button class="btn-green" onclick="playAgain()">🔄 លេងម្ដងទៀត</button>
+            <button class="btn-red" onclick="closeModalAndMenu()">🏠 ត្រឡប់ទៅមីនុយដើម</button>
         </div>
     </div>
 
@@ -215,6 +244,8 @@ HTML_CONTENT = """
         let myName = "";
         let rawDisplayName = "";
         let myCoins = 0;
+        let myWins = 0;
+        let myLosses = 0;
         let currentRoomId = "";
         let myRole = ""; 
         let board = JSON.parse(JSON.stringify(initialBoard));
@@ -222,7 +253,7 @@ HTML_CONTENT = """
         let gameOver = false;
         let selectedPiece = null;
         let validMoves = [];
-        let isVsAI = false; // ស្ថានភាពលេងជាមួយ AI
+        let isVsAI = false;
 
         function renderDecoBoard() {
             const decoEl = document.getElementById("decoBoard");
@@ -283,20 +314,42 @@ HTML_CONTENT = """
 
             if (userSnap.exists()) {
                 myCoins = userSnap.val().coins || 1000;
+                myWins = userSnap.val().wins || 0;
+                myLosses = userSnap.val().losses || 0;
             } else {
                 myCoins = 1000; 
-                await set(userRef, { name: rawDisplayName, coins: myCoins });
+                myWins = 0;
+                myLosses = 0;
+                await set(userRef, { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses });
             }
 
+            updateUIStats();
             document.getElementById("login-box").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
             document.getElementById("welcome-msg").textContent = `${rawDisplayName}`;
-            document.getElementById("userCoins").textContent = myCoins;
 
             loadLeaderboard();
         }
 
-        // ================= AI BOT LOGIC (MINIMAX & EVALUATION) =================
+        function updateUIStats() {
+            document.getElementById("userCoins").textContent = myCoins;
+            document.getElementById("statWins").textContent = myWins;
+            document.getElementById("statLosses").textContent = myLosses;
+        }
+
+        async function recordGameResult(didWin) {
+            if (didWin) {
+                myWins += 1;
+                myCoins += 100;
+            } else {
+                myLosses += 1;
+                myCoins = Math.max(0, myCoins - 100);
+            }
+            updateUIStats();
+            await update(ref(db, `users/${myName}`), { coins: myCoins, wins: myWins, losses: myLosses });
+        }
+
+        // ================= AI BOT LOGIC =================
         window.startVsAIGame = function() {
             isVsAI = true;
             myRole = "white";
@@ -306,6 +359,7 @@ HTML_CONTENT = """
             selectedPiece = null;
             validMoves = [];
 
+            document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("room-title").textContent = `ប្រកួតទល់នឹង AI Bot (កម្រិតអស្ចារ្យ)`;
@@ -448,12 +502,12 @@ HTML_CONTENT = """
                     if (values[p] !== undefined) {
                         score += values[p];
                         if (currentBoard[r][c].b) {
-                            score += (p === "♟" ? 20 : -20); // ត្រីបកមានតម្លៃខ្ពស់ជាង
+                            score += (p === "♟" ? 20 : -20);
                         }
                     }
                 }
             }
-            return score; // ខ្មៅចង់បានពិន្ទុវិជ្ជមាន សចង់បានអវិជ្ជមាន
+            return score;
         }
 
         function minimax(currentBoard, depth, alpha, beta, isMaximizing) {
@@ -468,7 +522,7 @@ HTML_CONTENT = """
                     let tempBoard = JSON.parse(JSON.stringify(currentBoard));
                     let movingCell = tempBoard[m.fromR][m.fromC];
                     let target = tempBoard[m.toR][m.toC].p;
-                    if (target === "♔") return 10000; // AI ឈ្នះ
+                    if (target === "♔") return 10000;
 
                     let isBokedNow = movingCell.b;
                     if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
@@ -488,7 +542,7 @@ HTML_CONTENT = """
                     let tempBoard = JSON.parse(JSON.stringify(currentBoard));
                     let movingCell = tempBoard[m.fromR][m.fromC];
                     let target = tempBoard[m.toR][m.toC].p;
-                    if (target === "♚") return -10000; // User ឈ្នះ
+                    if (target === "♚") return -10000;
 
                     let isBokedNow = movingCell.b;
                     if (movingCell.p === "♙" && m.toR === 0) isBokedNow = true;
@@ -507,7 +561,7 @@ HTML_CONTENT = """
 
         function aiMakeMove() {
             if (gameOver) return;
-            let allMoves = getAllValidMovesForColor(board, false); // ខ្មៅ (AI)
+            let allMoves = getAllValidMovesForColor(board, false);
             if (allMoves.length === 0) return;
 
             let bestEval = -Infinity;
@@ -528,14 +582,13 @@ HTML_CONTENT = """
                 tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                 tempBoard[m.fromR][m.fromC] = { p: "", b: false };
 
-                let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false); // Depth 2 ឆ្លាតនិងលឿន
+                let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false);
                 if (evalScore > bestEval) {
                     bestEval = evalScore;
                     bestMove = m;
                 }
             }
 
-            // ដើរគ្រាប់
             let movingCell = board[bestMove.fromR][bestMove.fromC];
             let targetPiece = board[bestMove.toR][bestMove.toC].p;
             
@@ -547,8 +600,7 @@ HTML_CONTENT = """
 
             if (targetPiece === "♔") {
                 gameOver = true;
-                alert("😔 AI Bot បានបុកស្លាប់ស្តេចរបស់អ្នកហើយ!");
-                document.getElementById("status").textContent = "AI Bot ຊ្នះ!";
+                showGameOverModal("😔 អ្នកបានចាញ់ AI Bot!", false);
             } else {
                 turn = "white";
                 document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
@@ -556,9 +608,30 @@ HTML_CONTENT = """
             renderBoard();
         }
 
-        // ================= STANDARD MULTIPLAYER & GAME LOGIC =================
+        function showGameOverModal(message, didWin) {
+            document.getElementById("modalTitle").textContent = didWin ? "🎉 អបអរសាទរ!" : "😢 ចាញ់បាត់ហើយ!";
+            document.getElementById("modalText").textContent = message;
+            document.getElementById("gameOverModal").classList.remove("hidden");
+            recordGameResult(didWin);
+        }
+
+        window.playAgain = function() {
+            if (isVsAI) {
+                startVsAIGame();
+            } else {
+                quickJoinRoom();
+            }
+        }
+
+        window.closeModalAndMenu = function() {
+            document.getElementById("gameOverModal").classList.add("hidden");
+            window.leaveRoom();
+        }
+
+        // ================= STANDARD MULTIPLAYER =================
         window.quickJoinRoom = async function() {
             isVsAI = false;
+            document.getElementById("gameOverModal").classList.add("hidden");
             try {
                 const roomsRef = ref(db, 'rooms');
                 const snapshot = await get(roomsRef);
@@ -642,13 +715,8 @@ HTML_CONTENT = """
                 if (data.gameOver && !gameOver) {
                     gameOver = true;
                     if (myRole !== "observer") {
-                        if (data.winnerRole === myRole) {
-                            myCoins += 100; alert("🎉 អ្នកឈ្នះ (+100 កាក់)!");
-                        } else {
-                            myCoins = Math.max(0, myCoins - 100); alert("😔 អ្នកបានចាញ់ (-100 កាក់)!");
-                        }
-                        await update(ref(db, `users/${myName}`), { coins: myCoins });
-                        document.getElementById("userCoins").textContent = myCoins;
+                        let didWin = (data.winnerRole === myRole);
+                        showGameOverModal(didWin ? "🎉 អ្នកឈ្នះហ្គេមនេះហើយ (+100 កាក់)!" : "😔 អ្នកបានចាញ់ហ្គេមនេះ (-100 កាក់)!", didWin);
                     }
                 } else { gameOver = data.gameOver; }
                 
@@ -703,7 +771,7 @@ HTML_CONTENT = """
             if (gameOver) return;
             
             if (isVsAI) {
-                if (turn !== "white") return; // វេន AI
+                if (turn !== "white") return;
             } else {
                 if (turn !== myRole) return;
             }
@@ -733,15 +801,13 @@ HTML_CONTENT = """
                     if (isVsAI) {
                         gameOver = isOver;
                         if (gameOver) {
-                            alert(msg);
-                            document.getElementById("status").textContent = msg;
-                            renderBoard();
+                            showGameOverModal("🎉 អ្នកឈ្នះ AI Bot យ៉ាងអស្ចារ្យ!", true);
                             return;
                         }
                         turn = nextTurn;
                         document.getElementById("status").textContent = `AI កំពុងគិត...`;
                         renderBoard();
-                        setTimeout(aiMakeMove, 400); // ឱ្យ AI ដើរក្រោយពេល User ដើរបាន 0.4 វិនាទី
+                        setTimeout(aiMakeMove, 400);
                     } else {
                         update(ref(db, `rooms/${currentRoomId}`), {
                             board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole,
@@ -779,6 +845,7 @@ HTML_CONTENT = """
                 }
             }
             isVsAI = false;
+            document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("game-container").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
         }
