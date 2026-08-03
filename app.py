@@ -1,7 +1,47 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 app = FastAPI()
+
+# 1. Manifest Endpoint សម្រាប់ឱ្យ PWABuilder និងទូរស័ព្ទស្គាល់
+@app.get("/manifest.json")
+async def get_manifest():
+    return JSONResponse({
+        "name": "អុកខ្មែរអនឡាញ & AI Bot",
+        "short_name": "អុកខ្មែរ",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0a0f18",
+        "theme_color": "#1b2838",
+        "icons": [
+            {
+                "src": "https://img.icons8.com/color/192/chess.png",
+                "sizes": "192x192",
+                "type": "image/png"
+            },
+            {
+                "src": "https://img.icons8.com/color/512/chess.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
+    })
+
+# 2. Service Worker Endpoint សម្រាប់បំពេញលក្ខខណ្ឌ PWA
+@app.get("/sw.js")
+async def get_sw():
+    sw_code = """
+    self.addEventListener('install', (event) => {
+        self.skipWaiting();
+    });
+    self.addEventListener('activate', (event) => {
+        return self.clients.claim();
+    });
+    self.addEventListener('fetch', (event) => {
+        event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    });
+    """
+    return PlainTextResponse(sw_code, media_type="application/javascript")
 
 HTML_CONTENT = """
 <!DOCTYPE html>
@@ -10,6 +50,13 @@ HTML_CONTENT = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>អុកខ្មែរអនឡាញ & AI Bot</title>
+    
+    <!-- PWA Manifest & Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1b2838">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <style>
         * { box-sizing: border-box; }
         body {
@@ -135,7 +182,6 @@ HTML_CONTENT = """
         .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; }
         .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; }
         
-        /* KING WARNING PULSE ANIMATION */
         .king-warning {
             background-color: #e74c3c !important;
             animation: pulseWarning 0.8s infinite alternate;
@@ -233,6 +279,13 @@ HTML_CONTENT = """
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
+            });
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyB2A-i0K1APedqO21pllsOisHIu-gb4HeI",
             authDomain: "ouk-e348e.firebaseapp.com",
@@ -247,16 +300,10 @@ HTML_CONTENT = """
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ================= AUDIO SYSTEM (Web Audio API) =================
         let audioCtx = null;
-
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
         function playSound(type) {
@@ -266,7 +313,6 @@ HTML_CONTENT = """
             const gainNode = audioCtx.createGain();
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-
             let now = audioCtx.currentTime;
 
             if (type === 'move') {
@@ -275,42 +321,36 @@ HTML_CONTENT = """
                 osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
                 gainNode.gain.setValueAtTime(0.2, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
             } else if (type === 'capture') {
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(250, now);
                 osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
                 gainNode.gain.setValueAtTime(0.3, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now);
-                osc.stop(now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
             } else if (type === 'warning') {
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(600, now);
                 osc.frequency.setValueAtTime(900, now + 0.12);
-                osc.frequency.setValueAtTime(600, now + 0.24);
                 gainNode.gain.setValueAtTime(0.3, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
+                osc.start(now); osc.stop(now + 0.35);
             } else if (type === 'win') {
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(300, now);
                 osc.frequency.setValueAtTime(450, now + 0.1);
-                osc.frequency.setValueAtTime(600, now + 0.2);
+                gainNode.gain.setValueAtTime(600, now + 0.2);
                 gainNode.gain.setValueAtTime(0.25, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
+                osc.start(now); osc.stop(now + 0.35);
             } else if (type === 'lose') {
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(300, now);
                 osc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
                 gainNode.gain.setValueAtTime(0.25, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             }
         }
 
@@ -325,24 +365,12 @@ HTML_CONTENT = """
             [ {p:"♖", b:false}, {p:"♘", b:false}, {p:"♗", b:false}, {p:"♕", b:false}, {p:"♔", b:false}, {p:"♗", b:false}, {p:"♘", b:false}, {p:"♖", b:false} ]
         ];
 
-        let myName = "";
-        let rawDisplayName = "";
-        let myCoins = 0;
-        let myWins = 0;
-        let myLosses = 0;
-        let currentRoomId = "";
-        let myRole = ""; 
-        let board = JSON.parse(JSON.stringify(initialBoard));
-        let turn = "white";
-        let gameOver = false;
-        let selectedPiece = null;
-        let validMoves = [];
-        let isVsAI = false;
+        let myName = "", rawDisplayName = "", myCoins = 0, myWins = 0, myLosses = 0;
+        let currentRoomId = "", myRole = "", board = JSON.parse(JSON.stringify(initialBoard));
+        let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false;
 
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
-        let decoTurn = "white";
-        let decoInterval = null;
-
+        let decoTurn = "white", decoInterval = null;
         const strategicOpenings = [
             {from: {r: 5, c: 3}, to: {r: 4, c: 3}},
             {from: {r: 2, c: 3}, to: {r: 3, c: 3}},
@@ -354,10 +382,8 @@ HTML_CONTENT = """
         function startDecoAutoPlay() {
             if (decoInterval) clearInterval(decoInterval);
             decoBoardState = JSON.parse(JSON.stringify(initialBoard));
-            decoMoveIndex = 0;
-            decoTurn = "white";
+            decoMoveIndex = 0; decoTurn = "white";
             renderDecoBoard();
-
             decoInterval = setInterval(() => {
                 if (decoMoveIndex < strategicOpenings.length) {
                     let m = strategicOpenings[decoMoveIndex];
@@ -365,7 +391,6 @@ HTML_CONTENT = """
                     let isBokedNow = movingCell.b;
                     if (movingCell.p === "♙" && m.to.r === 2) isBokedNow = true;
                     if (movingCell.p === "♟" && m.to.r === 5) isBokedNow = true;
-
                     decoBoardState[m.to.r][m.to.c] = { p: movingCell.p, b: isBokedNow };
                     decoBoardState[m.from.r][m.from.c] = { p: "", b: false };
                     decoMoveIndex++;
@@ -377,7 +402,6 @@ HTML_CONTENT = """
                         let isBokedNow = movingCell.b;
                         if (movingCell.p === "♙" && m.toR === 2) isBokedNow = true;
                         if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
-
                         decoBoardState[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                         decoBoardState[m.fromR][m.fromC] = { p: "", b: false };
                     } else {
@@ -416,8 +440,7 @@ HTML_CONTENT = """
         startDecoAutoPlay();
 
         function loadLeaderboard() {
-            const usersRef = ref(db, 'users');
-            onValue(usersRef, (snapshot) => {
+            onValue(ref(db, 'users'), (snapshot) => {
                 const lbEl = document.getElementById("leaderboardList");
                 if (!lbEl) return;
                 if (!snapshot.exists()) {
@@ -427,13 +450,9 @@ HTML_CONTENT = """
                 let usersData = snapshot.val();
                 let usersArray = [];
                 for (let u in usersData) {
-                    usersArray.push({
-                        name: usersData[u].name || u,
-                        coins: usersData[u].coins || 0
-                    });
+                    usersArray.push({ name: usersData[u].name || u, coins: usersData[u].coins || 0 });
                 }
                 usersArray.sort((a, b) => b.coins - a.coins);
-
                 lbEl.innerHTML = "";
                 usersArray.slice(0, 3).forEach((user, index) => {
                     let rankIcon = index === 0 ? "🥇" : (index === 1 ? "🥈" : "🥉");
@@ -450,26 +469,19 @@ HTML_CONTENT = """
             rawDisplayName = document.getElementById("playerName").value.trim();
             if (!rawDisplayName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
             myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
-
-            const userRef = ref(db, `users/${myName}`);
-            const userSnap = await get(userRef);
-
+            const userSnap = await get(ref(db, `users/${myName}`));
             if (userSnap.exists()) {
                 myCoins = userSnap.val().coins || 1000;
                 myWins = userSnap.val().wins || 0;
                 myLosses = userSnap.val().losses || 0;
             } else {
-                myCoins = 1000; 
-                myWins = 0;
-                myLosses = 0;
-                await set(userRef, { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses });
+                myCoins = 1000; myWins = 0; myLosses = 0;
+                await set(ref(db, `users/${myName}`), { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses });
             }
-
             updateUIStats();
             document.getElementById("login-box").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
             document.getElementById("welcome-msg").textContent = `${rawDisplayName}`;
-
             loadLeaderboard();
         }
 
@@ -480,29 +492,17 @@ HTML_CONTENT = """
         }
 
         async function recordGameResult(didWin) {
-            if (didWin) {
-                myWins += 1;
-                myCoins += 100;
-                playSound('win');
-            } else {
-                myLosses += 1;
-                myCoins = Math.max(0, myCoins - 100);
-                playSound('lose');
-            }
+            if (didWin) { myWins += 1; myCoins += 100; playSound('win'); }
+            else { myLosses += 1; myCoins = Math.max(0, myCoins - 100); playSound('lose'); }
             updateUIStats();
             await update(ref(db, `users/${myName}`), { coins: myCoins, wins: myWins, losses: myLosses });
         }
 
         window.startVsAIGame = function() {
             initAudio();
-            isVsAI = true;
-            myRole = "white";
+            isVsAI = true; myRole = "white";
             board = JSON.parse(JSON.stringify(initialBoard));
-            turn = "white";
-            gameOver = false;
-            selectedPiece = null;
-            validMoves = [];
-
+            turn = "white"; gameOver = false; selectedPiece = null; validMoves = [];
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
@@ -521,9 +521,7 @@ HTML_CONTENT = """
                     let cell = currentBoard[r][c];
                     if (cell.p !== "" && ((isWhiteTurn && isWhitePiece(cell.p)) || (!isWhiteTurn && isBlackPiece(cell.p)))) {
                         let moves = getValidMovesForBoard(r, c, cell, currentBoard);
-                        for (let m of moves) {
-                            allMoves.push({fromR: r, fromC: c, toR: m.r, toC: m.c});
-                        }
+                        for (let m of moves) allMoves.push({fromR: r, fromC: c, toR: m.r, toC: m.c});
                     }
                 }
             }
@@ -534,9 +532,7 @@ HTML_CONTENT = """
             let kingSymbol = isWhiteKing ? "♔" : "♚";
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    if (currentBoard[r][c].p === kingSymbol) {
-                        return {r, c};
-                    }
+                    if (currentBoard[r][c].p === kingSymbol) return {r, c};
                 }
             }
             return null;
@@ -546,28 +542,19 @@ HTML_CONTENT = """
             let kingPos = findKingPosition(currentBoard, isWhiteKing);
             if (!kingPos) return false;
             let enemyMoves = getAllValidMovesForColor(currentBoard, !isWhiteKing);
-            for (let m of enemyMoves) {
-                if (m.toR === kingPos.r && m.toC === kingPos.c) {
-                    return true;
-                }
-            }
-            return false;
+            return enemyMoves.some(m => m.toR === kingPos.r && m.toC === kingPos.c);
         }
 
         function getValidMovesForBoard(r, c, cell, currentBoard) {
             let moves = [];
-            let piece = cell.p;
-            let isWhite = isWhitePiece(piece);
-
+            let piece = cell.p, isWhite = isWhitePiece(piece);
             if (piece === "♔" || piece === "♚") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                         let target = currentBoard[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                     }
                 }
             } else if (piece === "♕" || piece === "♛") {
@@ -576,9 +563,7 @@ HTML_CONTENT = """
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                         let target = currentBoard[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                     }
                 }
             } else if (piece === "♗" || piece === "♝") {
@@ -587,9 +572,7 @@ HTML_CONTENT = """
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                         let target = currentBoard[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                     }
                 }
             } else if (piece === "♘" || piece === "♞") {
@@ -598,9 +581,7 @@ HTML_CONTENT = """
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                         let target = currentBoard[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                     }
                 }
             } else if (piece === "♖" || piece === "♜") {
@@ -611,12 +592,9 @@ HTML_CONTENT = """
                         let nr = r + d[0] * step, nc = c + d[1] * step;
                         if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
                         let target = currentBoard[nr][nc].p;
-                        if (target === "") {
-                            moves.push({r: nr, c: nc});
-                        } else {
-                            if ((isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                                moves.push({r: nr, c: nc});
-                            }
+                        if (target === "") { moves.push({r: nr, c: nc}); }
+                        else {
+                            if ((isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                             break;
                         }
                         step++;
@@ -629,31 +607,21 @@ HTML_CONTENT = """
                         let nr = r + d[0], nc = c + d[1];
                         if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                             let target = currentBoard[nr][nc].p;
-                            if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                                moves.push({r: nr, c: nc});
-                            }
+                            if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                         }
                     }
                 } else {
                     let fwd = isWhite ? -1 : 1;
                     let nr = r + fwd, nc = c;
-                    if (nr >= 0 && nr < 8 && currentBoard[nr][nc].p === "") {
-                        moves.push({r: nr, c: nc});
-                    }
-                    let leftCol = c - 1;
-                    let rightCol = c + 1;
+                    if (nr >= 0 && nr < 8 && currentBoard[nr][nc].p === "") moves.push({r: nr, c: nc});
                     if (nr >= 0 && nr < 8) {
-                        if (leftCol >= 0) {
-                            let targetLeft = currentBoard[nr][leftCol].p;
-                            if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) {
-                                moves.push({r: nr, c: leftCol});
-                            }
+                        if (c - 1 >= 0) {
+                            let targetLeft = currentBoard[nr][c - 1].p;
+                            if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) moves.push({r: nr, c: c - 1});
                         }
-                        if (rightCol < 8) {
-                            let targetRight = currentBoard[nr][rightCol].p;
-                            if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) {
-                                moves.push({r: nr, c: rightCol});
-                            }
+                        if (c + 1 < 8) {
+                            let targetRight = currentBoard[nr][c + 1].p;
+                            if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) moves.push({r: nr, c: c + 1});
                         }
                     }
                 }
@@ -663,26 +631,14 @@ HTML_CONTENT = """
 
         function evaluateBoard(currentBoard) {
             let score = 0;
-            const values = { 
-                "♟": 12, "♙": -12, 
-                "♞": 35, "♘": -35, 
-                "♝": 35, "♗": -35, 
-                "♜": 60, "♖": -60, 
-                "♛": 110, "♕": -110, 
-                "♚": 1200, "♔": -1200 
-            };
+            const values = { "♟": 12, "♙": -12, "♞": 35, "♘": -35, "♝": 35, "♗": -35, "♜": 60, "♖": -60, "♛": 110, "♕": -110, "♚": 1200, "♔": -1200 };
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    let cell = currentBoard[r][c];
-                    let p = cell.p;
+                    let cell = currentBoard[r][c], p = cell.p;
                     if (values[p] !== undefined) {
                         score += values[p];
-                        if (cell.b) {
-                            score += (p === "♟" ? 30 : -30);
-                        }
-                        if (p === "♟" && (r >= 3 && r <= 5)) {
-                            score += 5;
-                        }
+                        if (cell.b) score += (p === "♟" ? 30 : -30);
+                        if (p === "♟" && (r >= 3 && r <= 5)) score += 5;
                     }
                 }
             }
@@ -691,7 +647,6 @@ HTML_CONTENT = """
 
         function minimax(currentBoard, depth, alpha, beta, isMaximizing) {
             if (depth === 0) return evaluateBoard(currentBoard);
-
             let allMoves = getAllValidMovesForColor(currentBoard, !isMaximizing);
             if (allMoves.length === 0) return evaluateBoard(currentBoard);
 
@@ -706,15 +661,11 @@ HTML_CONTENT = """
                 for (let m of allMoves) {
                     let tempBoard = JSON.parse(JSON.stringify(currentBoard));
                     let movingCell = tempBoard[m.fromR][m.fromC];
-                    let target = tempBoard[m.toR][m.toC].p;
-                    if (target === "♔") return 15000;
-
+                    if (tempBoard[m.toR][m.toC].p === "♔") return 15000;
                     let isBokedNow = movingCell.b;
-                    if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true; // រុករកដល់ជួរទី 5
-
+                    if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
                     tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                     tempBoard[m.fromR][m.fromC] = { p: "", b: false };
-
                     let evalScore = minimax(tempBoard, depth - 1, alpha, beta, false);
                     maxEval = Math.max(maxEval, evalScore);
                     alpha = Math.max(alpha, evalScore);
@@ -726,15 +677,11 @@ HTML_CONTENT = """
                 for (let m of allMoves) {
                     let tempBoard = JSON.parse(JSON.stringify(currentBoard));
                     let movingCell = tempBoard[m.fromR][m.fromC];
-                    let target = tempBoard[m.toR][m.toC].p;
-                    if (target === "♚") return -15000;
-
+                    if (tempBoard[m.toR][m.toC].p === "♚") return -15000;
                     let isBokedNow = movingCell.b;
-                    if (movingCell.p === "♙" && m.toR === 2) isBokedNow = true; // រុករកដល់ជួរទី 5 របស់ស (Rank 2)
-
+                    if (movingCell.p === "♙" && m.toR === 2) isBokedNow = true;
                     tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                     tempBoard[m.fromR][m.fromC] = { p: "", b: false };
-
                     let evalScore = minimax(tempBoard, depth - 1, alpha, beta, true);
                     minEval = Math.min(minEval, evalScore);
                     beta = Math.min(beta, evalScore);
@@ -749,46 +696,27 @@ HTML_CONTENT = """
             let allMoves = getAllValidMovesForColor(board, false);
             if (allMoves.length === 0) return;
 
-            let bestEval = -Infinity;
-            let bestMoves = [];
-            let searchDepth = 3;
-
+            let bestEval = -Infinity, bestMoves = [];
             for (let m of allMoves) {
                 let tempBoard = JSON.parse(JSON.stringify(board));
                 let movingCell = tempBoard[m.fromR][m.fromC];
-                let target = tempBoard[m.toR][m.toC].p;
-                if (target === "♔") {
-                    bestMoves = [m];
-                    break;
-                }
-
+                if (tempBoard[m.toR][m.toC].p === "♔") { bestMoves = [m]; break; }
                 let isBokedNow = movingCell.b;
                 if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
-
                 tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                 tempBoard[m.fromR][m.fromC] = { p: "", b: false };
-
-                let evalScore = minimax(tempBoard, searchDepth - 1, -Infinity, Infinity, false);
-                if (evalScore > bestEval) {
-                    bestEval = evalScore;
-                    bestMoves = [m];
-                } else if (evalScore === bestEval) {
-                    bestMoves.push(m);
-                }
+                let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false);
+                if (evalScore > bestEval) { bestEval = evalScore; bestMoves = [m]; }
+                else if (evalScore === bestEval) { bestMoves.push(m); }
             }
 
             let bestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
             let movingCell = board[bestMove.fromR][bestMove.fromC];
             let targetPiece = board[bestMove.toR][bestMove.toC].p;
-            
             let isBokedNow = movingCell.b;
-            if (movingCell.p === "♟" && bestMove.toR === 5) isBokedNow = true; // បកនៅជួរទី 5
+            if (movingCell.p === "♟" && bestMove.toR === 5) isBokedNow = true;
 
-            if (targetPiece !== "") {
-                playSound('capture');
-            } else {
-                playSound('move');
-            }
+            if (targetPiece !== "") playSound('capture'); else playSound('move');
 
             board[bestMove.toR][bestMove.toC] = { p: movingCell.p, b: isBokedNow };
             board[bestMove.fromR][bestMove.fromC] = { p: "", b: false };
@@ -816,11 +744,7 @@ HTML_CONTENT = """
         }
 
         window.playAgain = function() {
-            if (isVsAI) {
-                startVsAIGame();
-            } else {
-                quickJoinRoom();
-            }
+            if (isVsAI) startVsAIGame(); else quickJoinRoom();
         }
 
         window.closeModalAndMenu = function() {
@@ -829,91 +753,71 @@ HTML_CONTENT = """
         }
 
         window.quickJoinRoom = async function() {
-            initAudio();
-            isVsAI = false;
+            initAudio(); isVsAI = false;
             document.getElementById("gameOverModal").classList.add("hidden");
             try {
-                const roomsRef = ref(db, 'rooms');
-                const snapshot = await get(roomsRef);
+                const snapshot = await get(ref(db, 'rooms'));
                 let targetRoom = null;
                 if (snapshot.exists()) {
                     const rooms = snapshot.val();
                     for (let rId in rooms) {
-                        let rData = rooms[rId];
-                        let players = rData.players || {};
-                        if (Object.keys(players).length < 2 && !rData.gameOver) {
-                            targetRoom = rId;
-                            break;
+                        if (Object.keys(rooms[rId].players || {}).length < 2 && !rooms[rId].gameOver) {
+                            targetRoom = rId; break;
                         }
                     }
                 }
                 if (!targetRoom) {
                     targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
-                    await set(ref(db, `rooms/${targetRoom}`), {
-                        board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {}
-                    });
+                    await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
                 }
                 await joinRoomProcess(targetRoom);
             } catch (error) { console.error(error); }
         }
 
         window.createPrivateRoom = async function() {
-            initAudio();
-            isVsAI = false;
+            initAudio(); isVsAI = false;
             try {
                 const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
-                await set(ref(db, `rooms/${targetRoom}`), {
-                    board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {}
-                });
+                await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
                 await joinRoomProcess(targetRoom);
                 alert(`កូដបន្ទប់របស់អ្នក៖ ${targetRoom}`);
             } catch (error) { console.error(error); }
         }
 
         window.joinPrivateRoom = async function() {
-            initAudio();
-            isVsAI = false;
+            initAudio(); isVsAI = false;
             const rCode = document.getElementById("roomCodeInput").value.trim();
             if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
-            const roomRef = ref(db, `rooms/${rCode}`);
-            const snapshot = await get(roomRef);
-            if (!snapshot.exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
+            if (!(await get(ref(db, `rooms/${rCode}`))).exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
             await joinRoomProcess(rCode);
         }
 
         async function joinRoomProcess(roomId) {
             currentRoomId = roomId;
-            const playerRef = ref(db, `rooms/${currentRoomId}/players`);
-            const pSnap = await get(playerRef);
+            const pSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
             let players = pSnap.exists() ? pSnap.val() : {};
-
             if (!players.white) { myRole = "white"; players.white = myName; }
             else if (!players.black) { myRole = "black"; players.black = myName; }
             else { myRole = "observer"; }
 
             await update(ref(db, `rooms/${currentRoomId}`), { players: players });
-
             if (myRole === 'white') onDisconnect(ref(db, `rooms/${currentRoomId}/players/white`)).remove();
             else if (myRole === 'black') onDisconnect(ref(db, `rooms/${currentRoomId}/players/black`)).remove();
 
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
-
             listenToRoom();
             renderBoard();
         }
 
         function listenToRoom() {
-            const roomRef = ref(db, `rooms/${currentRoomId}`);
-            onValue(roomRef, async (snapshot) => {
+            onValue(ref(db, `rooms/${currentRoomId}`), async (snapshot) => {
                 if (!snapshot.exists()) return;
                 const data = snapshot.val();
-                if (!data.players || Object.keys(data.players).length === 0) { await remove(roomRef); return; }
+                if (!data.players || Object.keys(data.players).length === 0) { await remove(ref(db, `rooms/${currentRoomId}`)); return; }
 
-                board = data.board;
-                turn = data.turn;
-                
+                board = data.board; turn = data.turn;
                 if (data.gameOver && !gameOver) {
                     gameOver = true;
                     if (myRole !== "observer") {
@@ -921,61 +825,43 @@ HTML_CONTENT = """
                         showGameOverModal(didWin ? "🎉 អ្នកឈ្នះហ្គេមនេះហើយ (+100 កាក់)!" : "😔 អ្នកបានចាញ់ហ្គេមនេះ (-100 កាក់)!", didWin);
                     }
                 } else { gameOver = data.gameOver; }
-                
-                let pCount = data.players ? Object.keys(data.players).length : 0;
+
+                let pCount = Object.keys(data.players || {}).length;
                 if (pCount < 2) {
                     document.getElementById("status").textContent = `កំពុងរង់ចាំគូប្រកួត...`;
                 } else {
                     let defaultMsg = data.message || `វេន៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
-                    if (myRole !== "observer" && myRole === turn) {
-                        let isMyWhite = (myRole === 'white');
-                        if (isKingInCheck(board, isMyWhite)) {
-                            playSound('warning');
-                            defaultMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
-                        }
+                    if (myRole !== "observer" && myRole === turn && isKingInCheck(board, myRole === 'white')) {
+                        playSound('warning');
+                        defaultMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
                     }
                     document.getElementById("status").textContent = defaultMsg;
                 }
-                selectedPiece = null;
-                validMoves = [];
+                selectedPiece = null; validMoves = [];
                 renderBoard();
             });
-        }
-
-        window.getValidMoves = function(r, c, cell) {
-            return getValidMovesForBoard(r, c, cell, board);
         }
 
         window.renderBoard = function() {
             const boardEl = document.getElementById("board");
             if (!boardEl) return;
             boardEl.innerHTML = "";
-
-            let activeKingIsWhite = (turn === 'white');
-            let kingInCheckPos = null;
-            if (isKingInCheck(board, activeKingIsWhite)) {
-                kingInCheckPos = findKingPosition(board, activeKingIsWhite);
-            }
+            let kingInCheckPos = isKingInCheck(board, turn === 'white') ? findKingPosition(board, turn === 'white') : null;
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const sq = document.createElement("div");
                     sq.className = "square " + ((r + c) % 2 === 0 ? "light" : "dark");
-                    
                     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) sq.classList.add("selected");
                     if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add("highlight");
-                    
-                    if (kingInCheckPos && kingInCheckPos.r === r && kingInCheckPos.c === c) {
-                        sq.classList.add("king-warning");
-                    }
-                    
+                    if (kingInCheckPos && kingInCheckPos.r === r && kingInCheckPos.c === c) sq.classList.add("king-warning");
+
                     let cell = board[r][c];
                     if (cell.p !== "") {
                         let span = document.createElement("span");
                         span.textContent = cell.p;
                         span.className = isWhitePiece(cell.p) ? "white-piece" : "black-piece";
                         sq.appendChild(span);
-
                         if (cell.b) {
                             let badge = document.createElement("div");
                             badge.className = "boked-badge";
@@ -991,35 +877,22 @@ HTML_CONTENT = """
 
         function handleSquareClick(r, c) {
             if (gameOver) return;
-            
-            if (isVsAI) {
-                if (turn !== "white") return;
-            } else {
-                if (turn !== myRole) return;
-            }
+            if (isVsAI && turn !== "white") return;
+            if (!isVsAI && turn !== myRole) return;
 
             let clickedCell = board[r][c];
-
             if (selectedPiece) {
                 if (validMoves.some(m => m.r === r && m.c === c)) {
-                    let targetPiece = clickedCell.p;
-                    let movingCell = selectedPiece.cell;
-                    let isOver = false;
-                    let msg = "";
-                    let winRole = "";
+                    let targetPiece = clickedCell.p, movingCell = selectedPiece.cell;
+                    let isOver = false, msg = "", winRole = "";
 
-                    if (targetPiece !== "") {
-                        playSound('capture');
-                    } else {
-                        playSound('move');
-                    }
-
+                    if (targetPiece !== "") playSound('capture'); else playSound('move');
                     if (targetPiece === "♚") { isOver = true; msg = "🎉 ភាគី ស ឈ្នះ!"; winRole = "white"; }
                     else if (targetPiece === "♔") { isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះ!"; winRole = "black"; }
 
                     let isBokedNow = movingCell.b;
-                    if (movingCell.p === "♙" && r === 2) isBokedNow = true;  // កូនស បកនៅជួរទី 2 (ជួរទី 5)
-                    if (movingCell.p === "♟" && r === 5) isBokedNow = true;  // កូនខ្មៅ បកនៅជួរទី 5
+                    if (movingCell.p === "♙" && r === 2) isBokedNow = true;
+                    if (movingCell.p === "♟" && r === 5) isBokedNow = true;
 
                     board[r][c] = { p: movingCell.p, b: isBokedNow };
                     board[selectedPiece.r][selectedPiece.c] = { p: "", b: false };
@@ -1027,57 +900,39 @@ HTML_CONTENT = """
                     let nextTurn = turn === 'white' ? 'black' : 'white';
                     let nextStatusMsg = `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`;
 
-                    if (!isOver) {
-                        let nextIsWhite = (nextTurn === 'white');
-                        if (isKingInCheck(board, nextIsWhite)) {
-                            playSound('warning');
-                            nextStatusMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
-                        }
+                    if (!isOver && isKingInCheck(board, nextTurn === 'white')) {
+                        playSound('warning');
+                        nextStatusMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
                     }
 
                     if (isVsAI) {
                         gameOver = isOver;
-                        if (gameOver) {
-                            showGameOverModal("🎉 អ្នកឈ្នះ AI Bot កម្រិតសាហាវយ៉ាងអស្ចារ្យ!", true);
-                            return;
-                        }
+                        if (gameOver) { showGameOverModal("🎉 អ្នកឈ្នះ AI Bot កម្រិតសាហាវយ៉ាងអស្ចារ្យ!", true); return; }
                         turn = nextTurn;
                         document.getElementById("status").textContent = `AI កំពុងគិតយុទ្ធសាស្ត្រ...`;
                         renderBoard();
                         setTimeout(aiMakeMove, 400);
                     } else {
                         update(ref(db, `rooms/${currentRoomId}`), {
-                            board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole,
-                            message: msg || nextStatusMsg
+                            board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg
                         });
                     }
                 }
-                selectedPiece = null;
-                validMoves = [];
+                selectedPiece = null; validMoves = [];
                 renderBoard();
             } else if (clickedCell.p !== "") {
-                if (isVsAI) {
-                    if (isWhitePiece(clickedCell.p)) {
-                        selectedPiece = { r, c, cell: clickedCell };
-                        validMoves = getValidMoves(r, c, clickedCell);
-                        renderBoard();
-                    }
-                } else {
-                    if ((myRole === 'white' && isWhitePiece(clickedCell.p)) || (myRole === 'black' && isBlackPiece(clickedCell.p))) {
-                        selectedPiece = { r, c, cell: clickedCell };
-                        validMoves = getValidMoves(r, c, clickedCell);
-                        renderBoard();
-                    }
+                if ((isVsAI && isWhitePiece(clickedCell.p)) || (!isVsAI && ((myRole === 'white' && isWhitePiece(clickedCell.p)) || (myRole === 'black' && isBlackPiece(clickedCell.p))))) {
+                    selectedPiece = { r, c, cell: clickedCell };
+                    validMoves = getValidMovesForBoard(r, c, clickedCell, board);
+                    renderBoard();
                 }
             }
         }
 
         window.leaveRoom = async function() {
             if (!isVsAI && currentRoomId) {
-                const pRef = ref(db, `rooms/${currentRoomId}/players/${myRole}`);
-                await remove(pRef);
-                const roomSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
-                if (!roomSnap.exists() || Object.keys(roomSnap.val() || {}).length === 0) {
+                await remove(ref(db, `rooms/${currentRoomId}/players/${myRole}`));
+                if (!(await get(ref(db, `rooms/${currentRoomId}/players`))).exists()) {
                     await remove(ref(db, `rooms/${currentRoomId}`));
                 }
             }
