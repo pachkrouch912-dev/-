@@ -34,123 +34,127 @@ HTML_CONTENT = """
         }
 
         .container { 
-            position: relative; z-index: 1; width: 100%; max-width: 420px; 
+            position: relative; z-index: 1; width: 100%; max-width: 480px; 
             height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
-            padding: 5px 0;
+            padding: 5px;
         }
         
         h1 { 
             color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            font-size: 18px; margin: 5px 0; letter-spacing: 1px;
+            font-size: 20px; margin: 5px 0; letter-spacing: 1px;
         }
 
         .card {
-            background: rgba(15, 25, 35, 0.9); backdrop-filter: blur(15px);
-            padding: 12px; border-radius: 16px; display: flex; flex-direction: column;
+            background: rgba(15, 25, 35, 0.92); backdrop-filter: blur(15px);
+            padding: 15px; border-radius: 20px; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 10px rgba(255,255,255,0.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
             width: 100%; border: 2px solid rgba(241, 196, 15, 0.3);
             flex-grow: 1; margin: 5px 0;
         }
 
         .user-profile {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px;
-            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
-            font-size: 13px; font-weight: bold; width: 100%;
+            background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 12px;
+            margin-bottom: 8px; border: 1px solid rgba(241, 196, 15, 0.2);
+            font-size: 14px; font-weight: bold; width: 100%;
         }
         .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
-        .stats-badge { color: #2ecc71; font-size: 11px; }
+        .stats-badge { color: #2ecc71; font-size: 12px; }
 
         input {
-            padding: 9px; font-size: 14px; border: 2px solid #34495e; border-radius: 10px;
-            margin: 4px 0; width: 100%; background: rgba(0, 0, 0, 0.5);
+            padding: 12px; font-size: 15px; border: 2px solid #34495e; border-radius: 14px;
+            margin: 6px 0; width: 100%; background: rgba(0, 0, 0, 0.6);
             color: #fff; text-align: center; outline: none; transition: 0.3s;
         }
-        input:focus { border-color: #f1c40f; box-shadow: 0 0 8px rgba(241,196,15,0.4); }
+        input:focus { border-color: #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
 
+        /* ================= 8 BALL POOL BUTTON STYLE ================= */
         button {
-            padding: 9px 14px; font-size: 13px; font-weight: bold;
-            color: white; border: none; border-radius: 10px; cursor: pointer; 
-            margin: 4px 0; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;
+            padding: 12px 20px; font-size: 15px; font-weight: 800; text-transform: uppercase;
+            color: white; border: none; border-radius: 30px; cursor: pointer; 
+            margin: 6px 0; width: 100%; letter-spacing: 0.5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -3px 4px rgba(0,0,0,0.4);
+            transition: all 0.2s ease; position: relative; overflow: hidden;
         }
-        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        button:active { transform: translateY(1px); }
+        button:hover { transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 7px 20px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 4px rgba(0,0,0,0.4); }
+        button:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 2px 2px rgba(0,0,0,0.3); }
 
-        .btn-green { background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 3px 10px rgba(46,204,113,0.4); }
-        .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 3px 10px rgba(52,152,219,0.4); }
-        .btn-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); box-shadow: 0 3px 10px rgba(155,89,182,0.4); }
-        .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 3px 10px rgba(231,76,60,0.4); }
+        .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); border: 1px solid #1e8449; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 
         .deco-board-container {
-            margin: 4px 0; width: 100%; display: flex; justify-content: center;
+            margin: 6px 0; width: 100%; display: flex; justify-content: center;
             pointer-events: none;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 8px; width: 180px; height: 180px;
+            border-radius: 8px; width: 160px; height: 160px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 13px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #f0d9b5; color: #000; }
         .deco-dark { background-color: #b58863; color: #fff; }
         .deco-boked {
-            position: absolute; bottom: 0px; right: 0px; font-size: 6px;
+            position: absolute; bottom: 0px; right: 0px; font-size: 5px;
             background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
             font-weight: bold;
         }
 
         .leaderboard-box {
-            margin-top: 4px; background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px; padding: 5px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 80px; overflow-y: auto;
+            margin-top: 6px; background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px; padding: 8px 10px; border: 1px solid rgba(241, 196, 15, 0.2);
+            text-align: left; width: 100%; max-height: 90px; overflow-y: auto;
         }
-        .leaderboard-title { color: #f1c40f; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 2px; }
-        .lb-item { display: flex; justify-content: space-between; font-size: 11px; padding: 1px 3px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leaderboard-title { color: #f1c40f; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 4px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
+        /* ================= RESPONSIVE FULL FIT BOARD ================= */
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            justify-content: center; margin: 6px auto;
+            justify-content: center; margin: 8px auto;
             border: 4px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 8px; width: 270px; height: 270px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            border-radius: 10px; width: 88vw; height: 88vw; max-width: 380px; max-height: 380px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 28px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #f0d9b5; color: #000; }
         .dark { background-color: #b58863; color: #fff; }
-        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 8px #fff; }
+        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
         .highlight { background-color: #4cd137 !important; }
-        .white-piece { color: #fff; text-shadow: 0 2px 3px #000; }
-        .black-piece { color: #111; text-shadow: 0 2px 3px #fff; }
+        .white-piece { color: #fff; text-shadow: 0 2px 4px #000; }
+        .black-piece { color: #111; text-shadow: 0 2px 4px #fff; }
         
         .boked-badge {
-            position: absolute; bottom: 1px; right: 1px; font-size: 8px;
-            background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 3px;
+            position: absolute; bottom: 2px; right: 2px; font-size: 9px;
+            background: #e74c3c; color: #fff; padding: 1px 3px; border-radius: 3px;
             font-weight: bold;
         }
 
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
             z-index: 10; backdrop-filter: blur(5px);
         }
         .modal-content {
-            background: #1b2838; border: 2px solid #f1c40f; padding: 20px;
-            border-radius: 16px; text-align: center; width: 85%; max-width: 320px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            background: #1b2838; border: 2px solid #f1c40f; padding: 25px;
+            border-radius: 20px; text-align: center; width: 90%; max-width: 340px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.9);
         }
-        .modal-title { font-size: 20px; color: #f1c40f; margin-bottom: 10px; font-weight: bold; }
-        .modal-text { font-size: 14px; margin-bottom: 15px; color: #ddd; }
+        .modal-title { font-size: 22px; color: #f1c40f; margin-bottom: 12px; font-weight: bold; }
+        .modal-text { font-size: 15px; margin-bottom: 20px; color: #ddd; }
 
         .hidden { display: none !important; }
     </style>
@@ -169,7 +173,7 @@ HTML_CONTENT = """
         <h1>♟️ អុកខ្មែរអនឡាញ & AI ♟️</h1>
 
         <div id="login-box" class="card">
-            <h3 style="color: #f1c40f; margin: 0 0 8px 0; font-size: 15px;">ចូលរួមលេងហ្គេម</h3>
+            <h3 style="color: #f1c40f; margin: 0 0 10px 0; font-size: 16px;">ចូលរួមលេងហ្គេម</h3>
             <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក">
             <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
         </div>
@@ -187,8 +191,8 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot (កម្រិតសាហាវ)</button>
-            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
+            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot (សាហាវ)</button>
+            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
@@ -200,10 +204,10 @@ HTML_CONTENT = """
         </div>
 
         <div id="game-container" class="card hidden">
-            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 13px;">បន្ទប់ប្រកួត</h3>
-            <div id="status" style="background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight:bold; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
+            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 14px;">បន្ទប់ប្រកួត</h3>
+            <div id="status" style="background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 12px; font-size: 13px; font-weight:bold; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
-            <button class="btn-red" style="width: 100%; margin-top: 4px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 6px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
         </div>
     </div>
 
@@ -259,7 +263,6 @@ HTML_CONTENT = """
         let validMoves = [];
         let isVsAI = false;
 
-        // ================= AUTO DECO BOARD (AI VS AI) =================
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
         let decoTurn = "white";
         let decoInterval = null;
@@ -554,10 +557,8 @@ HTML_CONTENT = """
             return moves;
         }
 
-        // ================= AGGRESSIVE AI EVALUATION & MINIMAX =================
         function evaluateBoard(currentBoard) {
             let score = 0;
-            // ផ្ដល់តម្លៃខ្ពស់ និងលើកទឹកចិត្តឱ្យហ៊ានប្ដូរកូន និងរុញកូនបកទៅមុខ
             const values = { 
                 "♟": 12, "♙": -12, 
                 "♞": 35, "♘": -35, 
@@ -572,11 +573,9 @@ HTML_CONTENT = """
                     let p = cell.p;
                     if (values[p] !== undefined) {
                         score += values[p];
-                        // ប្រសិនបើជាកូនបក ផ្ដល់ពិន្ទុបន្ថែមច្រើនដើម្បីរុញវាទៅមុខសាហាវ
                         if (cell.b) {
                             score += (p === "♟" ? 30 : -30);
                         }
-                        // លើកទឹកចិត្តឱ្យកូនខ្មៅគ្រប់គ្រងកណ្តាលក្តារ
                         if (p === "♟" && (r >= 3 && r <= 5)) {
                             score += 5;
                         }
@@ -592,7 +591,6 @@ HTML_CONTENT = """
             let allMoves = getAllValidMovesForColor(currentBoard, !isMaximizing);
             if (allMoves.length === 0) return evaluateBoard(currentBoard);
 
-            // តម្រៀបផ្លូវដើរដើម្បីឱ្យ Alpha-Beta Pruning လုပ်ការបានលឿន និងសាហាវជាងមុន
             allMoves.sort((a, b) => {
                 let targetA = currentBoard[a.toR][a.toC].p;
                 let targetB = currentBoard[b.toR][b.toC].p;
@@ -649,7 +647,7 @@ HTML_CONTENT = """
 
             let bestEval = -Infinity;
             let bestMoves = [];
-            let searchDepth = 3; // កើនឡើងកម្រិតស៊ីជម្រៅ ឱ្យ AI កាន់តែសាហាវ
+            let searchDepth = 3;
 
             for (let m of allMoves) {
                 let tempBoard = JSON.parse(JSON.stringify(board));
