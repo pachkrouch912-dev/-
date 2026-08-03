@@ -9,7 +9,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>អុកខ្មែរអនឡាញ - Native App Style</title>
+    <title>អុកខ្មែរអនឡាញ & AI Bot</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -56,61 +56,62 @@ HTML_CONTENT = """
         .user-profile {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px;
-            margin-bottom: 8px; border: 1px solid rgba(241, 196, 15, 0.2);
+            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
             font-size: 14px; font-weight: bold; width: 100%;
         }
         .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
 
         input {
-            padding: 10px; font-size: 14px; border: 2px solid #34495e; border-radius: 10px;
-            margin: 5px 0; width: 100%; background: rgba(0, 0, 0, 0.5);
+            padding: 9px; font-size: 14px; border: 2px solid #34495e; border-radius: 10px;
+            margin: 4px 0; width: 100%; background: rgba(0, 0, 0, 0.5);
             color: #fff; text-align: center; outline: none; transition: 0.3s;
         }
         input:focus { border-color: #f1c40f; box-shadow: 0 0 8px rgba(241,196,15,0.4); }
 
         button {
-            padding: 10px 16px; font-size: 14px; font-weight: bold;
+            padding: 9px 14px; font-size: 13px; font-weight: bold;
             color: white; border: none; border-radius: 10px; cursor: pointer; 
-            margin: 5px 0; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;
+            margin: 4px 0; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;
         }
         button:hover { transform: translateY(-2px); filter: brightness(1.1); }
         button:active { transform: translateY(1px); }
 
         .btn-green { background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 3px 10px rgba(46,204,113,0.4); }
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 3px 10px rgba(52,152,219,0.4); }
+        .btn-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); box-shadow: 0 3px 10px rgba(155,89,182,0.4); }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 3px 10px rgba(231,76,60,0.4); }
 
         .deco-board-container {
-            margin: 5px 0; width: 100%; display: flex; justify-content: center;
+            margin: 4px 0; width: 100%; display: flex; justify-content: center;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 8px; width: 220px; height: 220px;
+            border-radius: 8px; width: 180px; height: 180px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 16px; user-select: none; width: 100%; height: 100%;
+            font-size: 14px; user-select: none; width: 100%; height: 100%;
         }
         .deco-light { background-color: #f0d9b5; color: #000; }
         .deco-dark { background-color: #b58863; color: #fff; }
 
         .leaderboard-box {
-            margin-top: 5px; background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px; padding: 6px 10px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 95px; overflow-y: auto;
+            margin-top: 4px; background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px; padding: 5px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
+            text-align: left; width: 100%; max-height: 80px; overflow-y: auto;
         }
-        .leaderboard-title { color: #f1c40f; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 4px; }
-        .lb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leaderboard-title { color: #f1c40f; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 11px; padding: 1px 3px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            justify-content: center; margin: 8px auto;
+            justify-content: center; margin: 6px auto;
             border: 4px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 8px; width: 280px; height: 280px;
+            border-radius: 8px; width: 270px; height: 270px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.6);
         }
         .square {
@@ -144,10 +145,10 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ អុកខ្មែរអនឡាញ ♟️</h1>
+        <h1>♟️ អុកខ្មែរអនឡាញ & AI ♟️</h1>
 
         <div id="login-box" class="card">
-            <h3 style="color: #f1c40f; margin: 0 0 10px 0; font-size: 16px;">ចូលរួមលេងហ្គេម</h3>
+            <h3 style="color: #f1c40f; margin: 0 0 8px 0; font-size: 15px;">ចូលរួមលេងហ្គេម</h3>
             <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក">
             <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
         </div>
@@ -162,6 +163,7 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
+            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot (កម្រិតអស្ចារ្យ)</button>
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
@@ -174,10 +176,10 @@ HTML_CONTENT = """
         </div>
 
         <div id="game-container" class="card hidden">
-            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 14px;">បន្ទប់ប្រកួត</h3>
-            <div id="status" style="background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight:bold; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
+            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 13px;">បន្ទប់ប្រកួត</h3>
+            <div id="status" style="background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight:bold; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
-            <button class="btn-red" style="width: 100%; margin-top: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 4px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
         </div>
     </div>
 
@@ -220,6 +222,7 @@ HTML_CONTENT = """
         let gameOver = false;
         let selectedPiece = null;
         let validMoves = [];
+        let isVsAI = false; // ស្ថានភាពលេងជាមួយ AI
 
         function renderDecoBoard() {
             const decoEl = document.getElementById("decoBoard");
@@ -273,7 +276,6 @@ HTML_CONTENT = """
         window.loginUser = async function() {
             rawDisplayName = document.getElementById("playerName").value.trim();
             if (!rawDisplayName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
-            
             myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
 
             const userRef = ref(db, `users/${myName}`);
@@ -294,69 +296,313 @@ HTML_CONTENT = """
             loadLeaderboard();
         }
 
+        // ================= AI BOT LOGIC (MINIMAX & EVALUATION) =================
+        window.startVsAIGame = function() {
+            isVsAI = true;
+            myRole = "white";
+            board = JSON.parse(JSON.stringify(initialBoard));
+            turn = "white";
+            gameOver = false;
+            selectedPiece = null;
+            validMoves = [];
+
+            document.getElementById("main-menu").classList.add("hidden");
+            document.getElementById("game-container").classList.remove("hidden");
+            document.getElementById("room-title").textContent = `ប្រកួតទល់នឹង AI Bot (កម្រិតអស្ចារ្យ)`;
+            document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
+            renderBoard();
+        }
+
+        function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
+        function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
+
+        function getAllValidMovesForColor(currentBoard, isWhiteTurn) {
+            let allMoves = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    let cell = currentBoard[r][c];
+                    if (cell.p !== "" && ((isWhiteTurn && isWhitePiece(cell.p)) || (!isWhiteTurn && isBlackPiece(cell.p)))) {
+                        let moves = getValidMovesForBoard(r, c, cell, currentBoard);
+                        for (let m of moves) {
+                            allMoves.push({fromR: r, fromC: c, toR: m.r, toC: m.c});
+                        }
+                    }
+                }
+            }
+            return allMoves;
+        }
+
+        function getValidMovesForBoard(r, c, cell, currentBoard) {
+            let moves = [];
+            let piece = cell.p;
+            let isWhite = isWhitePiece(piece);
+
+            if (piece === "♔" || piece === "♚") {
+                let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
+                for (let d of directions) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = currentBoard[nr][nc].p;
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            } else if (piece === "♕" || piece === "♛") {
+                let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
+                for (let d of directions) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = currentBoard[nr][nc].p;
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            } else if (piece === "♗" || piece === "♝") {
+                let directions = isWhite ? [[-1,0], [-1,-1], [-1,1], [1,-1], [1,1]] : [[1,0], [-1,-1], [-1,1], [1,-1], [1,1]];
+                for (let d of directions) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = currentBoard[nr][nc].p;
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            } else if (piece === "♘" || piece === "♞") {
+                let jmps = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
+                for (let d of jmps) {
+                    let nr = r + d[0], nc = c + d[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = currentBoard[nr][nc].p;
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
+                    }
+                }
+            } else if (piece === "♖" || piece === "♜") {
+                let directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                for (let d of directions) {
+                    let step = 1;
+                    while (true) {
+                        let nr = r + d[0] * step, nc = c + d[1] * step;
+                        if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
+                        let target = currentBoard[nr][nc].p;
+                        if (target === "") {
+                            moves.push({r: nr, c: nc});
+                        } else {
+                            if ((isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                                moves.push({r: nr, c: nc});
+                            }
+                            break;
+                        }
+                        step++;
+                    }
+                }
+            } else if (piece === "♙" || piece === "♟") {
+                if (cell.b) {
+                    let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
+                    for (let d of directions) {
+                        let nr = r + d[0], nc = c + d[1];
+                        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                            let target = currentBoard[nr][nc].p;
+                            if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                                moves.push({r: nr, c: nc});
+                            }
+                        }
+                    }
+                } else {
+                    let fwd = isWhite ? -1 : 1;
+                    let nr = r + fwd, nc = c;
+                    if (nr >= 0 && nr < 8 && currentBoard[nr][nc].p === "") {
+                        moves.push({r: nr, c: nc});
+                    }
+                    let leftCol = c - 1;
+                    let rightCol = c + 1;
+                    if (nr >= 0 && nr < 8) {
+                        if (leftCol >= 0) {
+                            let targetLeft = currentBoard[nr][leftCol].p;
+                            if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) {
+                                moves.push({r: nr, c: leftCol});
+                            }
+                        }
+                        if (rightCol < 8) {
+                            let targetRight = currentBoard[nr][rightCol].p;
+                            if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) {
+                                moves.push({r: nr, c: rightCol});
+                            }
+                        }
+                    }
+                }
+            }
+            return moves;
+        }
+
+        function evaluateBoard(currentBoard) {
+            let score = 0;
+            const values = { "♟": 10, "♙": -10, "♞": 30, "♘": -30, "♝": 30, "♗": -30, "♜": 50, "♖": -50, "♛": 90, "♕": -90, "♚": 1000, "♔": -1000 };
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    let p = currentBoard[r][c].p;
+                    if (values[p] !== undefined) {
+                        score += values[p];
+                        if (currentBoard[r][c].b) {
+                            score += (p === "♟" ? 20 : -20); // ត្រីបកមានតម្លៃខ្ពស់ជាង
+                        }
+                    }
+                }
+            }
+            return score; // ខ្មៅចង់បានពិន្ទុវិជ្ជមាន សចង់បានអវិជ្ជមាន
+        }
+
+        function minimax(currentBoard, depth, alpha, beta, isMaximizing) {
+            if (depth === 0) return evaluateBoard(currentBoard);
+
+            let allMoves = getAllValidMovesForColor(currentBoard, !isMaximizing);
+            if (allMoves.length === 0) return evaluateBoard(currentBoard);
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let m of allMoves) {
+                    let tempBoard = JSON.parse(JSON.stringify(currentBoard));
+                    let movingCell = tempBoard[m.fromR][m.fromC];
+                    let target = tempBoard[m.toR][m.toC].p;
+                    if (target === "♔") return 10000; // AI ឈ្នះ
+
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
+
+                    tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                    tempBoard[m.fromR][m.fromC] = { p: "", b: false };
+
+                    let evalScore = minimax(tempBoard, depth - 1, alpha, beta, false);
+                    maxEval = Math.max(maxEval, evalScore);
+                    alpha = Math.max(alpha, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let m of allMoves) {
+                    let tempBoard = JSON.parse(JSON.stringify(currentBoard));
+                    let movingCell = tempBoard[m.fromR][m.fromC];
+                    let target = tempBoard[m.toR][m.toC].p;
+                    if (target === "♚") return -10000; // User ឈ្នះ
+
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♙" && m.toR === 0) isBokedNow = true;
+
+                    tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                    tempBoard[m.fromR][m.fromC] = { p: "", b: false };
+
+                    let evalScore = minimax(tempBoard, depth - 1, alpha, beta, true);
+                    minEval = Math.min(minEval, evalScore);
+                    beta = Math.min(beta, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function aiMakeMove() {
+            if (gameOver) return;
+            let allMoves = getAllValidMovesForColor(board, false); // ខ្មៅ (AI)
+            if (allMoves.length === 0) return;
+
+            let bestEval = -Infinity;
+            let bestMove = allMoves[0];
+
+            for (let m of allMoves) {
+                let tempBoard = JSON.parse(JSON.stringify(board));
+                let movingCell = tempBoard[m.fromR][m.fromC];
+                let target = tempBoard[m.toR][m.toC].p;
+                if (target === "♔") {
+                    bestMove = m;
+                    break;
+                }
+
+                let isBokedNow = movingCell.b;
+                if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
+
+                tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                tempBoard[m.fromR][m.fromC] = { p: "", b: false };
+
+                let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false); // Depth 2 ឆ្លាតនិងលឿន
+                if (evalScore > bestEval) {
+                    bestEval = evalScore;
+                    bestMove = m;
+                }
+            }
+
+            // ដើរគ្រាប់
+            let movingCell = board[bestMove.fromR][bestMove.fromC];
+            let targetPiece = board[bestMove.toR][bestMove.toC].p;
+            
+            let isBokedNow = movingCell.b;
+            if (movingCell.p === "♟" && bestMove.toR === 7) isBokedNow = true;
+
+            board[bestMove.toR][bestMove.toC] = { p: movingCell.p, b: isBokedNow };
+            board[bestMove.fromR][bestMove.fromC] = { p: "", b: false };
+
+            if (targetPiece === "♔") {
+                gameOver = true;
+                alert("😔 AI Bot បានបុកស្លាប់ស្តេចរបស់អ្នកហើយ!");
+                document.getElementById("status").textContent = "AI Bot ຊ្នះ!";
+            } else {
+                turn = "white";
+                document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
+            }
+            renderBoard();
+        }
+
+        // ================= STANDARD MULTIPLAYER & GAME LOGIC =================
         window.quickJoinRoom = async function() {
+            isVsAI = false;
             try {
                 const roomsRef = ref(db, 'rooms');
                 const snapshot = await get(roomsRef);
                 let targetRoom = null;
-
                 if (snapshot.exists()) {
                     const rooms = snapshot.val();
                     for (let rId in rooms) {
                         let rData = rooms[rId];
                         let players = rData.players || {};
-                        let playerCount = Object.keys(players).length;
-                        if (playerCount < 2 && !rData.gameOver) {
+                        if (Object.keys(players).length < 2 && !rData.gameOver) {
                             targetRoom = rId;
                             break;
                         }
                     }
                 }
-
                 if (!targetRoom) {
                     targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
                     await set(ref(db, `rooms/${targetRoom}`), {
-                        board: initialBoard,
-                        turn: "white",
-                        gameOver: false,
-                        message: "រង់ចាំគូប្រកួត...",
-                        players: {}
+                        board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {}
                     });
                 }
-
                 await joinRoomProcess(targetRoom);
-            } catch (error) {
-                console.error("Quick Match Error: ", error);
-            }
+            } catch (error) { console.error(error); }
         }
 
         window.createPrivateRoom = async function() {
+            isVsAI = false;
             try {
                 const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
                 await set(ref(db, `rooms/${targetRoom}`), {
-                    board: initialBoard,
-                    turn: "white",
-                    gameOver: false,
-                    message: "រង់ចាំគូប្រកួត...",
-                    players: {}
+                    board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {}
                 });
                 await joinRoomProcess(targetRoom);
                 alert(`កូដបន្ទប់របស់អ្នក៖ ${targetRoom}`);
-            } catch (error) {
-                console.error("Create Room Error: ", error);
-            }
+            } catch (error) { console.error(error); }
         }
 
         window.joinPrivateRoom = async function() {
+            isVsAI = false;
             const rCode = document.getElementById("roomCodeInput").value.trim();
             if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
-            
             const roomRef = ref(db, `rooms/${rCode}`);
             const snapshot = await get(roomRef);
-            if (!snapshot.exists()) {
-                alert("រកមិនឃើញបន្ទប់នេះទេ!");
-                return;
-            }
+            if (!snapshot.exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
             await joinRoomProcess(rCode);
         }
 
@@ -366,27 +612,18 @@ HTML_CONTENT = """
             const pSnap = await get(playerRef);
             let players = pSnap.exists() ? pSnap.val() : {};
 
-            if (!players.white) {
-                myRole = "white";
-                players.white = myName;
-            } else if (!players.black) {
-                myRole = "black";
-                players.black = myName;
-            } else {
-                myRole = "observer";
-            }
+            if (!players.white) { myRole = "white"; players.white = myName; }
+            else if (!players.black) { myRole = "black"; players.black = myName; }
+            else { myRole = "observer"; }
 
             await update(ref(db, `rooms/${currentRoomId}`), { players: players });
 
-            if (myRole === 'white') {
-                onDisconnect(ref(db, `rooms/${currentRoomId}/players/white`)).remove();
-            } else if (myRole === 'black') {
-                onDisconnect(ref(db, `rooms/${currentRoomId}/players/black`)).remove();
-            }
+            if (myRole === 'white') onDisconnect(ref(db, `rooms/${currentRoomId}/players/white`)).remove();
+            else if (myRole === 'black') onDisconnect(ref(db, `rooms/${currentRoomId}/players/black`)).remove();
 
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : (myRole === 'black' ? 'ខ្មៅ' : 'ទស្សនា')})`;
+            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
 
             listenToRoom();
             renderBoard();
@@ -397,11 +634,7 @@ HTML_CONTENT = """
             onValue(roomRef, async (snapshot) => {
                 if (!snapshot.exists()) return;
                 const data = snapshot.val();
-                
-                if (!data.players || Object.keys(data.players).length === 0) {
-                    await remove(roomRef);
-                    return;
-                }
+                if (!data.players || Object.keys(data.players).length === 0) { await remove(roomRef); return; }
 
                 board = data.board;
                 turn = data.turn;
@@ -410,18 +643,14 @@ HTML_CONTENT = """
                     gameOver = true;
                     if (myRole !== "observer") {
                         if (data.winnerRole === myRole) {
-                            myCoins += 100; 
-                            alert("🎉 អ្នកឈ្នះការប្រកួត (+100 កាក់)!");
+                            myCoins += 100; alert("🎉 អ្នកឈ្នះ (+100 កាក់)!");
                         } else {
-                            myCoins = Math.max(0, myCoins - 100); 
-                            alert("😔 អ្នកបានចាញ់ (-100 កាក់)!");
+                            myCoins = Math.max(0, myCoins - 100); alert("😔 អ្នកបានចាញ់ (-100 កាក់)!");
                         }
                         await update(ref(db, `users/${myName}`), { coins: myCoins });
                         document.getElementById("userCoins").textContent = myCoins;
                     }
-                } else {
-                    gameOver = data.gameOver;
-                }
+                } else { gameOver = data.gameOver; }
                 
                 let pCount = data.players ? Object.keys(data.players).length : 0;
                 if (pCount < 2) {
@@ -435,119 +664,8 @@ HTML_CONTENT = """
             });
         }
 
-        function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
-        function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
-
-        function getValidMoves(r, c, cell) {
-            let moves = [];
-            let piece = cell.p;
-            let isWhite = isWhitePiece(piece);
-
-            if (piece === "♔" || piece === "♚") {
-                let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
-                for (let d of directions) {
-                    let nr = r + d[0], nc = c + d[1];
-                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
-                    }
-                }
-            }
-            else if (piece === "♕" || piece === "♛") {
-                let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
-                for (let d of directions) {
-                    let nr = r + d[0], nc = c + d[1];
-                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
-                    }
-                }
-            }
-            else if (piece === "♗" || piece === "♝") {
-                let directions = isWhite ? [[-1,0], [-1,-1], [-1,1], [1,-1], [1,1]] : [[1,0], [-1,-1], [-1,1], [1,-1], [1,1]];
-                for (let d of directions) {
-                    let nr = r + d[0], nc = c + d[1];
-                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
-                    }
-                }
-            }
-            else if (piece === "♘" || piece === "♞") {
-                let jmps = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
-                for (let d of jmps) {
-                    let nr = r + d[0], nc = c + d[1];
-                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                        let target = board[nr][nc].p;
-                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                            moves.push({r: nr, c: nc});
-                        }
-                    }
-                }
-            }
-            else if (piece === "♖" || piece === "♜") {
-                let directions = [[-1,0], [1,0], [0,-1], [0,1]];
-                for (let d of directions) {
-                    let step = 1;
-                    while (true) {
-                        let nr = r + d[0] * step, nc = c + d[1] * step;
-                        if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
-                        let target = board[nr][nc].p;
-                        if (target === "") {
-                            moves.push({r: nr, c: nc});
-                        } else {
-                            if ((isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                                moves.push({r: nr, c: nc});
-                            }
-                            break;
-                        }
-                        step++;
-                    }
-                }
-            }
-            else if (piece === "♙" || piece === "♟") {
-                if (cell.b) {
-                    let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
-                    for (let d of directions) {
-                        let nr = r + d[0], nc = c + d[1];
-                        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                            let target = board[nr][nc].p;
-                            if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
-                                moves.push({r: nr, c: nc});
-                            }
-                        }
-                    }
-                } else {
-                    let fwd = isWhite ? -1 : 1;
-                    let nr = r + fwd, nc = c;
-                    if (nr >= 0 && nr < 8 && board[nr][nc].p === "") {
-                        moves.push({r: nr, c: nc});
-                    }
-                    let leftCol = c - 1;
-                    let rightCol = c + 1;
-                    if (nr >= 0 && nr < 8) {
-                        if (leftCol >= 0) {
-                            let targetLeft = board[nr][leftCol].p;
-                            if (targetLeft !== "" && ((isWhite && isBlackPiece(targetLeft)) || (!isWhite && isWhitePiece(targetLeft)))) {
-                                moves.push({r: nr, c: leftCol});
-                            }
-                        }
-                        if (rightCol < 8) {
-                            let targetRight = board[nr][rightCol].p;
-                            if (targetRight !== "" && ((isWhite && isBlackPiece(targetRight)) || (!isWhite && isWhitePiece(targetRight)))) {
-                                moves.push({r: nr, c: rightCol});
-                            }
-                        }
-                    }
-                }
-            }
-            return moves;
+        window.getValidMoves = function(r, c, cell) {
+            return getValidMovesForBoard(r, c, cell, board);
         }
 
         window.renderBoard = function() {
@@ -582,7 +700,14 @@ HTML_CONTENT = """
         }
 
         function handleSquareClick(r, c) {
-            if (gameOver || turn !== myRole) return;
+            if (gameOver) return;
+            
+            if (isVsAI) {
+                if (turn !== "white") return; // វេន AI
+            } else {
+                if (turn !== myRole) return;
+            }
+
             let clickedCell = board[r][c];
 
             if (selectedPiece) {
@@ -593,11 +718,8 @@ HTML_CONTENT = """
                     let msg = "";
                     let winRole = "";
 
-                    if (targetPiece === "♚") { 
-                        isOver = true; msg = "🎉 ភាគី ស ឈ្នះ!"; winRole = "white";
-                    } else if (targetPiece === "♔") { 
-                        isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះ!"; winRole = "black";
-                    }
+                    if (targetPiece === "♚") { isOver = true; msg = "🎉 ភាគី ស ឈ្នះ!"; winRole = "white"; }
+                    else if (targetPiece === "♔") { isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះ!"; winRole = "black"; }
 
                     let isBokedNow = movingCell.b;
                     if (movingCell.p === "♙" && r === 0) isBokedNow = true;
@@ -608,36 +730,55 @@ HTML_CONTENT = """
 
                     let nextTurn = turn === 'white' ? 'black' : 'white';
 
-                    update(ref(db, `rooms/${currentRoomId}`), {
-                        board: board,
-                        turn: nextTurn,
-                        gameOver: isOver,
-                        winnerRole: winRole,
-                        message: msg || `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`
-                    });
+                    if (isVsAI) {
+                        gameOver = isOver;
+                        if (gameOver) {
+                            alert(msg);
+                            document.getElementById("status").textContent = msg;
+                            renderBoard();
+                            return;
+                        }
+                        turn = nextTurn;
+                        document.getElementById("status").textContent = `AI កំពុងគិត...`;
+                        renderBoard();
+                        setTimeout(aiMakeMove, 400); // ឱ្យ AI ដើរក្រោយពេល User ដើរបាន 0.4 វិនាទី
+                    } else {
+                        update(ref(db, `rooms/${currentRoomId}`), {
+                            board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole,
+                            message: msg || `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`
+                        });
+                    }
                 }
                 selectedPiece = null;
                 validMoves = [];
                 renderBoard();
             } else if (clickedCell.p !== "") {
-                if ((myRole === 'white' && isWhitePiece(clickedCell.p)) || (myRole === 'black' && isBlackPiece(clickedCell.p))) {
-                    selectedPiece = { r, c, cell: clickedCell };
-                    validMoves = getValidMoves(r, c, clickedCell);
-                    renderBoard();
+                if (isVsAI) {
+                    if (isWhitePiece(clickedCell.p)) {
+                        selectedPiece = { r, c, cell: clickedCell };
+                        validMoves = getValidMoves(r, c, clickedCell);
+                        renderBoard();
+                    }
+                } else {
+                    if ((myRole === 'white' && isWhitePiece(clickedCell.p)) || (myRole === 'black' && isBlackPiece(clickedCell.p))) {
+                        selectedPiece = { r, c, cell: clickedCell };
+                        validMoves = getValidMoves(r, c, clickedCell);
+                        renderBoard();
+                    }
                 }
             }
         }
 
         window.leaveRoom = async function() {
-            if (currentRoomId) {
+            if (!isVsAI && currentRoomId) {
                 const pRef = ref(db, `rooms/${currentRoomId}/players/${myRole}`);
                 await remove(pRef);
-                
                 const roomSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
                 if (!roomSnap.exists() || Object.keys(roomSnap.val() || {}).length === 0) {
                     await remove(ref(db, `rooms/${currentRoomId}`));
                 }
             }
+            isVsAI = false;
             document.getElementById("game-container").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
         }
