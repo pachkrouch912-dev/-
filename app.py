@@ -286,7 +286,6 @@ HTML_CONTENT = """
                 osc.start(now);
                 osc.stop(now + 0.15);
             } else if (type === 'warning') {
-                // Warning Alarm Sound for King Check
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(600, now);
                 osc.frequency.setValueAtTime(900, now + 0.12);
@@ -364,8 +363,8 @@ HTML_CONTENT = """
                     let m = strategicOpenings[decoMoveIndex];
                     let movingCell = decoBoardState[m.from.r][m.from.c];
                     let isBokedNow = movingCell.b;
-                    if (movingCell.p === "♙" && m.to.r === 0) isBokedNow = true;
-                    if (movingCell.p === "♟" && m.to.r === 7) isBokedNow = true;
+                    if (movingCell.p === "♙" && m.to.r === 2) isBokedNow = true;
+                    if (movingCell.p === "♟" && m.to.r === 5) isBokedNow = true;
 
                     decoBoardState[m.to.r][m.to.c] = { p: movingCell.p, b: isBokedNow };
                     decoBoardState[m.from.r][m.from.c] = { p: "", b: false };
@@ -376,8 +375,8 @@ HTML_CONTENT = """
                         let m = allMoves[Math.floor(Math.random() * allMoves.length)];
                         let movingCell = decoBoardState[m.fromR][m.fromC];
                         let isBokedNow = movingCell.b;
-                        if (movingCell.p === "♙" && m.toR === 0) isBokedNow = true;
-                        if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
+                        if (movingCell.p === "♙" && m.toR === 2) isBokedNow = true;
+                        if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
 
                         decoBoardState[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                         decoBoardState[m.fromR][m.fromC] = { p: "", b: false };
@@ -531,7 +530,6 @@ HTML_CONTENT = """
             return allMoves;
         }
 
-        // CHECK IF KING IS UNDER ATTACK (CHECK WARNING SYSTEM)
         function findKingPosition(currentBoard, isWhiteKing) {
             let kingSymbol = isWhiteKing ? "♔" : "♚";
             for (let r = 0; r < 8; r++) {
@@ -712,7 +710,7 @@ HTML_CONTENT = """
                     if (target === "♔") return 15000;
 
                     let isBokedNow = movingCell.b;
-                    if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
+                    if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true; // រុករកដល់ជួរទី 5
 
                     tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                     tempBoard[m.fromR][m.fromC] = { p: "", b: false };
@@ -732,7 +730,7 @@ HTML_CONTENT = """
                     if (target === "♚") return -15000;
 
                     let isBokedNow = movingCell.b;
-                    if (movingCell.p === "♙" && m.toR === 0) isBokedNow = true;
+                    if (movingCell.p === "♙" && m.toR === 2) isBokedNow = true; // រុករកដល់ជួរទី 5 របស់ស (Rank 2)
 
                     tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                     tempBoard[m.fromR][m.fromC] = { p: "", b: false };
@@ -765,7 +763,7 @@ HTML_CONTENT = """
                 }
 
                 let isBokedNow = movingCell.b;
-                if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
+                if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
 
                 tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                 tempBoard[m.fromR][m.fromC] = { p: "", b: false };
@@ -784,7 +782,7 @@ HTML_CONTENT = """
             let targetPiece = board[bestMove.toR][bestMove.toC].p;
             
             let isBokedNow = movingCell.b;
-            if (movingCell.p === "♟" && bestMove.toR === 7) isBokedNow = true;
+            if (movingCell.p === "♟" && bestMove.toR === 5) isBokedNow = true; // បកនៅជួរទី 5
 
             if (targetPiece !== "") {
                 playSound('capture');
@@ -929,7 +927,6 @@ HTML_CONTENT = """
                     document.getElementById("status").textContent = `កំពុងរង់ចាំគូប្រកួត...`;
                 } else {
                     let defaultMsg = data.message || `វេន៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
-                    // Check warning for current player in online room
                     if (myRole !== "observer" && myRole === turn) {
                         let isMyWhite = (myRole === 'white');
                         if (isKingInCheck(board, isMyWhite)) {
@@ -954,7 +951,6 @@ HTML_CONTENT = """
             if (!boardEl) return;
             boardEl.innerHTML = "";
 
-            // Check if current active player's king is in check for styling red pulse
             let activeKingIsWhite = (turn === 'white');
             let kingInCheckPos = null;
             if (isKingInCheck(board, activeKingIsWhite)) {
@@ -969,7 +965,6 @@ HTML_CONTENT = """
                     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) sq.classList.add("selected");
                     if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add("highlight");
                     
-                    // Apply Warning Glow to King if in check
                     if (kingInCheckPos && kingInCheckPos.r === r && kingInCheckPos.c === c) {
                         sq.classList.add("king-warning");
                     }
@@ -1023,8 +1018,8 @@ HTML_CONTENT = """
                     else if (targetPiece === "♔") { isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះ!"; winRole = "black"; }
 
                     let isBokedNow = movingCell.b;
-                    if (movingCell.p === "♙" && r === 0) isBokedNow = true;
-                    if (movingCell.p === "♟" && r === 7) isBokedNow = true;
+                    if (movingCell.p === "♙" && r === 2) isBokedNow = true;  // កូនស បកនៅជួរទី 2 (ជួរទី 5)
+                    if (movingCell.p === "♟" && r === 5) isBokedNow = true;  // កូនខ្មៅ បកនៅជួរទី 5
 
                     board[r][c] = { p: movingCell.p, b: isBokedNow };
                     board[selectedPiece.r][selectedPiece.c] = { p: "", b: false };
