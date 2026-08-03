@@ -84,6 +84,7 @@ HTML_CONTENT = """
 
         .deco-board-container {
             margin: 4px 0; width: 100%; display: flex; justify-content: center;
+            pointer-events: none; /* ហាមឃាត់ការចុចលើក្ដារនេះ */
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
@@ -94,10 +95,15 @@ HTML_CONTENT = """
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px; user-select: none; width: 100%; height: 100%;
+            font-size: 14px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #f0d9b5; color: #000; }
         .deco-dark { background-color: #b58863; color: #fff; }
+        .deco-boked {
+            position: absolute; bottom: 0px; right: 0px; font-size: 6px;
+            background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
+            font-weight: bold;
+        }
 
         .leaderboard-box {
             margin-top: 4px; background: rgba(0, 0, 0, 0.4);
@@ -133,7 +139,6 @@ HTML_CONTENT = """
             font-weight: bold;
         }
 
-        /* Modal Popup សម្រាប់លទ្ធផលហ្គេម */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
@@ -182,7 +187,7 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot (កម្រិតអស្ចារ្យ)</button>
+            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot</button>
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
@@ -202,7 +207,6 @@ HTML_CONTENT = """
         </div>
     </div>
 
-    <!-- ផ្ទាំងលទ្ធផល និងប៊ូតុងលេងម្ដងទៀត -->
     <div id="gameOverModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-title" id="modalTitle">លទ្ធផលហ្គេម</div>
@@ -255,6 +259,62 @@ HTML_CONTENT = """
         let validMoves = [];
         let isVsAI = false;
 
+        // ================= AUTO DECO BOARD (AI VS AI WITH STRATEGY) =================
+        let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
+        let decoTurn = "white";
+        let decoInterval = null;
+
+        const strategicOpenings = [
+            {from: {r: 5, c: 3}, to: {r: 4, c: 3}}, // ស ដើរទ្រង់កណ្តាល
+            {from: {r: 2, c: 3}, to: {r: 3, c: 3}}, // ខ្មៅ ຕອບតប
+            {from: {r: 7, c: 1}, to: {r: 5, c: 2}}, // ស សេះលោត
+            {from: {r: 0, c: 1}, to: {r: 2, c: 2}}, // ខ្មៅ សេះលោត
+            {from: {r: 5, c: 2}, to: {r: 4, c: 2}}, // ស រុញសណ្តោង
+            {from: {r: 2, c: 2}, to: {r: 3, c: 2}}, // ខ្មៅ រុញសណ្តោង
+        ];
+        let decoMoveIndex = 0;
+
+        function startDecoAutoPlay() {
+            if (decoInterval) clearInterval(decoInterval);
+            decoBoardState = JSON.parse(JSON.stringify(initialBoard));
+            decoMoveIndex = 0;
+            decoTurn = "white";
+            renderDecoBoard();
+
+            decoInterval = setInterval(() => {
+                if (decoMoveIndex < strategicOpenings.length) {
+                    let m = strategicOpenings[decoMoveIndex];
+                    let movingCell = decoBoardState[m.from.r][m.from.c];
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♙" && m.to.r === 0) isBokedNow = true;
+                    if (movingCell.p === "♟" && m.to.r === 7) isBokedNow = true;
+
+                    decoBoardState[m.to.r][m.to.c] = { p: movingCell.p, b: isBokedNow };
+                    decoBoardState[m.from.r][m.from.c] = { p: "", b: false };
+                    decoMoveIndex++;
+                } else {
+                    // បន្ទាប់ពីចប់ក្បួនបើក ឱ្យ AI វៃឆ្លាតដើរដោយស្វ័យប្រវត្តិបន្ត
+                    let allMoves = getAllValidMovesForColor(decoBoardState, decoTurn === "white");
+                    if (allMoves.length > 0) {
+                        let m = allMoves[Math.floor(Math.random() * allMoves.length)];
+                        let movingCell = decoBoardState[m.fromR][m.fromC];
+                        let isBokedNow = movingCell.b;
+                        if (movingCell.p === "♙" && m.toR === 0) isBokedNow = true;
+                        if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
+
+                        decoBoardState[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                        decoBoardState[m.fromR][m.fromC] = { p: "", b: false };
+                    } else {
+                        // Reset ប្រសិនបើគ្មានផ្លូវដើរ
+                        decoBoardState = JSON.parse(JSON.stringify(initialBoard));
+                        decoMoveIndex = 0;
+                    }
+                    decoTurn = decoTurn === "white" ? "black" : "white";
+                }
+                renderDecoBoard();
+            }, 1800);
+        }
+
         function renderDecoBoard() {
             const decoEl = document.getElementById("decoBoard");
             if (!decoEl) return;
@@ -263,16 +323,22 @@ HTML_CONTENT = """
                 for (let c = 0; c < 8; c++) {
                     const sq = document.createElement("div");
                     sq.className = "deco-square " + ((r + c) % 2 === 0 ? "deco-light" : "deco-dark");
-                    let cell = initialBoard[r][c];
+                    let cell = decoBoardState[r][c];
                     if (cell.p !== "") {
                         sq.textContent = cell.p;
                         sq.style.color = ["♖", "♘", "♗", "♕", "♔", "♙"].includes(cell.p) ? "#fff" : "#111";
+                        if (cell.b) {
+                            let bTag = document.createElement("div");
+                            bTag.className = "deco-boked";
+                            bTag.textContent = "បក";
+                            sq.appendChild(bTag);
+                        }
                     }
                     decoEl.appendChild(sq);
                 }
             }
         }
-        renderDecoBoard();
+        startDecoAutoPlay();
 
         function loadLeaderboard() {
             const usersRef = ref(db, 'users');
@@ -349,7 +415,6 @@ HTML_CONTENT = """
             await update(ref(db, `users/${myName}`), { coins: myCoins, wins: myWins, losses: myLosses });
         }
 
-        // ================= AI BOT LOGIC =================
         window.startVsAIGame = function() {
             isVsAI = true;
             myRole = "white";
@@ -362,7 +427,7 @@ HTML_CONTENT = """
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `ប្រកួតទល់នឹង AI Bot (កម្រិតអស្ចារ្យ)`;
+            document.getElementById("room-title").textContent = `ប្រកួតទល់នឹង AI Bot`;
             document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
             renderBoard();
         }
@@ -628,7 +693,6 @@ HTML_CONTENT = """
             window.leaveRoom();
         }
 
-        // ================= STANDARD MULTIPLAYER =================
         window.quickJoinRoom = async function() {
             isVsAI = false;
             document.getElementById("gameOverModal").classList.add("hidden");
