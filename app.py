@@ -92,7 +92,7 @@ HTML_CONTENT = """
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            border: 2px solid #5a3d28; background-color: #5a3d28;
+            border: 2px solid #34495e; background-color: #34495e;
             border-radius: 8px; width: 160px; height: 160px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
@@ -100,8 +100,9 @@ HTML_CONTENT = """
             display: flex; align-items: center; justify-content: center;
             font-size: 13px; user-select: none; width: 100%; height: 100%; position: relative;
         }
-        .deco-light { background-color: #f0d9b5; color: #000; }
-        .deco-dark { background-color: #b58863; color: #fff; }
+        /* DARK GRAY THEME FOR DECO BOARD */
+        .deco-light { background-color: #95a5a6; color: #2c3e50; }
+        .deco-dark { background-color: #34495e; color: #ecf0f1; }
         .deco-boked {
             position: absolute; bottom: 0px; right: 0px; font-size: 5px;
             background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
@@ -116,12 +117,12 @@ HTML_CONTENT = """
         .leaderboard-title { color: #f1c40f; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 4px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* ================= RESPONSIVE FULL FIT BOARD ================= */
+        /* ================= RESPONSIVE FULL FIT BOARD (DARK GRAY THEME) ================= */
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             justify-content: center; margin: 8px auto;
-            border: 4px solid #5a3d28; background-color: #5a3d28;
+            border: 4px solid #2c3e50; background-color: #2c3e50;
             border-radius: 10px; width: 88vw; height: 88vw; max-width: 380px; max-height: 380px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.7);
         }
@@ -130,12 +131,13 @@ HTML_CONTENT = """
             font-size: 28px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
-        .light { background-color: #f0d9b5; color: #000; }
-        .dark { background-color: #b58863; color: #fff; }
+        /* Modern Charcoal & Gray Palette */
+        .light { background-color: #95a5a6; color: #111; }
+        .dark { background-color: #34495e; color: #fff; }
         .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
-        .highlight { background-color: #4cd137 !important; }
-        .white-piece { color: #fff; text-shadow: 0 2px 4px #000; }
-        .black-piece { color: #111; text-shadow: 0 2px 4px #fff; }
+        .highlight { background-color: #2ecc71 !important; }
+        .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; }
+        .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; }
         
         .boked-badge {
             position: absolute; bottom: 2px; right: 2px; font-size: 9px;
@@ -239,12 +241,20 @@ HTML_CONTENT = """
         const db = getDatabase(app);
 
         // ================= AUDIO SYSTEM (Web Audio API) =================
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let audioCtx = null;
 
-        function playSound(type) {
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+        }
+
+        function playSound(type) {
+            initAudio();
+            if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             osc.connect(gainNode);
@@ -256,7 +266,7 @@ HTML_CONTENT = """
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(400, now);
                 osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.setValueAtTime(0.2, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                 osc.start(now);
                 osc.stop(now + 0.1);
@@ -264,7 +274,7 @@ HTML_CONTENT = """
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(250, now);
                 osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                gainNode.gain.setValueAtTime(0.25, now);
+                gainNode.gain.setValueAtTime(0.3, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now);
                 osc.stop(now + 0.15);
@@ -273,7 +283,7 @@ HTML_CONTENT = """
                 osc.frequency.setValueAtTime(300, now);
                 osc.frequency.setValueAtTime(450, now + 0.1);
                 osc.frequency.setValueAtTime(600, now + 0.2);
-                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.setValueAtTime(0.25, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
                 osc.start(now);
                 osc.stop(now + 0.35);
@@ -281,7 +291,7 @@ HTML_CONTENT = """
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(300, now);
                 osc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
-                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.setValueAtTime(0.25, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
                 osc.start(now);
                 osc.stop(now + 0.3);
@@ -420,6 +430,7 @@ HTML_CONTENT = """
         }
 
         window.loginUser = async function() {
+            initAudio();
             rawDisplayName = document.getElementById("playerName").value.trim();
             if (!rawDisplayName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
             myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
@@ -467,6 +478,7 @@ HTML_CONTENT = """
         }
 
         window.startVsAIGame = function() {
+            initAudio();
             isVsAI = true;
             myRole = "white";
             board = JSON.parse(JSON.stringify(initialBoard));
@@ -772,6 +784,7 @@ HTML_CONTENT = """
         }
 
         window.quickJoinRoom = async function() {
+            initAudio();
             isVsAI = false;
             document.getElementById("gameOverModal").classList.add("hidden");
             try {
@@ -800,6 +813,7 @@ HTML_CONTENT = """
         }
 
         window.createPrivateRoom = async function() {
+            initAudio();
             isVsAI = false;
             try {
                 const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
@@ -812,6 +826,7 @@ HTML_CONTENT = """
         }
 
         window.joinPrivateRoom = async function() {
+            initAudio();
             isVsAI = false;
             const rCode = document.getElementById("roomCodeInput").value.trim();
             if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
