@@ -69,7 +69,6 @@ HTML_CONTENT = """
         }
         input:focus { border-color: #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
 
-        /* ================= 8 BALL POOL BUTTON STYLE ================= */
         button {
             padding: 12px 20px; font-size: 15px; font-weight: 800; text-transform: uppercase;
             color: white; border: none; border-radius: 30px; cursor: pointer; 
@@ -100,7 +99,6 @@ HTML_CONTENT = """
             display: flex; align-items: center; justify-content: center;
             font-size: 13px; user-select: none; width: 100%; height: 100%; position: relative;
         }
-        /* DARK GRAY THEME FOR DECO BOARD */
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
         .deco-boked {
@@ -117,7 +115,6 @@ HTML_CONTENT = """
         .leaderboard-title { color: #f1c40f; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 4px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* ================= RESPONSIVE FULL FIT BOARD (DARK GRAY THEME) ================= */
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
@@ -131,7 +128,6 @@ HTML_CONTENT = """
             font-size: 28px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
-        /* Modern Charcoal & Gray Palette */
         .light { background-color: #95a5a6; color: #111; }
         .dark { background-color: #34495e; color: #fff; }
         .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
@@ -139,6 +135,17 @@ HTML_CONTENT = """
         .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; }
         .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; }
         
+        /* KING WARNING PULSE ANIMATION */
+        .king-warning {
+            background-color: #e74c3c !important;
+            animation: pulseWarning 0.8s infinite alternate;
+            box-shadow: 0 0 15px #e74c3c;
+        }
+        @keyframes pulseWarning {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.05); filter: brightness(1.3); }
+        }
+
         .boked-badge {
             position: absolute; bottom: 2px; right: 2px; font-size: 9px;
             background: #e74c3c; color: #fff; padding: 1px 3px; border-radius: 3px;
@@ -278,6 +285,16 @@ HTML_CONTENT = """
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now);
                 osc.stop(now + 0.15);
+            } else if (type === 'warning') {
+                // Warning Alarm Sound for King Check
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.setValueAtTime(900, now + 0.12);
+                osc.frequency.setValueAtTime(600, now + 0.24);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
             } else if (type === 'win') {
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(300, now);
@@ -512,6 +529,31 @@ HTML_CONTENT = """
                 }
             }
             return allMoves;
+        }
+
+        // CHECK IF KING IS UNDER ATTACK (CHECK WARNING SYSTEM)
+        function findKingPosition(currentBoard, isWhiteKing) {
+            let kingSymbol = isWhiteKing ? "♔" : "♚";
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (currentBoard[r][c].p === kingSymbol) {
+                        return {r, c};
+                    }
+                }
+            }
+            return null;
+        }
+
+        function isKingInCheck(currentBoard, isWhiteKing) {
+            let kingPos = findKingPosition(currentBoard, isWhiteKing);
+            if (!kingPos) return false;
+            let enemyMoves = getAllValidMovesForColor(currentBoard, !isWhiteKing);
+            for (let m of enemyMoves) {
+                if (m.toR === kingPos.r && m.toC === kingPos.c) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function getValidMovesForBoard(r, c, cell, currentBoard) {
@@ -758,7 +800,12 @@ HTML_CONTENT = """
                 showGameOverModal("😔 អ្នកបានចាញ់ AI Bot កម្រិតសាហាវ!", false);
             } else {
                 turn = "white";
-                document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
+                let statusMsg = `វេន៖ ស (អ្នក)`;
+                if (isKingInCheck(board, true)) {
+                    playSound('warning');
+                    statusMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
+                }
+                document.getElementById("status").textContent = statusMsg;
             }
             renderBoard();
         }
@@ -881,7 +928,16 @@ HTML_CONTENT = """
                 if (pCount < 2) {
                     document.getElementById("status").textContent = `កំពុងរង់ចាំគូប្រកួត...`;
                 } else {
-                    document.getElementById("status").textContent = data.message || `វេន៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
+                    let defaultMsg = data.message || `វេន៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
+                    // Check warning for current player in online room
+                    if (myRole !== "observer" && myRole === turn) {
+                        let isMyWhite = (myRole === 'white');
+                        if (isKingInCheck(board, isMyWhite)) {
+                            playSound('warning');
+                            defaultMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
+                        }
+                    }
+                    document.getElementById("status").textContent = defaultMsg;
                 }
                 selectedPiece = null;
                 validMoves = [];
@@ -897,12 +953,26 @@ HTML_CONTENT = """
             const boardEl = document.getElementById("board");
             if (!boardEl) return;
             boardEl.innerHTML = "";
+
+            // Check if current active player's king is in check for styling red pulse
+            let activeKingIsWhite = (turn === 'white');
+            let kingInCheckPos = null;
+            if (isKingInCheck(board, activeKingIsWhite)) {
+                kingInCheckPos = findKingPosition(board, activeKingIsWhite);
+            }
+
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const sq = document.createElement("div");
                     sq.className = "square " + ((r + c) % 2 === 0 ? "light" : "dark");
+                    
                     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) sq.classList.add("selected");
                     if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add("highlight");
+                    
+                    // Apply Warning Glow to King if in check
+                    if (kingInCheckPos && kingInCheckPos.r === r && kingInCheckPos.c === c) {
+                        sq.classList.add("king-warning");
+                    }
                     
                     let cell = board[r][c];
                     if (cell.p !== "") {
@@ -960,6 +1030,15 @@ HTML_CONTENT = """
                     board[selectedPiece.r][selectedPiece.c] = { p: "", b: false };
 
                     let nextTurn = turn === 'white' ? 'black' : 'white';
+                    let nextStatusMsg = `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`;
+
+                    if (!isOver) {
+                        let nextIsWhite = (nextTurn === 'white');
+                        if (isKingInCheck(board, nextIsWhite)) {
+                            playSound('warning');
+                            nextStatusMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
+                        }
+                    }
 
                     if (isVsAI) {
                         gameOver = isOver;
@@ -974,7 +1053,7 @@ HTML_CONTENT = """
                     } else {
                         update(ref(db, `rooms/${currentRoomId}`), {
                             board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole,
-                            message: msg || `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`
+                            message: msg || nextStatusMsg
                         });
                     }
                 }
