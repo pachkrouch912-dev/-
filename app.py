@@ -8,14 +8,16 @@ HTML_CONTENT = """
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>អុកខ្មែរអនឡាញ </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>អុកខ្មែរអនឡាញ - Native App Style</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(circle at center, #1b2838, #0a0f18);
-            text-align: center; margin: 0; padding: 20px; color: #fff; min-height: 100vh;
-            overflow-x: hidden; position: relative;
+            text-align: center; margin: 0; padding: 10px; color: #fff; 
+            height: 100vh; height: 100dvh; overflow: hidden; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
 
         .bg-chess {
@@ -23,7 +25,7 @@ HTML_CONTENT = """
             overflow: hidden; z-index: 0; pointer-events: none; opacity: 0.15;
         }
         .floating-piece {
-            position: absolute; font-size: 40px; animation: floatUp 8s infinite linear;
+            position: absolute; font-size: 30px; animation: floatUp 8s infinite linear;
         }
         @keyframes floatUp {
             0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
@@ -31,107 +33,104 @@ HTML_CONTENT = """
             100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
         }
 
-        .container { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; }
+        .container { 
+            position: relative; z-index: 1; width: 100%; max-width: 420px; 
+            height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
+            padding: 5px 0;
+        }
         
         h1 { 
-            color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.7);
-            font-size: 24px; margin-bottom: 10px; letter-spacing: 1px;
+            color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
+            font-size: 18px; margin: 5px 0; letter-spacing: 1px;
         }
 
         .card {
-            background: rgba(15, 25, 35, 0.85); backdrop-filter: blur(15px);
-            padding: 20px; border-radius: 20px; display: inline-block;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
-            margin-top: 15px; width: 100%; box-sizing: border-box;
-            border: 2px solid rgba(241, 196, 15, 0.3);
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+            background: rgba(15, 25, 35, 0.9); backdrop-filter: blur(15px);
+            padding: 12px; border-radius: 16px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 10px rgba(255,255,255,0.05);
+            width: 100%; border: 2px solid rgba(241, 196, 15, 0.3);
+            flex-grow: 1; margin: 5px 0;
         }
 
         .user-profile {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 12px;
-            margin-bottom: 15px; border: 1px solid rgba(241, 196, 15, 0.2);
-            font-size: 15px; font-weight: bold; width: 100%; box-sizing: border-box;
+            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px;
+            margin-bottom: 8px; border: 1px solid rgba(241, 196, 15, 0.2);
+            font-size: 14px; font-weight: bold; width: 100%;
         }
-        .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 5px; }
+        .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
 
         input {
-            padding: 14px; font-size: 16px; border: 2px solid #34495e; border-radius: 12px;
-            margin: 10px 0; width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.5);
+            padding: 10px; font-size: 14px; border: 2px solid #34495e; border-radius: 10px;
+            margin: 5px 0; width: 100%; background: rgba(0, 0, 0, 0.5);
             color: #fff; text-align: center; outline: none; transition: 0.3s;
         }
-        input:focus { border-color: #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.4); }
+        input:focus { border-color: #f1c40f; box-shadow: 0 0 8px rgba(241,196,15,0.4); }
 
         button {
-            padding: 14px 24px; font-size: 16px; font-weight: bold;
-            color: white; border: none; border-radius: 12px; cursor: pointer; 
-            margin: 10px 0; width: 100%; box-sizing: border-box; display: block;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.2s;
+            padding: 10px 16px; font-size: 14px; font-weight: bold;
+            color: white; border: none; border-radius: 10px; cursor: pointer; 
+            margin: 5px 0; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;
         }
-        button:hover { transform: translateY(-3px); filter: brightness(1.1); }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
         button:active { transform: translateY(1px); }
 
-        .btn-green { background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 4px 15px rgba(46,204,113,0.4); }
-        .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 4px 15px rgba(52,152,219,0.4); }
-        .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
+        .btn-green { background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 3px 10px rgba(46,204,113,0.4); }
+        .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 3px 10px rgba(52,152,219,0.4); }
+        .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 3px 10px rgba(231,76,60,0.4); }
 
         .deco-board-container {
-            margin: 15px 0; width: 100%; display: flex; flex-direction: column; align-items: center;
+            margin: 5px 0; width: 100%; display: flex; justify-content: center;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            border: 3px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 10px; width: 100%; max-width: 340px; aspect-ratio: 1 / 1;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); box-sizing: border-box;
+            border: 2px solid #5a3d28; background-color: #5a3d28;
+            border-radius: 8px; width: 220px; height: 220px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; user-select: none; width: 100%; height: 100%;
+            font-size: 16px; user-select: none; width: 100%; height: 100%;
         }
         .deco-light { background-color: #f0d9b5; color: #000; }
         .deco-dark { background-color: #b58863; color: #fff; }
 
         .leaderboard-box {
-            margin-top: 15px; background: rgba(0, 0, 0, 0.4);
-            border-radius: 12px; padding: 12px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; max-height: 160px; overflow-y: auto; width: 100%; box-sizing: border-box;
+            margin-top: 5px; background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px; padding: 6px 10px; border: 1px solid rgba(241, 196, 15, 0.2);
+            text-align: left; width: 100%; max-height: 95px; overflow-y: auto;
         }
-        .leaderboard-title { color: #f1c40f; font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 8px; }
-        .lb-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leaderboard-title { color: #f1c40f; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 4px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            justify-content: center; margin: 15px auto;
-            border: 5px solid #5a3d28; background-color: #5a3d28;
-            border-radius: 10px; width: 100%; max-width: 360px; aspect-ratio: 1 / 1;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6); box-sizing: border-box;
+            justify-content: center; margin: 8px auto;
+            border: 4px solid #5a3d28; background-color: #5a3d28;
+            border-radius: 8px; width: 280px; height: 280px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 22px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #f0d9b5; color: #000; }
         .dark { background-color: #b58863; color: #fff; }
-        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
+        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 8px #fff; }
         .highlight { background-color: #4cd137 !important; }
-        .white-piece { color: #fff; text-shadow: 0 2px 4px #000; }
-        .black-piece { color: #111; text-shadow: 0 2px 4px #fff; }
+        .white-piece { color: #fff; text-shadow: 0 2px 3px #000; }
+        .black-piece { color: #111; text-shadow: 0 2px 3px #fff; }
         
-        /* សញ្ញាសម្គាល់ត្រីបក */
         .boked-badge {
-            position: absolute; bottom: 2px; right: 2px; font-size: 9px;
-            background: #e74c3c; color: #fff; padding: 1px 3px; border-radius: 4px;
+            position: absolute; bottom: 1px; right: 1px; font-size: 8px;
+            background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 3px;
             font-weight: bold;
         }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -145,11 +144,11 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ អុកខ្មែរអនឡាញ (8-Ball Pool Style) ♟️</h1>
+        <h1>♟️ អុកខ្មែរអនឡាញ ♟️</h1>
 
         <div id="login-box" class="card">
-            <h3 style="color: #f1c40f; margin-top: 0;">ចូលរួមលេងហ្គេម</h3>
-            <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"><br>
+            <h3 style="color: #f1c40f; margin: 0 0 10px 0; font-size: 16px;">ចូលរួមលេងហ្គេម</h3>
+            <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក">
             <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
         </div>
 
@@ -174,11 +173,11 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <div id="game-container" class="hidden">
-            <h3 id="room-title" style="color: #f1c40f; margin: 5px 0;">បន្ទប់ប្រកួត</h3>
-            <div id="status" style="background: rgba(0,0,0,0.6); padding: 8px 18px; border-radius: 20px; display:inline-block; font-weight:bold; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
+        <div id="game-container" class="card hidden">
+            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 14px;">បន្ទប់ប្រកួត</h3>
+            <div id="status" style="background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight:bold; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
-            <button class="btn-red" style="width: 100%; margin-top: 15px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
         </div>
     </div>
 
@@ -200,7 +199,6 @@ HTML_CONTENT = """
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // រចនាសម្ព័ន្ធទិន្នន័យក្តារអុក៖ ប្រើ Object { piece: "♙", boked: false } ដើម្បីដឹងច្បាស់ថាតើគ្រាប់ណាបកហើយឬនៅ
         const initialBoard = [
             [ {p:"♜", b:false}, {p:"♞", b:false}, {p:"♝", b:false}, {p:"♛", b:false}, {p:"♚", b:false}, {p:"♝", b:false}, {p:"♞", b:false}, {p:"♜", b:false} ],
             [ {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false} ],
@@ -262,8 +260,8 @@ HTML_CONTENT = """
                 usersArray.sort((a, b) => b.coins - a.coins);
 
                 lbEl.innerHTML = "";
-                usersArray.slice(0, 5).forEach((user, index) => {
-                    let rankIcon = index === 0 ? "🥇" : (index === 1 ? "🥈" : (index === 2 ? "🥉" : `${index + 1}.`));
+                usersArray.slice(0, 3).forEach((user, index) => {
+                    let rankIcon = index === 0 ? "🥇" : (index === 1 ? "🥈" : "🥉");
                     let item = document.createElement("div");
                     item.className = "lb-item";
                     item.innerHTML = `<span>${rankIcon} ${user.name}</span> <span style="color:#f1c40f;">🪙 ${user.coins}</span>`;
@@ -329,7 +327,6 @@ HTML_CONTENT = """
                 await joinRoomProcess(targetRoom);
             } catch (error) {
                 console.error("Quick Match Error: ", error);
-                alert("មានបញ្ហាក្នុងការចូលលេងរហ័ស សូមព្យាយាមម្តងទៀត!");
             }
         }
 
@@ -344,7 +341,7 @@ HTML_CONTENT = """
                     players: {}
                 });
                 await joinRoomProcess(targetRoom);
-                alert(`បានបង្កើតបន្ទប់ដោយជោគជ័យ!\nកូដបន្ទប់របស់អ្នកគឺ៖ ${targetRoom}\nសូមផ្ញើកូដនេះទៅកាន់មិត្តភក្តិរបស់អ្នកដើម្បីចូលលេង។`);
+                alert(`កូដបន្ទប់របស់អ្នក៖ ${targetRoom}`);
             } catch (error) {
                 console.error("Create Room Error: ", error);
             }
@@ -389,7 +386,7 @@ HTML_CONTENT = """
 
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : (myRole === 'black' ? 'ខ្មៅ' : 'អ្នកទស្សនា')})`;
+            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : (myRole === 'black' ? 'ខ្មៅ' : 'ទស្សនា')})`;
 
             listenToRoom();
             renderBoard();
@@ -414,10 +411,10 @@ HTML_CONTENT = """
                     if (myRole !== "observer") {
                         if (data.winnerRole === myRole) {
                             myCoins += 100; 
-                            alert("🎉 សូមអបអរសាទរ! អ្នកឈ្នះការប្រកួត (+100 កាក់)!");
+                            alert("🎉 អ្នកឈ្នះការប្រកួត (+100 កាក់)!");
                         } else {
                             myCoins = Math.max(0, myCoins - 100); 
-                            alert("😔 អ្នកបានចាញ់ការប្រកួត (-100 កាក់)!");
+                            alert("😔 អ្នកបានចាញ់ (-100 កាក់)!");
                         }
                         await update(ref(db, `users/${myName}`), { coins: myCoins });
                         document.getElementById("userCoins").textContent = myCoins;
@@ -428,9 +425,9 @@ HTML_CONTENT = """
                 
                 let pCount = data.players ? Object.keys(data.players).length : 0;
                 if (pCount < 2) {
-                    document.getElementById("status").textContent = `បន្ទប់៖ ${currentRoomId} - កំពុងរង់ចាំគូប្រកួត...`;
+                    document.getElementById("status").textContent = `កំពុងរង់ចាំគូប្រកួត...`;
                 } else {
-                    document.getElementById("status").textContent = data.message || `វេនអ្នកលេង៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
+                    document.getElementById("status").textContent = data.message || `វេន៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
                 }
                 selectedPiece = null;
                 validMoves = [];
@@ -441,13 +438,11 @@ HTML_CONTENT = """
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
-        // កូដគណនាទីតាំងដែលអាចដើរបាន ស្របតាមច្បាប់អុកខ្មែរពិតប្រាកដ
         function getValidMoves(r, c, cell) {
             let moves = [];
             let piece = cell.p;
             let isWhite = isWhitePiece(piece);
 
-            // 1. សលក (King)
             if (piece === "♔" || piece === "♚") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
@@ -460,7 +455,6 @@ HTML_CONTENT = """
                     }
                 }
             }
-            // 2. នាង (Queen)
             else if (piece === "♕" || piece === "♛") {
                 let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
@@ -473,7 +467,6 @@ HTML_CONTENT = """
                     }
                 }
             }
-            // 3. គោ (Bishop)
             else if (piece === "♗" || piece === "♝") {
                 let directions = isWhite ? [[-1,0], [-1,-1], [-1,1], [1,-1], [1,1]] : [[1,0], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
@@ -486,7 +479,6 @@ HTML_CONTENT = """
                     }
                 }
             }
-            // 4. សេះ (Knight)
             else if (piece === "♘" || piece === "♞") {
                 let jmps = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
                 for (let d of jmps) {
@@ -499,7 +491,6 @@ HTML_CONTENT = """
                     }
                 }
             }
-            // 5. ទូក (Rook)
             else if (piece === "♖" || piece === "♜") {
                 let directions = [[-1,0], [1,0], [0,-1], [0,1]];
                 for (let d of directions) {
@@ -520,10 +511,8 @@ HTML_CONTENT = """
                     }
                 }
             }
-            // 6. កូនត្រី និងត្រីបក (Pawn)
             else if (piece === "♙" || piece === "♟") {
                 if (cell.b) {
-                    // ត្រីបក៖ ដើរ និងស៊ីបានដូច "នាង" (១ក្រឡាតាមអង្កត់ទ្រូងទាំង ៤ ទាំងទៅមុខ និងថយក្រោយ)
                     let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                     for (let d of directions) {
                         let nr = r + d[0], nc = c + d[1];
@@ -535,7 +524,6 @@ HTML_CONTENT = """
                         }
                     }
                 } else {
-                    // ត្រីធម្មតា៖ ដើរបានតែ ១ក្រឡាទៅមុខត្រង់ និងស៊ីឆៀង ១ក្រឡាទៅមុខ
                     let fwd = isWhite ? -1 : 1;
                     let nr = r + fwd, nc = c;
                     if (nr >= 0 && nr < 8 && board[nr][nc].p === "") {
@@ -580,7 +568,6 @@ HTML_CONTENT = """
                         span.className = isWhitePiece(cell.p) ? "white-piece" : "black-piece";
                         sq.appendChild(span);
 
-                        // បង្ហាញសញ្ញាអក្សរ "បក" តូចលើគ្រាប់ ដើម្បីដឹងថាវាបានបករួចហើយ
                         if (cell.b) {
                             let badge = document.createElement("div");
                             badge.className = "boked-badge";
@@ -607,18 +594,11 @@ HTML_CONTENT = """
                     let winRole = "";
 
                     if (targetPiece === "♚") { 
-                        isOver = true; 
-                        msg = "🎉 ភាគី ស ឈ្នះការប្រកួត!"; 
-                        winRole = "white";
+                        isOver = true; msg = "🎉 ភាគី ស ឈ្នះ!"; winRole = "white";
                     } else if (targetPiece === "♔") { 
-                        isOver = true; 
-                        msg = "🎉 ភាគី ខ្មៅ ឈ្នះការប្រកួត!"; 
-                        winRole = "black";
+                        isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះ!"; winRole = "black";
                     }
 
-                    // ពិនិត្យលក្ខខណ្ឌបកត្រី៖ 
-                    // - ត្រីស (♙) ដើរដល់ជួរទី០ (ជួរលើបំផុត)
-                    // - ត្រីខ្មៅ (♟) ដើរដល់ជួរទី៧ (ជួរក្រោមបំផុត)
                     let isBokedNow = movingCell.b;
                     if (movingCell.p === "♙" && r === 0) isBokedNow = true;
                     if (movingCell.p === "♟" && r === 7) isBokedNow = true;
@@ -633,7 +613,7 @@ HTML_CONTENT = """
                         turn: nextTurn,
                         gameOver: isOver,
                         winnerRole: winRole,
-                        message: msg || `វេនអ្នកលេង៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`
+                        message: msg || `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`
                     });
                 }
                 selectedPiece = null;
