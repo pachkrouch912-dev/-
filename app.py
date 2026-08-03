@@ -238,6 +238,56 @@ HTML_CONTENT = """
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // ================= AUDIO SYSTEM (Web Audio API) =================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            let now = audioCtx.currentTime;
+
+            if (type === 'move') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'capture') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gainNode.gain.setValueAtTime(0.25, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'win') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(450, now + 0.1);
+                osc.frequency.setValueAtTime(600, now + 0.2);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'lose') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
         const initialBoard = [
             [ {p:"♜", b:false}, {p:"♞", b:false}, {p:"♝", b:false}, {p:"♛", b:false}, {p:"♚", b:false}, {p:"♝", b:false}, {p:"♞", b:false}, {p:"♜", b:false} ],
             [ {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false}, {p:"", b:false} ],
@@ -406,9 +456,11 @@ HTML_CONTENT = """
             if (didWin) {
                 myWins += 1;
                 myCoins += 100;
+                playSound('win');
             } else {
                 myLosses += 1;
                 myCoins = Math.max(0, myCoins - 100);
+                playSound('lose');
             }
             updateUIStats();
             await update(ref(db, `users/${myName}`), { coins: myCoins, wins: myWins, losses: myLosses });
@@ -680,6 +732,12 @@ HTML_CONTENT = """
             let isBokedNow = movingCell.b;
             if (movingCell.p === "♟" && bestMove.toR === 7) isBokedNow = true;
 
+            if (targetPiece !== "") {
+                playSound('capture');
+            } else {
+                playSound('move');
+            }
+
             board[bestMove.toR][bestMove.toC] = { p: movingCell.p, b: isBokedNow };
             board[bestMove.fromR][bestMove.fromC] = { p: "", b: false };
 
@@ -869,6 +927,12 @@ HTML_CONTENT = """
                     let isOver = false;
                     let msg = "";
                     let winRole = "";
+
+                    if (targetPiece !== "") {
+                        playSound('capture');
+                    } else {
+                        playSound('move');
+                    }
 
                     if (targetPiece === "♚") { isOver = true; msg = "🎉 ភាគី ស ឈ្នះ!"; winRole = "white"; }
                     else if (targetPiece === "♔") { isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះ!"; winRole = "black"; }
