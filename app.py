@@ -84,7 +84,7 @@ HTML_CONTENT = """
 
         .deco-board-container {
             margin: 4px 0; width: 100%; display: flex; justify-content: center;
-            pointer-events: none; /* ហាមឃាត់ការចុចលើក្ដារនេះ */
+            pointer-events: none;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
@@ -187,7 +187,7 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot</button>
+            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot (កម្រិតសាហាវ)</button>
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Match)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
@@ -259,18 +259,16 @@ HTML_CONTENT = """
         let validMoves = [];
         let isVsAI = false;
 
-        // ================= AUTO DECO BOARD (AI VS AI WITH STRATEGY) =================
+        // ================= AUTO DECO BOARD (AI VS AI) =================
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
         let decoTurn = "white";
         let decoInterval = null;
 
         const strategicOpenings = [
-            {from: {r: 5, c: 3}, to: {r: 4, c: 3}}, // ស ដើរទ្រង់កណ្តាល
-            {from: {r: 2, c: 3}, to: {r: 3, c: 3}}, // ខ្មៅ ຕອບតប
-            {from: {r: 7, c: 1}, to: {r: 5, c: 2}}, // ស សេះលោត
-            {from: {r: 0, c: 1}, to: {r: 2, c: 2}}, // ខ្មៅ សេះលោត
-            {from: {r: 5, c: 2}, to: {r: 4, c: 2}}, // ស រុញសណ្តោង
-            {from: {r: 2, c: 2}, to: {r: 3, c: 2}}, // ខ្មៅ រុញសណ្តោង
+            {from: {r: 5, c: 3}, to: {r: 4, c: 3}},
+            {from: {r: 2, c: 3}, to: {r: 3, c: 3}},
+            {from: {r: 7, c: 1}, to: {r: 5, c: 2}},
+            {from: {r: 0, c: 1}, to: {r: 2, c: 2}},
         ];
         let decoMoveIndex = 0;
 
@@ -293,7 +291,6 @@ HTML_CONTENT = """
                     decoBoardState[m.from.r][m.from.c] = { p: "", b: false };
                     decoMoveIndex++;
                 } else {
-                    // បន្ទាប់ពីចប់ក្បួនបើក ឱ្យ AI វៃឆ្លាតដើរដោយស្វ័យប្រវត្តិបន្ត
                     let allMoves = getAllValidMovesForColor(decoBoardState, decoTurn === "white");
                     if (allMoves.length > 0) {
                         let m = allMoves[Math.floor(Math.random() * allMoves.length)];
@@ -305,7 +302,6 @@ HTML_CONTENT = """
                         decoBoardState[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                         decoBoardState[m.fromR][m.fromC] = { p: "", b: false };
                     } else {
-                        // Reset ប្រសិនបើគ្មានផ្លូវដើរ
                         decoBoardState = JSON.parse(JSON.stringify(initialBoard));
                         decoMoveIndex = 0;
                     }
@@ -427,7 +423,7 @@ HTML_CONTENT = """
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `ប្រកួតទល់នឹង AI Bot`;
+            document.getElementById("room-title").textContent = `ប្រកួតទល់នឹង AI Bot (សាហាវ)`;
             document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
             renderBoard();
         }
@@ -558,16 +554,31 @@ HTML_CONTENT = """
             return moves;
         }
 
+        // ================= AGGRESSIVE AI EVALUATION & MINIMAX =================
         function evaluateBoard(currentBoard) {
             let score = 0;
-            const values = { "♟": 10, "♙": -10, "♞": 30, "♘": -30, "♝": 30, "♗": -30, "♜": 50, "♖": -50, "♛": 90, "♕": -90, "♚": 1000, "♔": -1000 };
+            // ផ្ដល់តម្លៃខ្ពស់ និងលើកទឹកចិត្តឱ្យហ៊ានប្ដូរកូន និងរុញកូនបកទៅមុខ
+            const values = { 
+                "♟": 12, "♙": -12, 
+                "♞": 35, "♘": -35, 
+                "♝": 35, "♗": -35, 
+                "♜": 60, "♖": -60, 
+                "♛": 110, "♕": -110, 
+                "♚": 1200, "♔": -1200 
+            };
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
-                    let p = currentBoard[r][c].p;
+                    let cell = currentBoard[r][c];
+                    let p = cell.p;
                     if (values[p] !== undefined) {
                         score += values[p];
-                        if (currentBoard[r][c].b) {
-                            score += (p === "♟" ? 20 : -20);
+                        // ប្រសិនបើជាកូនបក ផ្ដល់ពិន្ទុបន្ថែមច្រើនដើម្បីរុញវាទៅមុខសាហាវ
+                        if (cell.b) {
+                            score += (p === "♟" ? 30 : -30);
+                        }
+                        // លើកទឹកចិត្តឱ្យកូនខ្មៅគ្រប់គ្រងកណ្តាលក្តារ
+                        if (p === "♟" && (r >= 3 && r <= 5)) {
+                            score += 5;
                         }
                     }
                 }
@@ -581,13 +592,20 @@ HTML_CONTENT = """
             let allMoves = getAllValidMovesForColor(currentBoard, !isMaximizing);
             if (allMoves.length === 0) return evaluateBoard(currentBoard);
 
+            // តម្រៀបផ្លូវដើរដើម្បីឱ្យ Alpha-Beta Pruning လုပ်ការបានលឿន និងសាហាវជាងមុន
+            allMoves.sort((a, b) => {
+                let targetA = currentBoard[a.toR][a.toC].p;
+                let targetB = currentBoard[b.toR][b.toC].p;
+                return (targetB !== "" ? 1 : 0) - (targetA !== "" ? 1 : 0);
+            });
+
             if (isMaximizing) {
                 let maxEval = -Infinity;
                 for (let m of allMoves) {
                     let tempBoard = JSON.parse(JSON.stringify(currentBoard));
                     let movingCell = tempBoard[m.fromR][m.fromC];
                     let target = tempBoard[m.toR][m.toC].p;
-                    if (target === "♔") return 10000;
+                    if (target === "♔") return 15000;
 
                     let isBokedNow = movingCell.b;
                     if (movingCell.p === "♟" && m.toR === 7) isBokedNow = true;
@@ -607,7 +625,7 @@ HTML_CONTENT = """
                     let tempBoard = JSON.parse(JSON.stringify(currentBoard));
                     let movingCell = tempBoard[m.fromR][m.fromC];
                     let target = tempBoard[m.toR][m.toC].p;
-                    if (target === "♚") return -10000;
+                    if (target === "♚") return -15000;
 
                     let isBokedNow = movingCell.b;
                     if (movingCell.p === "♙" && m.toR === 0) isBokedNow = true;
@@ -630,14 +648,15 @@ HTML_CONTENT = """
             if (allMoves.length === 0) return;
 
             let bestEval = -Infinity;
-            let bestMove = allMoves[0];
+            let bestMoves = [];
+            let searchDepth = 3; // កើនឡើងកម្រិតស៊ីជម្រៅ ឱ្យ AI កាន់តែសាហាវ
 
             for (let m of allMoves) {
                 let tempBoard = JSON.parse(JSON.stringify(board));
                 let movingCell = tempBoard[m.fromR][m.fromC];
                 let target = tempBoard[m.toR][m.toC].p;
                 if (target === "♔") {
-                    bestMove = m;
+                    bestMoves = [m];
                     break;
                 }
 
@@ -647,13 +666,16 @@ HTML_CONTENT = """
                 tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                 tempBoard[m.fromR][m.fromC] = { p: "", b: false };
 
-                let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false);
+                let evalScore = minimax(tempBoard, searchDepth - 1, -Infinity, Infinity, false);
                 if (evalScore > bestEval) {
                     bestEval = evalScore;
-                    bestMove = m;
+                    bestMoves = [m];
+                } else if (evalScore === bestEval) {
+                    bestMoves.push(m);
                 }
             }
 
+            let bestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
             let movingCell = board[bestMove.fromR][bestMove.fromC];
             let targetPiece = board[bestMove.toR][bestMove.toC].p;
             
@@ -665,7 +687,7 @@ HTML_CONTENT = """
 
             if (targetPiece === "♔") {
                 gameOver = true;
-                showGameOverModal("😔 អ្នកបានចាញ់ AI Bot!", false);
+                showGameOverModal("😔 អ្នកបានចាញ់ AI Bot កម្រិតសាហាវ!", false);
             } else {
                 turn = "white";
                 document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
@@ -865,11 +887,11 @@ HTML_CONTENT = """
                     if (isVsAI) {
                         gameOver = isOver;
                         if (gameOver) {
-                            showGameOverModal("🎉 អ្នកឈ្នះ AI Bot យ៉ាងអស្ចារ្យ!", true);
+                            showGameOverModal("🎉 អ្នកឈ្នះ AI Bot កម្រិតសាហាវយ៉ាងអស្ចារ្យ!", true);
                             return;
                         }
                         turn = nextTurn;
-                        document.getElementById("status").textContent = `AI កំពុងគិត...`;
+                        document.getElementById("status").textContent = `AI កំពុងគិតយុទ្ធសាស្ត្រ...`;
                         renderBoard();
                         setTimeout(aiMakeMove, 400);
                     } else {
