@@ -288,7 +288,7 @@ HTML_CONTENT = """
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         if ('serviceWorker' in navigator) {
@@ -465,7 +465,6 @@ HTML_CONTENT = """
                 for (let u in usersData) {
                     usersArray.push({ name: usersData[u].name || "អ្នកលេង", points: usersData[u].points || 0 });
                 }
-                // រៀបចំតម្រៀបតាមពិន្ទុច្រើនជាងគេឡើងមុន (Rank)
                 usersArray.sort((a, b) => b.points - a.points);
                 lbEl.innerHTML = "";
                 usersArray.slice(0, 5).forEach((user, index) => {
@@ -480,6 +479,11 @@ HTML_CONTENT = """
             });
         }
         loadLeaderboard();
+
+        // ដោះស្រាយការ Redirect ពេល Login ចូលគណនី Google
+        getRedirectResult(auth).catch((error) => {
+            console.error("Redirect Auth Error:", error);
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -513,7 +517,7 @@ HTML_CONTENT = """
         window.loginWithGoogle = async function() {
             initAudio();
             try {
-                await signInWithPopup(auth, googleProvider);
+                await signInWithRedirect(auth, googleProvider);
             } catch (error) {
                 console.error(error);
                 alert("ការចូលគណនី Google មានបញ្ហា៖ " + error.message);
@@ -529,15 +533,15 @@ HTML_CONTENT = """
         async function recordGameResult(didWin, tournamentWin = false) {
             if (tournamentWin) {
                 myWins += 1; 
-                myPoints += 50; // បន្ថែម ៥០ ពិន្ទុពេលឈ្នះវគ្គពានរង្វាន់
+                myPoints += 50; 
                 playSound('win');
             } else if (didWin) { 
                 myWins += 1; 
-                myPoints += 15; // បន្ថែម ១៥ ពិន្ទុពេលឈ្នះធម្មតា
+                myPoints += 15; 
                 playSound('win'); 
             } else { 
                 myLosses += 1; 
-                myPoints = Math.max(0, myPoints - 10); // ដក ១០ ពិន្ទុពេលចាញ់
+                myPoints = Math.max(0, myPoints - 10); 
                 playSound('lose'); 
             }
             updateUIStats();
