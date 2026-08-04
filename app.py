@@ -181,6 +181,13 @@ HTML_CONTENT = """
         .dark { background-color: #34495e; color: #fff; }
         .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
         .highlight { background-color: #2ecc71 !important; }
+        
+        /* ថ្មី៖ សម្គាល់ប្រអប់ដែលទើបតែដើររួច (Last Move Highlight) */
+        .last-move {
+            background-color: rgba(241, 196, 15, 0.45) !important;
+            box-shadow: inset 0 0 8px rgba(241, 196, 15, 0.8);
+        }
+
         .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; }
         .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; }
         
@@ -281,7 +288,6 @@ HTML_CONTENT = """
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
@@ -342,7 +348,6 @@ HTML_CONTENT = """
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(300, now);
                 osc.frequency.setValueAtTime(450, now + 0.1);
-                gainNode.gain.setValueAtTime(600, now + 0.2);
                 gainNode.gain.setValueAtTime(0.25, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
                 osc.start(now); osc.stop(now + 0.35);
@@ -370,6 +375,9 @@ HTML_CONTENT = """
         let myName = "", rawDisplayName = "", myCoins = 0, myWins = 0, myLosses = 0;
         let currentRoomId = "", myRole = "", board = JSON.parse(JSON.stringify(initialBoard));
         let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false;
+        
+        # ថ្មី៖ តួអក្សរផ្ទុកទីតាំង Last Move
+        let lastMove = null;
 
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
         let decoTurn = "white", decoInterval = null;
@@ -505,6 +513,7 @@ HTML_CONTENT = """
             isVsAI = true; myRole = "white";
             board = JSON.parse(JSON.stringify(initialBoard));
             turn = "white"; gameOver = false; selectedPiece = null; validMoves = [];
+            lastMove = null;
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
@@ -722,6 +731,9 @@ HTML_CONTENT = """
 
             board[bestMove.toR][bestMove.toC] = { p: movingCell.p, b: isBokedNow };
             board[bestMove.fromR][bestMove.fromC] = { p: "", b: false };
+            
+            # កត់ត្រា Last Move សម្រាប់ AI
+            lastMove = { fromR: bestMove.fromR, fromC: bestMove.fromC, toR: bestMove.toR, toC: bestMove.toC };
 
             if (targetPiece === "♔") {
                 gameOver = true;
@@ -820,6 +832,10 @@ HTML_CONTENT = """
                 if (!data.players || Object.keys(data.players).length === 0) { await remove(ref(db, `rooms/${currentRoomId}`)); return; }
 
                 board = data.board; turn = data.turn;
+                
+                # ទាញយក Last Move ពី Database មកបង្ហាញសាមគ្គីគ្នា
+                lastMove = data.lastMove || null;
+
                 if (data.gameOver && !gameOver) {
                     gameOver = true;
                     if (myRole !== "observer") {
@@ -854,8 +870,15 @@ HTML_CONTENT = """
                 for (let c = 0; c < 8; c++) {
                     const sq = document.createElement("div");
                     sq.className = "square " + ((r + c) % 2 === 0 ? "light" : "dark");
+                    
                     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) sq.classList.add("selected");
                     if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add("highlight");
+                    
+                    # ពិនិត្យដាក់ Class last-move លើក្រឡាដើម និងក្រឡាគោលដៅ
+                    if (lastMove && ((lastMove.fromR === r && lastMove.fromC === c) || (lastMove.toR === r && lastMove.toC === c))) {
+                        sq.classList.add("last-move");
+                    }
+
                     if (kingInCheckPos && kingInCheckPos.r === r && kingInCheckPos.c === c) sq.classList.add("king-warning");
 
                     let cell = board[r][c];
@@ -886,6 +909,7 @@ HTML_CONTENT = """
             if (selectedPiece) {
                 if (validMoves.some(m => m.r === r && m.c === c)) {
                     let targetPiece = clickedCell.p, movingCell = selectedPiece.cell;
+                    let fromR = selectedPiece.r, fromC = selectedPiece.c;
                     let isOver = false, msg = "", winRole = "";
 
                     if (targetPiece !== "") playSound('capture'); else playSound('move');
@@ -897,7 +921,10 @@ HTML_CONTENT = """
                     if (movingCell.p === "♟" && r === 5) isBokedNow = true;
 
                     board[r][c] = { p: movingCell.p, b: isBokedNow };
-                    board[selectedPiece.r][selectedPiece.c] = { p: "", b: false };
+                    board[fromR][fromC] = { p: "", b: false };
+                    
+                    # កត់ត្រា Last Move
+                    lastMove = { fromR: fromR, fromC: fromC, toR: r, toC: c };
 
                     let nextTurn = turn === 'white' ? 'black' : 'white';
                     let nextStatusMsg = `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`;
@@ -916,7 +943,7 @@ HTML_CONTENT = """
                         setTimeout(aiMakeMove, 400);
                     } else {
                         update(ref(db, `rooms/${currentRoomId}`), {
-                            board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg
+                            board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg, lastMove: lastMove
                         });
                     }
                 }
