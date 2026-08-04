@@ -3,6 +3,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 app = FastAPI()
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.get("/manifest.json")
 async def get_manifest():
     return JSONResponse({
@@ -12,7 +16,7 @@ async def get_manifest():
         "display": "standalone",
         "background_color": "#0a0f18",
         "theme_color": "#1b2838",
-        "description": "ហ្គេមអុកខ្មែរអនឡាញជាមួយ AI Bot",
+        "description": "ហ្គេមអុកខ្មែរអនឡាញ",
         "id": "Oukkhmer912",
         "icons": [
             {
@@ -49,7 +53,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>អុកខ្មែរអនឡាញ & AI Bot</title>
+    <title>អុកខ្មែរអនឡាញ</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1b2838">
@@ -127,7 +131,6 @@ HTML_CONTENT = """
 
         .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); border: 1px solid #1e8449; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-google { background: linear-gradient(to bottom, #ea4335, #c5221f); border: 1px solid #a51d18; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
@@ -231,7 +234,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ អុកខ្មែរអនឡាញ & AI ♟️</h1>
+        <h1>♟️ អុកខ្មែរអនឡាញ ♟️</h1>
 
         <div id="login-box" class="card">
             <h3 style="color: #f1c40f; margin: 0 0 15px 0; font-size: 16px;">សូមចូលរួមលេងហ្គេម</h3>
@@ -253,8 +256,7 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-purple" onclick="startVsAIGame()">🤖 លេងជាមួយ AI Bot (សាហាវ)</button>
-            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស</button>
+            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Play)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
@@ -523,20 +525,6 @@ HTML_CONTENT = """
             }
         }
 
-        window.startVsAIGame = function() {
-            initAudio();
-            isVsAI = true; myRole = "white";
-            board = JSON.parse(JSON.stringify(initialBoard));
-            turn = "white"; gameOver = false; selectedPiece = null; validMoves = [];
-            lastMove = null;
-            document.getElementById("gameOverModal").classList.add("hidden");
-            document.getElementById("main-menu").classList.add("hidden");
-            document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `ប្រកួតទល់នឹង AI Bot (សាហាវ)`;
-            document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
-            renderBoard();
-        }
-
         function isWhitePiece(p) { return ["♖", "♘", "♗", "♕", "♔", "♙"].includes(p); }
         function isBlackPiece(p) { return ["♜", "♞", "♝", "♛", "♚", "♟"].includes(p); }
 
@@ -722,21 +710,27 @@ HTML_CONTENT = """
             let allMoves = getAllValidMovesForColor(board, false);
             if (allMoves.length === 0) return;
 
-            let bestEval = -Infinity, bestMoves = [];
-            for (let m of allMoves) {
-                let tempBoard = JSON.parse(JSON.stringify(board));
-                let movingCell = tempBoard[m.fromR][m.fromC];
-                if (tempBoard[m.toR][m.toC].p === "♔") { bestMoves = [m]; break; }
-                let isBokedNow = movingCell.b;
-                if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
-                tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
-                tempBoard[m.fromR][m.fromC] = { p: "", b: false };
-                let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false);
-                if (evalScore > bestEval) { bestEval = evalScore; bestMoves = [m]; }
-                else if (evalScore === bestEval) { bestMoves.push(m); }
+            // ធ្វើឱ្យវាមានលក្ខណៈបត់បែនដូចមនុស្ស (មានឱកាសដើរខុសខ្លះដើម្បីឱ្យងាយឈ្នះ)
+            let bestMove;
+            if (Math.random() < 0.25) {
+                bestMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+            } else {
+                let bestEval = -Infinity, bestMoves = [];
+                for (let m of allMoves) {
+                    let tempBoard = JSON.parse(JSON.stringify(board));
+                    let movingCell = tempBoard[m.fromR][m.fromC];
+                    if (tempBoard[m.toR][m.toC].p === "♔") { bestMoves = [m]; break; }
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
+                    tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                    tempBoard[m.fromR][m.fromC] = { p: "", b: false };
+                    let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false);
+                    if (evalScore > bestEval) { bestEval = evalScore; bestMoves = [m]; }
+                    else if (evalScore === bestEval) { bestMoves.push(m); }
+                }
+                bestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
             }
 
-            let bestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
             let movingCell = board[bestMove.fromR][bestMove.fromC];
             let targetPiece = board[bestMove.toR][bestMove.toC].p;
             let isBokedNow = movingCell.b;
@@ -751,7 +745,7 @@ HTML_CONTENT = """
 
             if (targetPiece === "♔") {
                 gameOver = true;
-                showGameOverModal("😔 អ្នកបានចាញ់ AI Bot កម្រិតសាហាវ!", false);
+                showGameOverModal("😔 អ្នកបានចាញ់គូប្រកួតហើយ!", false);
             } else {
                 turn = "white";
                 let statusMsg = `វេន៖ ស (អ្នក)`;
@@ -772,7 +766,7 @@ HTML_CONTENT = """
         }
 
         window.playAgain = function() {
-            if (isVsAI) startVsAIGame(); else quickJoinRoom();
+            quickJoinRoom();
         }
 
         window.closeModalAndMenu = function() {
@@ -796,7 +790,16 @@ HTML_CONTENT = """
                 }
                 if (!targetRoom) {
                     targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
-                    await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
+                    await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "កំពុងស្វែងរកគូប្រកួត...", players: { white: myName } });
+                    
+                    // หน่วงពេល 3 វិនាទី បើគ្មានអ្នកលេងចូលទេ នឹងប្តូរជា AI កំដរដោយស្វ័យប្រវត្តិ
+                    setTimeout(async () => {
+                        let checkSnap = await get(ref(db, `rooms/${targetRoom}/players`));
+                        if (checkSnap.exists() && Object.keys(checkSnap.val()).length === 1) {
+                            isVsAI = true;
+                            document.getElementById("status").textContent = `រកមិនឃើញគូប្រកួតអនឡាញ៖ AI កំពុងលេងកំដរ`;
+                        }
+                    }, 3000);
                 }
                 await joinRoomProcess(targetRoom);
             } catch (error) { 
@@ -846,7 +849,7 @@ HTML_CONTENT = """
 
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `បន្ទប់៖ ${currentRoomId} (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
+            document.getElementById("room-title").textContent = `បន្ទប់ប្រកួត (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
             listenToRoom();
             renderBoard();
         }
@@ -869,7 +872,7 @@ HTML_CONTENT = """
                 } else { gameOver = data.gameOver; }
 
                 let pCount = Object.keys(data.players || {}).length;
-                if (pCount < 2) {
+                if (pCount < 2 && !isVsAI) {
                     document.getElementById("status").textContent = `កំពុងរង់ចាំគូប្រកួត...`;
                 } else {
                     let defaultMsg = data.message || `វេន៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
@@ -877,7 +880,7 @@ HTML_CONTENT = """
                         playSound('warning');
                         defaultMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
                     }
-                    document.getElementById("status").textContent = defaultMsg;
+                    if(!isVsAI) document.getElementById("status").textContent = defaultMsg;
                 }
                 selectedPiece = null; validMoves = [];
                 renderBoard();
@@ -960,11 +963,14 @@ HTML_CONTENT = """
 
                     if (isVsAI) {
                         gameOver = isOver;
-                        if (gameOver) { showGameOverModal("🎉 អ្នកឈ្នះ AI Bot កម្រិតសាហាវយ៉ាងអស្ចារ្យ!", true); return; }
+                        if (gameOver) { showGameOverModal("🎉 អ្នកឈ្នះគូប្រកួតយ៉ាងអស្ចារ្យ!", true); return; }
                         turn = nextTurn;
-                        document.getElementById("status").textContent = `AI កំពុងគិតយុទ្ធសាស្ត្រ...`;
+                        document.getElementById("status").textContent = `គូប្រកួតកំពុងគិត...`;
                         renderBoard();
-                        setTimeout(aiMakeMove, 400);
+                        
+                        // หน่วงពេលចន្លោះពី ៣ ទៅ ៥ វិនាទី (3000ms ដល់ 5000ms)
+                        let randomDelay = Math.floor(Math.random() * 2000) + 3000;
+                        setTimeout(aiMakeMove, randomDelay);
                     } else {
                         update(ref(db, `rooms/${currentRoomId}`), {
                             board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg, lastMove: lastMove
