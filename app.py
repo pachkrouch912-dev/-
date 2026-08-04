@@ -236,7 +236,7 @@ HTML_CONTENT = """
     <div class="container">
         <h1>♟️ អុកខ្មែរអនឡាញ ♟️</h1>
 
-        <div id="login-box" class="card">
+        <div id="login-box" class="card hidden">
             <h3 style="color: #f1c40f; margin: 0 0 15px 0; font-size: 16px;">សូមចូលរួមលេងហ្គេម</h3>
             <button class="btn-google" onclick="loginWithGoogle()">
                 <span>🌐</span> ចូលគណនីជាមួយ Google
@@ -256,7 +256,7 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (Quick Play)</button>
+            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (ជាមួយ AI)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
@@ -286,7 +286,7 @@ HTML_CONTENT = """
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         if ('serviceWorker' in navigator) {
@@ -478,11 +478,9 @@ HTML_CONTENT = """
         }
         loadLeaderboard();
 
-        window.loginWithGoogle = async function() {
-            initAudio();
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                const user = result.user;
+        // Persistent Login: ឆែកមើលស្ថានភាព User ស្រាប់ (មិនបាច់ Login ច្រើនដង)
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
                 myUid = user.uid;
                 rawDisplayName = user.displayName || "Google User";
                 myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
@@ -504,6 +502,16 @@ HTML_CONTENT = """
                 document.getElementById("login-box").classList.add("hidden");
                 document.getElementById("main-menu").classList.remove("hidden");
                 document.getElementById("welcome-msg").textContent = `${rawDisplayName}`;
+            } else {
+                document.getElementById("login-box").classList.remove("hidden");
+                document.getElementById("main-menu").classList.add("hidden");
+            }
+        });
+
+        window.loginWithGoogle = async function() {
+            initAudio();
+            try {
+                await signInWithPopup(auth, googleProvider);
             } catch (error) {
                 console.error(error);
                 alert("ការចូលគណនី Google មានបញ្ហា៖ " + error.message);
@@ -773,36 +781,23 @@ HTML_CONTENT = """
             window.leaveRoom();
         }
 
-        window.quickJoinRoom = async function() {
-            initAudio(); isVsAI = false;
+        // Quick Play: ចូលលេងរហ័សជាមួយ AI ភ្លាមៗ (មិនបាច់រង់ចាំយូរ)
+        window.quickJoinRoom = function() {
+            initAudio(); 
+            isVsAI = true;
+            board = JSON.parse(JSON.stringify(initialBoard));
+            turn = "white";
+            gameOver = false;
+            selectedPiece = null;
+            validMoves = [];
+            lastMove = null;
+
             document.getElementById("gameOverModal").classList.add("hidden");
-            try {
-                const snapshot = await get(ref(db, 'rooms'));
-                let targetRoom = null;
-                if (snapshot.exists()) {
-                    const rooms = snapshot.val();
-                    for (let rId in rooms) {
-                        if (Object.keys(rooms[rId].players || {}).length < 2 && !rooms[rId].gameOver) {
-                            targetRoom = rId; break;
-                        }
-                    }
-                }
-                if (!targetRoom) {
-                    targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
-                    await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "កំពុងស្វែងរកគូប្រកួត...", players: { white: myName } });
-                    
-                    setTimeout(async () => {
-                        let checkSnap = await get(ref(db, `rooms/${targetRoom}/players`));
-                        if (checkSnap.exists() && Object.keys(checkSnap.val()).length === 1) {
-                            isVsAI = true;
-                            document.getElementById("status").textContent = `រកមិនឃើញគូប្រកួតអនឡាញ៖ AI កំពុងលេងកំដរ`;
-                        }
-                    }, 3000);
-                }
-                await joinRoomProcess(targetRoom);
-            } catch (error) { 
-                alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធអនឡាញបានទេ!"); 
-            }
+            document.getElementById("main-menu").classList.add("hidden");
+            document.getElementById("game-container").classList.remove("hidden");
+            document.getElementById("room-title").textContent = `ប្រកួតរហ័ស (ជាមួយ AI)`;
+            document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
+            renderBoard();
         }
 
         window.createPrivateRoom = async function() {
@@ -966,7 +961,7 @@ HTML_CONTENT = """
                         document.getElementById("status").textContent = `គូប្រកួតកំពុងគិត...`;
                         renderBoard();
                         
-                        let randomDelay = Math.floor(Math.random() * 2000) + 3000;
+                        let randomDelay = Math.floor(Math.random() * 1000) + 1500;
                         setTimeout(aiMakeMove, randomDelay);
                     } else {
                         update(ref(db, `rooms/${currentRoomId}`), {
