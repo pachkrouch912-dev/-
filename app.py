@@ -16,7 +16,7 @@ async def get_manifest():
         "display": "standalone",
         "background_color": "#0a0f18",
         "theme_color": "#1b2838",
-        "description": "ហ្គេមអុកខ្មែរអនឡាញ ជាមួយប្រព័ន្ធ Quick Play, AI ជំនួយ និងជំនួយការ AI Coach",
+        "description": "ហ្គេមអុកខ្មែរអនឡាញ ជាមួយប្រព័ន្ធ Quick Play ៥វិនាទី, AI កម្រិតកំពូល និងជំនួយការ AI Coach",
         "id": "OukkhmerSmartAI",
         "icons": [
             {
@@ -196,7 +196,6 @@ HTML_CONTENT = """
             background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 3px; font-weight: bold;
         }
 
-        /* AI Coach Dialogue & Box */
         .ai-coach-box {
             background: rgba(155, 89, 182, 0.15); border: 1px solid rgba(155, 89, 182, 0.4);
             border-radius: 12px; padding: 6px 10px; margin: 4px 0; font-size: 11px; text-align: left;
@@ -252,7 +251,7 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-gold" onclick="startQuickPlay()">⚡ ស្វែងរកគូប្រកួត (Quick Play)</button>
+            <button class="btn-gold" onclick="startQuickPlay()">⚡ ស្វែងរកគូប្រកួត (Quick Play ៥វិនាទី)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
@@ -528,7 +527,7 @@ HTML_CONTENT = """
         async function recordGameResult(didWin) {
             if (didWin) { 
                 myWins += 1; myPoints += 15; playSound('win'); 
-                if(isPlayingAI) speakAI("អបអរសាទរ! អ្នកបានយកឈ្នះ AI យ៉ាងអស្ចារ្យ។");
+                if(isPlayingAI) speakAI("អបអរសាទរ! អ្នកបានយកឈ្នះ AI កម្រិតកំពូលយ៉ាងអស្ចារ្យ។");
             } else { 
                 myLosses += 1; myPoints = Math.max(0, myPoints - 10); playSound('lose'); 
                 if(isPlayingAI) speakAI("គួរឱ្យស្តាយ! អ្នកបានចាញ់ AI ព្យាយាមម្តងទៀតណា។");
@@ -669,40 +668,65 @@ HTML_CONTENT = """
             window.leaveRoom();
         }
 
-        // --- SMART QUICK PLAY LOGIC ---
+        // --- SMART QUICK PLAY WITH 5-SECOND TIMEOUT ---
         window.startQuickPlay = async function() {
             initAudio();
+            document.getElementById("status").textContent = "កំពុងស្វែងរកគូប្រកួត (រង់ចាំ ៥វិនាទី)...";
+            
             try {
+                const quickRoomId = "Quick_" + Math.floor(Math.random() * 9000 + 1000);
+                await set(ref(db, `rooms/${quickRoomId}`), {
+                    board: initialBoard, turn: "white", gameOver: false,
+                    message: "កំពុងស្វែងរកគូប្រកួត...", players: { white: myName }, isAI: false
+                });
+                
+                currentRoomId = quickRoomId;
+                myRole = "white";
+
                 const roomsSnap = await get(ref(db, 'rooms'));
-                let availableRoom = null;
+                let joinedExisting = false;
+                
                 if (roomsSnap.exists()) {
                     let rooms = roomsSnap.val();
                     for (let rId in rooms) {
-                        let room = rooms[rId];
-                        if (!room.gameOver && room.players) {
-                            let pCount = Object.keys(room.players).length;
-                            if (pCount === 1 && !room.isAI) {
-                                availableRoom = rId;
-                                break;
+                        if (rId !== quickRoomId) {
+                            let room = rooms[rId];
+                            if (!room.gameOver && room.players) {
+                                let pCount = Object.keys(room.players).length;
+                                if (pCount === 1 && !room.isAI) {
+                                    await remove(ref(db, `rooms/${quickRoomId}`));
+                                    currentRoomId = rId;
+                                    myRole = "black";
+                                    await update(ref(db, `rooms/${currentRoomId}/players`), { black: myName });
+                                    joinedExisting = true;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
 
-                if (availableRoom) {
+                if (joinedExisting) {
                     isPlayingAI = false;
-                    await joinRoomProcess(availableRoom);
-                } else {
-                    // No human available, match with AI!
-                    isPlayingAI = true;
-                    const aiRoomId = "AI_Room_" + Math.floor(Math.random() * 9000 + 1000);
-                    await set(ref(db, `rooms/${aiRoomId}`), {
-                        board: initialBoard, turn: "white", gameOver: false,
-                        message: "ប្រកួតជាមួយ AI ឆ្លាតវៃ!", players: { white: myName }, isAI: true
-                    });
-                    await joinRoomProcess(aiRoomId);
-                    speakAI("សួស្តី! ខ្ញុំជាគ្រូបង្វឹក និងជាគូប្រកួត AI របស់អ្នក។ សូមចាប់ផ្តើមដើរមក!");
+                    setupGameUI();
+                    return;
                 }
+
+                // ៥ វិនាទី Timeout គ្មានអ្នកចូល ផ្ដាច់ទៅ AI កម្រិតកំពូលស្វ័យប្រវត្តិ
+                setTimeout(async () => {
+                    const checkSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
+                    if (checkSnap.exists() && Object.keys(checkSnap.val()).length === 1 && !isPlayingAI) {
+                        isPlayingAI = true;
+                        await update(ref(db, `rooms/${currentRoomId}`), {
+                            message: "ប្រកួតជាមួយ AI កម្រិតកំពូល!", isAI: true
+                        });
+                        setupGameUI();
+                        speakAI("សួស្តី! គ្មានគូប្រកួតអនឡាញទេ ឥឡូវខ្ញុំជាគូប្រកួត AI កម្រិតកំពូលរបស់អ្នកហើយ។");
+                    }
+                }, 5000);
+
+                setupGameUI();
+
             } catch(e) {
                 alert("មានបញ្ហាក្នុងការស្វែងរកគូប្រកួត!");
             }
@@ -752,9 +776,13 @@ HTML_CONTENT = """
                 myRole = "white";
             }
 
+            setupGameUI();
+        }
+
+        function setupGameUI() {
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = isPlayingAI ? `ប្រកួតជាមួយ AI ជំនួយ` : `បន្ទប់ប្រកួត (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
+            document.getElementById("room-title").textContent = isPlayingAI ? `ប្រកួតជាមួយ AI កម្រិតកំពូល` : `បន្ទប់ប្រកួត (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
             
             if(isPlayingAI) {
                 document.getElementById("aiCoachBox").classList.remove("hidden");
@@ -799,28 +827,24 @@ HTML_CONTENT = """
                 selectedPiece = null; validMoves = [];
                 renderBoard();
 
-                // Trigger AI Turn if playing AI and it's black's turn
                 if (isPlayingAI && turn === 'black' && !gameOver) {
                     setTimeout(() => makeAIMove(), 800);
                 }
             }, (error) => {});
         }
 
-        // --- ADVANCED AI COACH & HINT SYSTEM ---
         window.getAIHint = function() {
             initAudio();
             let allMyMoves = getAllValidMovesForColor(board, myRole === 'white');
             if (allMyMoves.length === 0) return;
             
-            // Pick a smart strategic move or random valid move
             let bestMove = allMyMoves[Math.floor(Math.random() * allMyMoves.length)];
             let pieceSymbol = board[bestMove.fromR][bestMove.fromC].p;
-            let hintText = `យោបល់៖ សូមរំកិលគ្រាប់ [${pieceSymbol}] របស់អ្នកទៅកាន់ទីតាំងជួរទី ${bestMove.toR + 1} ខ្ទង់ទី ${bestMove.toC + 1} គឺជាការប្រសើរ!`;
+            let hintText = `យោបល់៖ សូមរំកិលគ្រាប់ [${pieceSymbol}] ទៅកាន់ជួរទី ${bestMove.toR + 1} ខ្ទង់ទី ${bestMove.toC + 1}`;
             
             document.getElementById("aiCoachText").textContent = hintText;
             speakAI("ខ្ញុំបានរកឃើញក្បាច់ដើរល្អសម្រាប់អ្នកហើយ៖ " + hintText);
 
-            // Highlight hint temporarily on board
             validMoves = [{r: bestMove.toR, c: bestMove.toC}];
             selectedPiece = { r: bestMove.fromR, c: bestMove.fromC, cell: board[bestMove.fromR][bestMove.fromC] };
             renderBoard();
@@ -831,7 +855,6 @@ HTML_CONTENT = """
             let aiMoves = getAllValidMovesForColor(board, false);
             if (aiMoves.length === 0) return;
 
-            // Simple AI Strategy: Prioritize captures or random valid move
             let move = aiMoves[Math.floor(Math.random() * aiMoves.length)];
             let targetPiece = board[move.toR][move.toC].p;
             let movingCell = board[move.fromR][move.fromC];
