@@ -10,22 +10,22 @@ async def health_check():
 @app.get("/manifest.json")
 async def get_manifest():
     return JSONResponse({
-        "name": "អុកខ្មែរអនឡាញ - Smart AI & Quick Play",
-        "short_name": "អុកខ្មែរ AI",
+        "name": "អុកខ្មែរអនឡាញ - តារាងចំណាត់ថ្នាក់ជើងខ្លាំង",
+        "short_name": "អុកខ្មែរ",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#0a0f18",
         "theme_color": "#1b2838",
-        "description": "ហ្គេមអុកខ្មែរអនឡាញ ជាមួយប្រព័ន្ធ Quick Play ៥វិនាទី, AI កម្រិតកំពូល និងជំនួយការ AI Coach",
-        "id": "OukkhmerSmartAI",
+        "description": "ហ្គេមអុកខ្មែរអនឡាញ និងប្រកួតដណ្ដើមពិន្ទុចំណាត់ថ្នាក់",
+        "id": "OukkhmerRanking",
         "icons": [
             {
-                "src": "https://dummyimage.com/192x192/1b2838/ffffff.png&text=OukAI",
+                "src": "https://dummyimage.com/192x192/1b2838/ffffff.png&text=Ouk",
                 "sizes": "192x192",
                 "type": "image/png"
             },
             {
-                "src": "https://dummyimage.com/512x512/1b2838/ffffff.png&text=OukAI",
+                "src": "https://dummyimage.com/512x512/1b2838/ffffff.png&text=Ouk",
                 "sizes": "512x512",
                 "type": "image/png"
             }
@@ -53,7 +53,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>អុកខ្មែរអនឡាញ - Smart AI & Quick Play</title>
+    <title>អុកខ្មែរអនឡាញ - តារាងចំណាត់ថ្នាក់</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1b2838">
@@ -90,101 +90,112 @@ HTML_CONTENT = """
         }
         
         h1 { 
-            color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+            color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
             font-size: 19px; margin: 4px 0; letter-spacing: 1px;
         }
 
         .card {
-            background: rgba(18, 28, 40, 0.85); backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 12px; border-radius: 24px; display: flex; flex-direction: column;
+            background: rgba(15, 25, 35, 0.92); backdrop-filter: blur(15px);
+            padding: 12px; border-radius: 20px; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.1);
-            width: 100%; border: 1px solid rgba(241, 196, 15, 0.25);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
+            width: 100%; border: 2px solid rgba(241, 196, 15, 0.3);
             flex-grow: 1; margin: 4px 0;
         }
 
         .user-profile {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 16px;
-            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.15);
+            background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 12px;
+            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
             font-size: 13px; font-weight: bold; width: 100%;
         }
-        .points-badge { color: #f1c40f; display: flex; align-items: center; gap: 5px; font-size: 13px; }
-        .stats-badge { color: #2ecc71; font-size: 11px; margin-top: 2px; display: block; }
+        .points-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
+        .stats-badge { color: #2ecc71; font-size: 11px; }
 
         input {
-            padding: 10px 14px; font-size: 14px; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
-            margin: 4px 0; width: 100%; background: rgba(0, 0, 0, 0.4);
-            color: #fff; text-align: center; outline: none; transition: all 0.3s ease;
+            padding: 10px; font-size: 14px; border: 2px solid #34495e; border-radius: 12px;
+            margin: 4px 0; width: 100%; background: rgba(0, 0, 0, 0.6);
+            color: #fff; text-align: center; outline: none; transition: 0.3s;
         }
-        input:focus { border-color: #f1c40f; box-shadow: 0 0 12px rgba(241,196,15,0.4); background: rgba(0,0,0,0.6); }
+        input:focus { border-color: #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
 
         button {
-            padding: 11px 16px; font-size: 13px; font-weight: 700;
-            color: white; border: none; border-radius: 16px; cursor: pointer; 
-            margin: 4px 0; width: 100%; letter-spacing: 0.3px;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+            padding: 10px 16px; font-size: 14px; font-weight: 800; text-transform: uppercase;
+            color: white; border: none; border-radius: 30px; cursor: pointer; 
+            margin: 5px 0; width: 100%; letter-spacing: 0.5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -3px 4px rgba(0,0,0,0.4);
+            transition: all 0.2s ease; position: relative; overflow: hidden;
         }
-        button::after {
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.5s;
-        }
-        button:hover::after { left: 100%; }
-        button:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,0,0,0.4); filter: brightness(1.1); }
-        button:active { transform: translateY(1px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        button:hover { transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 7px 20px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 4px rgba(0,0,0,0.4); }
+        button:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 2px 2px rgba(0,0,0,0.3); }
 
-        .btn-green { background: linear-gradient(135deg, #2ecc71, #27ae60); border: 1px solid rgba(46,204,113,0.4); }
-        .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); border: 1px solid rgba(52,152,219,0.4); }
-        .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); border: 1px solid rgba(231,76,60,0.4); }
-        .btn-gold { background: linear-gradient(135deg, #f1c40f, #d4ac0d); border: 1px solid rgba(241,196,15,0.4); color: #111; font-weight: 800; }
-        .btn-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); border: 1px solid rgba(155,89,182,0.4); }
-        .btn-google { background: linear-gradient(135deg, #ea4335, #c5221f); border: 1px solid rgba(234,67,53,0.4); }
+        .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); border: 1px solid #1e8449; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .btn-gold { background: linear-gradient(to bottom, #f1c40f, #d4ac0d); border: 1px solid #b7950b; color: #111; text-shadow: none; }
+        .btn-google { background: linear-gradient(to bottom, #ea4335, #c5221f); border: 1px solid #a51d18; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
         .deco-board-container {
-            margin: 2px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
+            margin: 4px 0; width: 100%; display: flex; justify-content: center;
+            pointer-events: none;
         }
         .deco-board {
-            display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); gap: 1px;
-            border: 2px solid rgba(255,255,255,0.1); background-color: #34495e; border-radius: 12px; width: 100px; height: 100px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr); gap: 1px;
+            border: 2px solid #34495e; background-color: #34495e;
+            border-radius: 8px; width: 130px; height: 130px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .deco-square { display: flex; align-items: center; justify-content: center; font-size: 9px; user-select: none; position: relative; }
+        .deco-square {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; user-select: none; width: 100%; height: 100%; position: relative;
+        }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
-        .deco-boked { position: absolute; bottom: 0px; right: 0px; font-size: 3px; background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px; font-weight: bold; }
+        .deco-boked {
+            position: absolute; bottom: 0px; right: 0px; font-size: 4px;
+            background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
+            font-weight: bold;
+        }
 
         .leaderboard-box {
-            margin-top: 4px; background: rgba(0, 0, 0, 0.35); border-radius: 14px; padding: 6px 8px; 
-            border: 1px solid rgba(241, 196, 15, 0.15); text-align: left; width: 100%; max-height: 80px; overflow-y: auto;
+            margin-top: 4px; background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px; padding: 6px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
+            text-align: left; width: 100%; max-height: 85px; overflow-y: auto;
         }
-        .leaderboard-title { color: #f1c40f; font-size: 10px; font-weight: bold; text-align: center; margin-bottom: 3px; }
-        .lb-item { display: flex; justify-content: space-between; font-size: 10px; padding: 1px 3px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .leaderboard-title { color: #f1c40f; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 11px; padding: 1px 3px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         #board {
-            display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); gap: 1px;
-            justify-content: center; margin: 4px auto; border: 4px solid #2c3e50; background-color: #2c3e50;
-            border-radius: 12px; width: 78vw; height: 78vw; max-width: 310px; max-height: 310px;
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr); gap: 1px;
+            justify-content: center; margin: 6px auto;
+            border: 4px solid #2c3e50; background-color: #2c3e50;
+            border-radius: 10px; width: 85vw; height: 85vw; max-width: 350px; max-height: 350px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.7);
         }
         .square {
-            display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; 
-            cursor: pointer; user-select: none; width: 100%; height: 100%; transition: background 0.2s; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; font-weight: bold; cursor: pointer; user-select: none;
+            width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #95a5a6; color: #111; }
         .dark { background-color: #34495e; color: #fff; }
         .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
         .highlight { background-color: #2ecc71 !important; }
-        .last-move { background-color: rgba(241, 196, 15, 0.45) !important; box-shadow: inset 0 0 8px rgba(241, 196, 15, 0.8); }
+        
+        .last-move {
+            background-color: rgba(241, 196, 15, 0.45) !important;
+            box-shadow: inset 0 0 8px rgba(241, 196, 15, 0.8);
+        }
 
         .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; }
         .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; }
         
         .king-warning {
-            background-color: #e74c3c !important; animation: pulseWarning 0.8s infinite alternate; box-shadow: 0 0 15px #e74c3c;
+            background-color: #e74c3c !important;
+            animation: pulseWarning 0.8s infinite alternate;
+            box-shadow: 0 0 15px #e74c3c;
         }
         @keyframes pulseWarning {
             0% { transform: scale(1); filter: brightness(1); }
@@ -192,28 +203,23 @@ HTML_CONTENT = """
         }
 
         .boked-badge {
-            position: absolute; bottom: 2px; right: 2px; font-size: 7px;
-            background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 3px; font-weight: bold;
-        }
-
-        .ai-coach-box {
-            background: rgba(155, 89, 182, 0.15); border: 1px solid rgba(155, 89, 182, 0.4);
-            border-radius: 12px; padding: 6px 10px; margin: 4px 0; font-size: 11px; text-align: left;
-            display: flex; align-items: center; gap: 8px; width: 100%;
+            position: absolute; bottom: 2px; right: 2px; font-size: 8px;
+            background: #e74c3c; color: #fff; padding: 1px 3px; border-radius: 3px;
+            font-weight: bold;
         }
 
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
-            z-index: 10; backdrop-filter: blur(8px);
+            z-index: 10; backdrop-filter: blur(5px);
         }
         .modal-content {
-            background: #1b2838; border: 1px solid rgba(241,196,15,0.4); padding: 20px;
-            border-radius: 24px; text-align: center; width: 90%; max-width: 310px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+            background: #1b2838; border: 2px solid #f1c40f; padding: 20px;
+            border-radius: 20px; text-align: center; width: 90%; max-width: 320px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.9);
         }
-        .modal-title { font-size: 18px; color: #f1c40f; margin-bottom: 8px; font-weight: bold; }
-        .modal-text { font-size: 13px; margin-bottom: 14px; color: #ddd; }
+        .modal-title { font-size: 20px; color: #f1c40f; margin-bottom: 10px; font-weight: bold; }
+        .modal-text { font-size: 14px; margin-bottom: 15px; color: #ddd; }
 
         .hidden { display: none !important; }
     </style>
@@ -229,7 +235,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ អុកខ្មែរ Smart AI & Quick Play ♟️</h1>
+        <h1>♟️ អុកខ្មែរដណ្ដើមពិន្ទុជើងខ្លាំង ♟️</h1>
 
         <div id="login-box" class="card hidden">
             <h3 style="color: #f1c40f; margin: 0 0 12px 0; font-size: 15px;">សូមចូលរួមលេងហ្គេម</h3>
@@ -241,17 +247,18 @@ HTML_CONTENT = """
         <div id="main-menu" class="card hidden">
             <div class="user-profile">
                 <div>
-                    <span id="welcome-msg" style="color: #f1c40f; display: block; font-size: 13px;"></span>
+                    <span id="welcome-msg" style="color: #f1c40f; display: block;"></span>
                     <span class="stats-badge">ឈ្នះ: <span id="statWins">0</span> | ចាញ់: <span id="statLosses">0</span></span>
                 </div>
-                <span class="points-badge">⭐ <span id="userPoints">0</span> ពិន្ទុ</span>
+                <span class="points-badge">⭐ ពិន្ទុ៖ <span id="userPoints">0</span></span>
             </div>
 
             <div class="deco-board-container">
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-gold" onclick="startQuickPlay()">⚡ ស្វែងរកគូប្រកួត (Quick Play ៥វិនាទី)</button>
+            <button class="btn-gold" onclick="startTournamentRoom()">🏆 ប្រកួតដណ្ដើមពាន (ជម្រុះយកពិន្ទុខ្ពស់)</button>
+            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (ជាមួយ AI)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
@@ -263,23 +270,10 @@ HTML_CONTENT = """
         </div>
 
         <div id="game-container" class="card hidden">
-            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 12px;">បន្ទប់ប្រកួត</h3>
-            <div id="status" style="background: rgba(0,0,0,0.5); padding: 5px 8px; border-radius: 10px; font-size: 11px; font-weight:bold; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.15);">រង់ចាំគូប្រកួត...</div>
-            
-            <div id="aiCoachBox" class="ai-coach-box hidden">
-                <span>🤖</span>
-                <div>
-                    <strong style="color: #9b59b6; display: block;">AI គ្រូបង្វឹកណែនាំ៖</strong>
-                    <span id="aiCoachText">ចុចប៊ូតុងខាងក្រោមដើម្បីសុំយោបល់ក្បាច់ដើរ!</span>
-                </div>
-            </div>
-
+            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 13px;">បន្ទប់ប្រកួត</h3>
+            <div id="status" style="background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight:bold; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
-
-            <div style="display: flex; gap: 4px; width: 100%;">
-                <button id="aiHintBtn" class="btn-purple hidden" style="flex: 1; margin: 4px 0;" onclick="getAIHint()">💡 សុំយោបល់ AI</button>
-                <button class="btn-red" style="flex: 1; margin: 4px 0;" onclick="leaveRoom()">🚪 ចាកចេញ</button>
-            </div>
+            <button class="btn-red" style="width: 100%; margin-top: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
         </div>
     </div>
 
@@ -287,7 +281,8 @@ HTML_CONTENT = """
         <div class="modal-content">
             <div class="modal-title" id="modalTitle">លទ្ធផលហ្គេម</div>
             <div class="modal-text" id="modalText">តើអ្នកចង់លេងម្ដងទៀតទេ?</div>
-            <button class="btn-green" onclick="closeModalAndMenu()">🏠 ត្រឡប់ទៅមីនុយដើម</button>
+            <button class="btn-green" onclick="playAgain()">🔄 លេងម្ដងទៀត</button>
+            <button class="btn-red" onclick="closeModalAndMenu()">🏠 ត្រឡប់ទៅមីនុយដើម</button>
         </div>
     </div>
 
@@ -334,35 +329,40 @@ HTML_CONTENT = """
             let now = audioCtx.currentTime;
 
             if (type === 'move') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-                gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                 osc.start(now); osc.stop(now + 0.1);
             } else if (type === 'capture') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now); osc.stop(now + 0.15);
             } else if (type === 'warning') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, now); osc.frequency.setValueAtTime(900, now + 0.12);
-                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.setValueAtTime(900, now + 0.12);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
                 osc.start(now); osc.stop(now + 0.35);
             } else if (type === 'win') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(300, now); osc.frequency.setValueAtTime(450, now + 0.1);
-                gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(450, now + 0.1);
+                gainNode.gain.setValueAtTime(0.25, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
                 osc.start(now); osc.stop(now + 0.35);
             } else if (type === 'lose') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
-                gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+                gainNode.gain.setValueAtTime(0.25, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
                 osc.start(now); osc.stop(now + 0.3);
-            }
-        }
-
-        function speakAI(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                let utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'km-KH';
-                utterance.rate = 1.0;
-                window.speechSynthesis.speak(utterance);
             }
         }
 
@@ -379,8 +379,8 @@ HTML_CONTENT = """
 
         let myUid = "", myName = "", rawDisplayName = "", myPoints = 100, myWins = 0, myLosses = 0;
         let currentRoomId = "", myRole = "", board = JSON.parse(JSON.stringify(initialBoard));
-        let turn = "white", gameOver = false, selectedPiece = null, validMoves = [];
-        let lastMove = null, isPlayingAI = false;
+        let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false, isTournament = false;
+        let lastMove = null;
 
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
         let decoTurn = "white", decoInterval = null;
@@ -465,6 +465,7 @@ HTML_CONTENT = """
                 for (let u in usersData) {
                     usersArray.push({ name: usersData[u].name || "អ្នកលេង", points: usersData[u].points || 0 });
                 }
+                // រៀបចំតម្រៀបតាមពិន្ទុច្រើនជាងគេឡើងមុន (Rank)
                 usersArray.sort((a, b) => b.points - a.points);
                 lbEl.innerHTML = "";
                 usersArray.slice(0, 5).forEach((user, index) => {
@@ -475,7 +476,7 @@ HTML_CONTENT = """
                     lbEl.appendChild(item);
                 });
             }, (error) => {
-                document.getElementById("leaderboardList").innerHTML = "<div style='text-align:center; color:#888;'>ផ្អាកតារាងចំណាត់ថ្នាក់</div>";
+                document.getElementById("leaderboardList").innerHTML = "<div style='text-align:center; color:#888;'>ផ្អាកតារាងចំណាត់ថ្នាក់បណ្តោះអាសន្ន</div>";
             });
         }
         loadLeaderboard();
@@ -514,6 +515,7 @@ HTML_CONTENT = """
             try {
                 await signInWithPopup(auth, googleProvider);
             } catch (error) {
+                console.error(error);
                 alert("ការចូលគណនី Google មានបញ្ហា៖ " + error.message);
             }
         }
@@ -524,17 +526,23 @@ HTML_CONTENT = """
             document.getElementById("statLosses").textContent = myLosses;
         }
 
-        async function recordGameResult(didWin) {
-            if (didWin) { 
-                myWins += 1; myPoints += 15; playSound('win'); 
-                if(isPlayingAI) speakAI("អបអរសាទរ! អ្នកបានយកឈ្នះ AI កម្រិតកំពូលយ៉ាងអស្ចារ្យ។");
+        async function recordGameResult(didWin, tournamentWin = false) {
+            if (tournamentWin) {
+                myWins += 1; 
+                myPoints += 50; // បន្ថែម ៥០ ពិន្ទុពេលឈ្នះវគ្គពានរង្វាន់
+                playSound('win');
+            } else if (didWin) { 
+                myWins += 1; 
+                myPoints += 15; // បន្ថែម ១៥ ពិន្ទុពេលឈ្នះធម្មតា
+                playSound('win'); 
             } else { 
-                myLosses += 1; myPoints = Math.max(0, myPoints - 10); playSound('lose'); 
-                if(isPlayingAI) speakAI("គួរឱ្យស្តាយ! អ្នកបានចាញ់ AI ព្យាយាមម្តងទៀតណា។");
+                myLosses += 1; 
+                myPoints = Math.max(0, myPoints - 10); // ដក ១០ ពិន្ទុពេលចាញ់
+                playSound('lose'); 
             }
             updateUIStats();
             if (myUid) {
-                await update(ref(db, `users/${myUid}`), { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses }).catch(e => {});
+                await update(ref(db, `users/${myUid}`), { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses }).catch(e => console.log(e));
             }
         }
 
@@ -656,11 +664,133 @@ HTML_CONTENT = """
             return moves;
         }
 
-        function showGameOverModal(message, didWin) {
-            document.getElementById("modalTitle").textContent = didWin ? "🎉 អបអរសាទរ!" : "😢 ចាញ់បាត់ហើយ!";
+        function evaluateBoard(currentBoard) {
+            let score = 0;
+            const values = { "♟": 12, "♙": -12, "♞": 35, "♘": -35, "♝": 35, "♗": -35, "♜": 60, "♖": -60, "♛": 110, "♕": -110, "♚": 1200, "♔": -1200 };
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    let cell = currentBoard[r][c], p = cell.p;
+                    if (values[p] !== undefined) {
+                        score += values[p];
+                        if (cell.b) score += (p === "♟" ? 30 : -30);
+                        if (p === "♟" && (r >= 3 && r <= 5)) score += 5;
+                    }
+                }
+            }
+            return score;
+        }
+
+        function minimax(currentBoard, depth, alpha, beta, isMaximizing) {
+            if (depth === 0) return evaluateBoard(currentBoard);
+            let allMoves = getAllValidMovesForColor(currentBoard, !isMaximizing);
+            if (allMoves.length === 0) return evaluateBoard(currentBoard);
+
+            allMoves.sort((a, b) => {
+                let targetA = currentBoard[a.toR][a.toC].p;
+                let targetB = currentBoard[b.toR][b.toC].p;
+                return (targetB !== "" ? 1 : 0) - (targetA !== "" ? 1 : 0);
+            });
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let m of allMoves) {
+                    let tempBoard = JSON.parse(JSON.stringify(currentBoard));
+                    let movingCell = tempBoard[m.fromR][m.fromC];
+                    if (tempBoard[m.toR][m.toC].p === "♔") return 15000;
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
+                    tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                    tempBoard[m.fromR][m.fromC] = { p: "", b: false };
+                    let evalScore = minimax(tempBoard, depth - 1, alpha, beta, false);
+                    maxEval = Math.max(maxEval, evalScore);
+                    alpha = Math.max(alpha, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let m of allMoves) {
+                    let tempBoard = JSON.parse(JSON.stringify(currentBoard));
+                    let movingCell = tempBoard[m.fromR][m.fromC];
+                    if (tempBoard[m.toR][m.toC].p === "♚") return -15000;
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♙" && m.toR === 2) isBokedNow = true;
+                    tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                    tempBoard[m.fromR][m.fromC] = { p: "", b: false };
+                    let evalScore = minimax(tempBoard, depth - 1, alpha, beta, true);
+                    minEval = Math.min(minEval, evalScore);
+                    beta = Math.min(beta, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function aiMakeMove() {
+            if (gameOver) return;
+            let allMoves = getAllValidMovesForColor(board, false);
+            if (allMoves.length === 0) return;
+
+            let bestMove;
+            if (Math.random() < 0.25) {
+                bestMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+            } else {
+                let bestEval = -Infinity, bestMoves = [];
+                for (let m of allMoves) {
+                    let tempBoard = JSON.parse(JSON.stringify(board));
+                    let movingCell = tempBoard[m.fromR][m.fromC];
+                    if (tempBoard[m.toR][m.toC].p === "♔") { bestMoves = [m]; break; }
+                    let isBokedNow = movingCell.b;
+                    if (movingCell.p === "♟" && m.toR === 5) isBokedNow = true;
+                    tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
+                    tempBoard[m.fromR][m.fromC] = { p: "", b: false };
+                    let evalScore = minimax(tempBoard, 2, -Infinity, Infinity, false);
+                    if (evalScore > bestEval) { bestEval = evalScore; bestMoves = [m]; }
+                    else if (evalScore === bestEval) { bestMoves.push(m); }
+                }
+                bestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            }
+
+            let movingCell = board[bestMove.fromR][bestMove.fromC];
+            let targetPiece = board[bestMove.toR][bestMove.toC].p;
+            let isBokedNow = movingCell.b;
+            if (movingCell.p === "♟" && bestMove.toR === 5) isBokedNow = true;
+
+            if (targetPiece !== "") playSound('capture'); else playSound('move');
+
+            board[bestMove.toR][bestMove.toC] = { p: movingCell.p, b: isBokedNow };
+            board[bestMove.fromR][bestMove.fromC] = { p: "", b: false };
+            
+            lastMove = { fromR: bestMove.fromR, fromC: bestMove.fromC, toR: bestMove.toR, toC: bestMove.toC };
+
+            if (targetPiece === "♔") {
+                gameOver = true;
+                showGameOverModal("😔 អ្នកបានចាញ់គូប្រកួតហើយ!", false, false);
+            } else {
+                turn = "white";
+                let statusMsg = `វេន៖ ស (អ្នក)`;
+                if (isKingInCheck(board, true)) {
+                    playSound('warning');
+                    statusMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
+                }
+                document.getElementById("status").textContent = statusMsg;
+            }
+            renderBoard();
+        }
+
+        function showGameOverModal(message, didWin, tournamentWin = false) {
+            document.getElementById("modalTitle").textContent = tournamentWin ? "🏆 ជើងឯកពានរង្វាន់!" : (didWin ? "🎉 អបអរសាទរ!" : "😢 ចាញ់បាត់ហើយ!");
             document.getElementById("modalText").textContent = message;
             document.getElementById("gameOverModal").classList.remove("hidden");
-            recordGameResult(didWin);
+            recordGameResult(didWin, tournamentWin);
+        }
+
+        window.playAgain = function() {
+            if (isTournament) {
+                startTournamentRoom();
+            } else {
+                quickJoinRoom();
+            }
         }
 
         window.closeModalAndMenu = function() {
@@ -668,76 +798,49 @@ HTML_CONTENT = """
             window.leaveRoom();
         }
 
-        // --- SMART QUICK PLAY WITH 5-SECOND TIMEOUT ---
-        window.startQuickPlay = async function() {
-            initAudio();
-            document.getElementById("status").textContent = "កំពុងស្វែងរកគូប្រកួត (រង់ចាំ ៥វិនាទី)...";
-            
-            try {
-                const quickRoomId = "Quick_" + Math.floor(Math.random() * 9000 + 1000);
-                await set(ref(db, `rooms/${quickRoomId}`), {
-                    board: initialBoard, turn: "white", gameOver: false,
-                    message: "កំពុងស្វែងរកគូប្រកួត...", players: { white: myName }, isAI: false
-                });
-                
-                currentRoomId = quickRoomId;
-                myRole = "white";
+        window.startTournamentRoom = function() {
+            initAudio(); 
+            isVsAI = true;
+            isTournament = true;
+            board = JSON.parse(JSON.stringify(initialBoard));
+            turn = "white";
+            gameOver = false;
+            selectedPiece = null;
+            validMoves = [];
+            lastMove = null;
 
-                const roomsSnap = await get(ref(db, 'rooms'));
-                let joinedExisting = false;
-                
-                if (roomsSnap.exists()) {
-                    let rooms = roomsSnap.val();
-                    for (let rId in rooms) {
-                        if (rId !== quickRoomId) {
-                            let room = rooms[rId];
-                            if (!room.gameOver && room.players) {
-                                let pCount = Object.keys(room.players).length;
-                                if (pCount === 1 && !room.isAI) {
-                                    await remove(ref(db, `rooms/${quickRoomId}`));
-                                    currentRoomId = rId;
-                                    myRole = "black";
-                                    await update(ref(db, `rooms/${currentRoomId}/players`), { black: myName });
-                                    joinedExisting = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
+            document.getElementById("gameOverModal").classList.add("hidden");
+            document.getElementById("main-menu").classList.add("hidden");
+            document.getElementById("game-container").classList.remove("hidden");
+            document.getElementById("room-title").textContent = `🏆 វគ្គប្រកួតដណ្ដើមពិន្ទុជើងខ្លាំង`;
+            document.getElementById("status").textContent = `វេន៖ ស (អ្នក) - ប្រយ័ត្ន! គូប្រកួតខ្លាំងណាស់!`;
+            renderBoard();
+        }
 
-                if (joinedExisting) {
-                    isPlayingAI = false;
-                    setupGameUI();
-                    return;
-                }
+        window.quickJoinRoom = function() {
+            initAudio(); 
+            isVsAI = true;
+            isTournament = false;
+            board = JSON.parse(JSON.stringify(initialBoard));
+            turn = "white";
+            gameOver = false;
+            selectedPiece = null;
+            validMoves = [];
+            lastMove = null;
 
-                // ៥ វិនាទី Timeout គ្មានអ្នកចូល ផ្ដាច់ទៅ AI កម្រិតកំពូលស្វ័យប្រវត្តិ
-                setTimeout(async () => {
-                    const checkSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
-                    if (checkSnap.exists() && Object.keys(checkSnap.val()).length === 1 && !isPlayingAI) {
-                        isPlayingAI = true;
-                        await update(ref(db, `rooms/${currentRoomId}`), {
-                            message: "ប្រកួតជាមួយ AI កម្រិតកំពូល!", isAI: true
-                        });
-                        setupGameUI();
-                        speakAI("សួស្តី! គ្មានគូប្រកួតអនឡាញទេ ឥឡូវខ្ញុំជាគូប្រកួត AI កម្រិតកំពូលរបស់អ្នកហើយ។");
-                    }
-                }, 5000);
-
-                setupGameUI();
-
-            } catch(e) {
-                alert("មានបញ្ហាក្នុងការស្វែងរកគូប្រកួត!");
-            }
+            document.getElementById("gameOverModal").classList.add("hidden");
+            document.getElementById("main-menu").classList.add("hidden");
+            document.getElementById("game-container").classList.remove("hidden");
+            document.getElementById("room-title").textContent = `ប្រកួតរហ័ស (ជាមួយ AI)`;
+            document.getElementById("status").textContent = `វេន៖ ស (អ្នក)`;
+            renderBoard();
         }
 
         window.createPrivateRoom = async function() {
-            initAudio();
+            initAudio(); isVsAI = false; isTournament = false;
             try {
-                isPlayingAI = false;
                 const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
-                await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {}, isAI: false });
+                await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
                 await joinRoomProcess(targetRoom);
                 alert(`កូដបន្ទប់របស់អ្នក៖ ${targetRoom}`);
             } catch (error) { 
@@ -746,13 +849,11 @@ HTML_CONTENT = """
         }
 
         window.joinPrivateRoom = async function() {
-            initAudio();
+            initAudio(); isVsAI = false; isTournament = false;
             const rCode = document.getElementById("roomCodeInput").value.trim();
             if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
             try {
-                const rSnap = await get(ref(db, `rooms/${rCode}`));
-                if (!rSnap.exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
-                isPlayingAI = rSnap.val().isAI || false;
+                if (!(await get(ref(db, `rooms/${rCode}`))).exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
                 await joinRoomProcess(rCode);
             } catch(e) {
                 alert("មានបញ្ហាក្នុងការចូលបន្ទប់!");
@@ -765,33 +866,19 @@ HTML_CONTENT = """
                 const pSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
                 let players = pSnap.exists() ? pSnap.val() : {};
                 if (!players.white) { myRole = "white"; players.white = myName; }
-                else if (!players.black && !isPlayingAI) { myRole = "black"; players.black = myName; }
-                else if (isPlayingAI) { myRole = "white"; }
+                else if (!players.black) { myRole = "black"; players.black = myName; }
                 else { myRole = "observer"; }
 
                 await update(ref(db, `rooms/${currentRoomId}`), { players: players });
-                if (myRole === 'white' && !isPlayingAI) onDisconnect(ref(db, `rooms/${currentRoomId}/players/white`)).remove();
-                else if (myRole === 'black' && !isPlayingAI) onDisconnect(ref(db, `rooms/${currentRoomId}/players/black`)).remove();
+                if (myRole === 'white') onDisconnect(ref(db, `rooms/${currentRoomId}/players/white`)).remove();
+                else if (myRole === 'black') onDisconnect(ref(db, `rooms/${currentRoomId}/players/black`)).remove();
             } catch(e) {
                 myRole = "white";
             }
 
-            setupGameUI();
-        }
-
-        function setupGameUI() {
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = isPlayingAI ? `ប្រកួតជាមួយ AI កម្រិតកំពូល` : `បន្ទប់ប្រកួត (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
-            
-            if(isPlayingAI) {
-                document.getElementById("aiCoachBox").classList.remove("hidden");
-                document.getElementById("aiHintBtn").classList.remove("hidden");
-            } else {
-                document.getElementById("aiCoachBox").classList.add("hidden");
-                document.getElementById("aiHintBtn").classList.add("hidden");
-            }
-
+            document.getElementById("room-title").textContent = `បន្ទប់ប្រកួត (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
             listenToRoom();
             renderBoard();
         }
@@ -809,12 +896,12 @@ HTML_CONTENT = """
                     gameOver = true;
                     if (myRole !== "observer") {
                         let didWin = (data.winnerRole === myRole);
-                        showGameOverModal(didWin ? "🎉 អ្នកឈ្នះហ្គេមនេះហើយ (+15 ពិន្ទុ)!" : "😔 អ្នកបានចាញ់ហ្គេមនេះ (-10 ពិន្ទុ)!", didWin);
+                        showGameOverModal(didWin ? "🎉 អ្នកឈ្នះហ្គេមនេះហើយ (+15 ពិន្ទុ)!" : "😔 អ្នកបានចាញ់ហ្គេមនេះ (-10 ពិន្ទុ)!", didWin, false);
                     }
                 } else { gameOver = data.gameOver; }
 
                 let pCount = Object.keys(data.players || {}).length;
-                if (pCount < 2 && !isPlayingAI) {
+                if (pCount < 2 && !isVsAI) {
                     document.getElementById("status").textContent = `កំពុងរង់ចាំគូប្រកួត...`;
                 } else {
                     let defaultMsg = data.message || `វេន៖ ${turn === 'white' ? 'ស' : 'ខ្មៅ'}`;
@@ -822,67 +909,12 @@ HTML_CONTENT = """
                         playSound('warning');
                         defaultMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
                     }
-                    document.getElementById("status").textContent = defaultMsg;
+                    if(!isVsAI) document.getElementById("status").textContent = defaultMsg;
                 }
                 selectedPiece = null; validMoves = [];
                 renderBoard();
-
-                if (isPlayingAI && turn === 'black' && !gameOver) {
-                    setTimeout(() => makeAIMove(), 800);
-                }
-            }, (error) => {});
-        }
-
-        window.getAIHint = function() {
-            initAudio();
-            let allMyMoves = getAllValidMovesForColor(board, myRole === 'white');
-            if (allMyMoves.length === 0) return;
-            
-            let bestMove = allMyMoves[Math.floor(Math.random() * allMyMoves.length)];
-            let pieceSymbol = board[bestMove.fromR][bestMove.fromC].p;
-            let hintText = `យោបល់៖ សូមរំកិលគ្រាប់ [${pieceSymbol}] ទៅកាន់ជួរទី ${bestMove.toR + 1} ខ្ទង់ទី ${bestMove.toC + 1}`;
-            
-            document.getElementById("aiCoachText").textContent = hintText;
-            speakAI("ខ្ញុំបានរកឃើញក្បាច់ដើរល្អសម្រាប់អ្នកហើយ៖ " + hintText);
-
-            validMoves = [{r: bestMove.toR, c: bestMove.toC}];
-            selectedPiece = { r: bestMove.fromR, c: bestMove.fromC, cell: board[bestMove.fromR][bestMove.fromC] };
-            renderBoard();
-        }
-
-        async function makeAIMove() {
-            if (gameOver) return;
-            let aiMoves = getAllValidMovesForColor(board, false);
-            if (aiMoves.length === 0) return;
-
-            let move = aiMoves[Math.floor(Math.random() * aiMoves.length)];
-            let targetPiece = board[move.toR][move.toC].p;
-            let movingCell = board[move.fromR][move.fromC];
-
-            if (targetPiece !== "") playSound('capture'); else playSound('move');
-            let isOver = false, msg = "", winRole = "";
-
-            if (targetPiece === "♔") { isOver = true; msg = "🎉 AI ឈ្នះការប្រកួតនេះ!"; winRole = "black"; }
-
-            let isBokedNow = movingCell.b;
-            if (movingCell.p === "♟" && move.toR === 5) isBokedNow = true;
-
-            board[move.toR][move.toC] = { p: movingCell.p, b: isBokedNow };
-            board[move.fromR][move.fromC] = { p: "", b: false };
-            lastMove = { fromR: move.fromR, fromC: move.fromC, toR: move.toR, toC: move.toC };
-
-            let nextTurn = 'white';
-            let nextStatusMsg = `វេន៖ ស (អ្នក)`;
-
-            if (!isOver && isKingInCheck(board, true)) {
-                playSound('warning');
-                nextStatusMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
-                document.getElementById("aiCoachText").textContent = "ប្រយ័ត្ន! ព្រះរាជារបស់អ្នកកំពុងត្រូវគេគំរាមកំហែងហើយ!";
-                speakAI("ប្រយ័ត្ន! ព្រះរាជារបស់អ្នកកំពុងរងគ្រោះថ្នាក់។");
-            }
-
-            await update(ref(db, `rooms/${currentRoomId}`), {
-                board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg, lastMove: lastMove
+            }, (error) => {
+                console.log("Room listener error");
             });
         }
 
@@ -927,8 +959,8 @@ HTML_CONTENT = """
 
         function handleSquareClick(r, c) {
             if (gameOver) return;
-            if (turn !== myRole) return;
-            if (isPlayingAI && turn === 'black') return;
+            if (isVsAI && turn !== "white") return;
+            if (!isVsAI && turn !== myRole) return;
 
             let clickedCell = board[r][c];
             if (selectedPiece) {
@@ -951,21 +983,39 @@ HTML_CONTENT = """
                     lastMove = { fromR: fromR, fromC: fromC, toR: r, toC: c };
 
                     let nextTurn = turn === 'white' ? 'black' : 'white';
-                    let nextStatusMsg = isPlayingAI ? "AI កំពុងគិត..." : `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`;
+                    let nextStatusMsg = `វេន៖ ${nextTurn === 'white' ? 'ស' : 'ខ្មៅ'}`;
 
                     if (!isOver && isKingInCheck(board, nextTurn === 'white')) {
                         playSound('warning');
                         nextStatusMsg = `⚠️ ប្រយ័ត្ន! ព្រះរាជា (ស្តេច) របស់អ្នកកំពុងរងគ្រោះថ្នាក់!`;
                     }
 
-                    update(ref(db, `rooms/${currentRoomId}`), {
-                        board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg, lastMove: lastMove
-                    }).catch(e => {});
+                    if (isVsAI) {
+                        gameOver = isOver;
+                        if (gameOver) { 
+                            if (isTournament) {
+                                showGameOverModal("🏆 អស្ចារ្យណាស់! អ្នកបានឈ្នះការប្រកួតពានរង្វាន់ (+50 ពិន្ទុ)!", true, true);
+                            } else {
+                                showGameOverModal("🎉 អ្នកឈ្នះគូប្រកួតយ៉ាងអស្ចារ្យ (+15 ពិន្ទុ)!", true, false);
+                            }
+                            return; 
+                        }
+                        turn = nextTurn;
+                        document.getElementById("status").textContent = `គូប្រកួតកំពុងគិត...`;
+                        renderBoard();
+                        
+                        let randomDelay = Math.floor(Math.random() * 1000) + 1500;
+                        setTimeout(aiMakeMove, randomDelay);
+                    } else {
+                        update(ref(db, `rooms/${currentRoomId}`), {
+                            board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg, lastMove: lastMove
+                        }).catch(e => console.log(e));
+                    }
                 }
                 selectedPiece = null; validMoves = [];
                 renderBoard();
             } else if (clickedCell.p !== "") {
-                if ((myRole === 'white' && isWhitePiece(clickedCell.p)) || (myRole === 'black' && isBlackPiece(clickedCell.p))) {
+                if ((isVsAI && isWhitePiece(clickedCell.p)) || (!isVsAI && ((myRole === 'white' && isWhitePiece(clickedCell.p)) || (myRole === 'black' && isBlackPiece(clickedCell.p))))) {
                     selectedPiece = { r, c, cell: clickedCell };
                     validMoves = getValidMovesForBoard(r, c, clickedCell, board);
                     renderBoard();
@@ -974,11 +1024,11 @@ HTML_CONTENT = """
         }
 
         window.leaveRoom = async function() {
-            if (currentRoomId && !isPlayingAI) {
+            if (!isVsAI && currentRoomId) {
                 remove(ref(db, `rooms/${currentRoomId}/players/${myRole}`)).catch(e => {});
-            } else if (currentRoomId && isPlayingAI) {
-                remove(ref(db, `rooms/${currentRoomId}`)).catch(e => {});
             }
+            isVsAI = false;
+            isTournament = false;
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("game-container").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
