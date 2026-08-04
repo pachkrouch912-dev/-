@@ -3,7 +3,6 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 app = FastAPI()
 
-# 1. Manifest Endpoint សម្រាប់ស្ដង់ដារ PWA និង PWABuilder
 @app.get("/manifest.json")
 async def get_manifest():
     return JSONResponse({
@@ -29,7 +28,6 @@ async def get_manifest():
         ]
     })
 
-# 2. Service Worker Endpoint សម្រាប់បំពេញលក្ខខណ្ឌ PWA
 @app.get("/sw.js")
 async def get_sw():
     sw_code = """
@@ -53,7 +51,6 @@ HTML_CONTENT = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>អុកខ្មែរអនឡាញ & AI Bot</title>
     
-    <!-- PWA Manifest & Meta Tags -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1b2838">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -132,6 +129,7 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .btn-google { background: linear-gradient(to bottom, #ea4335, #c5221f); border: 1px solid #a51d18; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
         .deco-board-container {
             margin: 6px 0; width: 100%; display: flex; justify-content: center;
@@ -182,7 +180,6 @@ HTML_CONTENT = """
         .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
         .highlight { background-color: #2ecc71 !important; }
         
-        /* ថ្មី៖ សម្គាល់ប្រអប់ដែលទើបតែដើររួច (Last Move Highlight) */
         .last-move {
             background-color: rgba(241, 196, 15, 0.45) !important;
             box-shadow: inset 0 0 8px rgba(241, 196, 15, 0.8);
@@ -237,9 +234,10 @@ HTML_CONTENT = """
         <h1>♟️ អុកខ្មែរអនឡាញ & AI ♟️</h1>
 
         <div id="login-box" class="card">
-            <h3 style="color: #f1c40f; margin: 0 0 10px 0; font-size: 16px;">ចូលរួមលេងហ្គេម</h3>
-            <input type="text" id="playerName" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក">
-            <button class="btn-green" onclick="loginUser()">ចូលគណនី</button>
+            <h3 style="color: #f1c40f; margin: 0 0 15px 0; font-size: 16px;">សូមចូលរួមលេងហ្គេម</h3>
+            <button class="btn-google" onclick="loginWithGoogle()">
+                <span>🌐</span> ចូលគណនីជាមួយ Google
+            </button>
         </div>
 
         <div id="main-menu" class="card hidden">
@@ -286,6 +284,7 @@ HTML_CONTENT = """
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         if ('serviceWorker' in navigator) {
@@ -306,7 +305,9 @@ HTML_CONTENT = """
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
+        const googleProvider = new GoogleAuthProvider();
 
         let audioCtx = null;
         function initAudio() {
@@ -372,11 +373,9 @@ HTML_CONTENT = """
             [ {p:"♖", b:false}, {p:"♘", b:false}, {p:"♗", b:false}, {p:"♕", b:false}, {p:"♔", b:false}, {p:"♗", b:false}, {p:"♘", b:false}, {p:"♖", b:false} ]
         ];
 
-        let myName = "", rawDisplayName = "", myCoins = 0, myWins = 0, myLosses = 0;
+        let myUid = "", myName = "", rawDisplayName = "", myCoins = 1000, myWins = 0, myLosses = 0;
         let currentRoomId = "", myRole = "", board = JSON.parse(JSON.stringify(initialBoard));
         let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false;
-        
-        # ថ្មី៖ តួអក្សរផ្ទុកទីតាំង Last Move
         let lastMove = null;
 
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
@@ -460,7 +459,7 @@ HTML_CONTENT = """
                 let usersData = snapshot.val();
                 let usersArray = [];
                 for (let u in usersData) {
-                    usersArray.push({ name: usersData[u].name || u, coins: usersData[u].coins || 0 });
+                    usersArray.push({ name: usersData[u].name || "អ្នកលេង", coins: usersData[u].coins || 0 });
                 }
                 usersArray.sort((a, b) => b.coins - a.coins);
                 lbEl.innerHTML = "";
@@ -471,28 +470,42 @@ HTML_CONTENT = """
                     item.innerHTML = `<span>${rankIcon} ${user.name}</span> <span style="color:#f1c40f;">🪙 ${user.coins}</span>`;
                     lbEl.appendChild(item);
                 });
+            }, (error) => {
+                document.getElementById("leaderboardList").innerHTML = "<div style='text-align:center; color:#888;'>ផ្អាកតារាងពិន្ទុបណ្តោះអាសន្ន</div>";
             });
         }
+        loadLeaderboard();
 
-        window.loginUser = async function() {
+        window.loginWithGoogle = async function() {
             initAudio();
-            rawDisplayName = document.getElementById("playerName").value.trim();
-            if (!rawDisplayName) { alert("សូមបញ្ចូលឈ្មោះរបស់អ្នក!"); return; }
-            myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
-            const userSnap = await get(ref(db, `users/${myName}`));
-            if (userSnap.exists()) {
-                myCoins = userSnap.val().coins || 1000;
-                myWins = userSnap.val().wins || 0;
-                myLosses = userSnap.val().losses || 0;
-            } else {
-                myCoins = 1000; myWins = 0; myLosses = 0;
-                await set(ref(db, `users/${myName}`), { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses });
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                myUid = user.uid;
+                rawDisplayName = user.displayName || "Google User";
+                myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
+
+                const userRef = ref(db, `users/${myUid}`);
+                const snapshot = await get(userRef);
+
+                if (snapshot.exists()) {
+                    let data = snapshot.val();
+                    myCoins = data.coins ?? 1000;
+                    myWins = data.wins ?? 0;
+                    myLosses = data.losses ?? 0;
+                } else {
+                    myCoins = 1000; myWins = 0; myLosses = 0;
+                    await set(userRef, { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses });
+                }
+
+                updateUIStats();
+                document.getElementById("login-box").classList.add("hidden");
+                document.getElementById("main-menu").classList.remove("hidden");
+                document.getElementById("welcome-msg").textContent = `${rawDisplayName}`;
+            } catch (error) {
+                console.error(error);
+                alert("ការចូលគណនី Google មានបញ្ហា៖ " + error.message);
             }
-            updateUIStats();
-            document.getElementById("login-box").classList.add("hidden");
-            document.getElementById("main-menu").classList.remove("hidden");
-            document.getElementById("welcome-msg").textContent = `${rawDisplayName}`;
-            loadLeaderboard();
         }
 
         function updateUIStats() {
@@ -505,7 +518,9 @@ HTML_CONTENT = """
             if (didWin) { myWins += 1; myCoins += 100; playSound('win'); }
             else { myLosses += 1; myCoins = Math.max(0, myCoins - 100); playSound('lose'); }
             updateUIStats();
-            await update(ref(db, `users/${myName}`), { coins: myCoins, wins: myWins, losses: myLosses });
+            if (myUid) {
+                await update(ref(db, `users/${myUid}`), { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses }).catch(e => console.log(e));
+            }
         }
 
         window.startVsAIGame = function() {
@@ -732,7 +747,6 @@ HTML_CONTENT = """
             board[bestMove.toR][bestMove.toC] = { p: movingCell.p, b: isBokedNow };
             board[bestMove.fromR][bestMove.fromC] = { p: "", b: false };
             
-            # កត់ត្រា Last Move សម្រាប់ AI
             lastMove = { fromR: bestMove.fromR, fromC: bestMove.fromC, toR: bestMove.toR, toC: bestMove.toC };
 
             if (targetPiece === "♔") {
@@ -785,7 +799,9 @@ HTML_CONTENT = """
                     await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
                 }
                 await joinRoomProcess(targetRoom);
-            } catch (error) { console.error(error); }
+            } catch (error) { 
+                alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធអនឡាញបានទេ!"); 
+            }
         }
 
         window.createPrivateRoom = async function() {
@@ -795,28 +811,38 @@ HTML_CONTENT = """
                 await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
                 await joinRoomProcess(targetRoom);
                 alert(`កូដបន្ទប់របស់អ្នក៖ ${targetRoom}`);
-            } catch (error) { console.error(error); }
+            } catch (error) { 
+                alert("មានបញ្ហាក្នុងការបង្កើតបន្ទប់!"); 
+            }
         }
 
         window.joinPrivateRoom = async function() {
             initAudio(); isVsAI = false;
             const rCode = document.getElementById("roomCodeInput").value.trim();
             if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
-            if (!(await get(ref(db, `rooms/${rCode}`))).exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
-            await joinRoomProcess(rCode);
+            try {
+                if (!(await get(ref(db, `rooms/${rCode}`))).exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
+                await joinRoomProcess(rCode);
+            } catch(e) {
+                alert("មានបញ្ហាក្នុងការចូលបន្ទប់!");
+            }
         }
 
         async function joinRoomProcess(roomId) {
             currentRoomId = roomId;
-            const pSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
-            let players = pSnap.exists() ? pSnap.val() : {};
-            if (!players.white) { myRole = "white"; players.white = myName; }
-            else if (!players.black) { myRole = "black"; players.black = myName; }
-            else { myRole = "observer"; }
+            try {
+                const pSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
+                let players = pSnap.exists() ? pSnap.val() : {};
+                if (!players.white) { myRole = "white"; players.white = myName; }
+                else if (!players.black) { myRole = "black"; players.black = myName; }
+                else { myRole = "observer"; }
 
-            await update(ref(db, `rooms/${currentRoomId}`), { players: players });
-            if (myRole === 'white') onDisconnect(ref(db, `rooms/${currentRoomId}/players/white`)).remove();
-            else if (myRole === 'black') onDisconnect(ref(db, `rooms/${currentRoomId}/players/black`)).remove();
+                await update(ref(db, `rooms/${currentRoomId}`), { players: players });
+                if (myRole === 'white') onDisconnect(ref(db, `rooms/${currentRoomId}/players/white`)).remove();
+                else if (myRole === 'black') onDisconnect(ref(db, `rooms/${currentRoomId}/players/black`)).remove();
+            } catch(e) {
+                myRole = "white";
+            }
 
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
@@ -832,8 +858,6 @@ HTML_CONTENT = """
                 if (!data.players || Object.keys(data.players).length === 0) { await remove(ref(db, `rooms/${currentRoomId}`)); return; }
 
                 board = data.board; turn = data.turn;
-                
-                # ទាញយក Last Move ពី Database មកបង្ហាញសាមគ្គីគ្នា
                 lastMove = data.lastMove || null;
 
                 if (data.gameOver && !gameOver) {
@@ -857,6 +881,8 @@ HTML_CONTENT = """
                 }
                 selectedPiece = null; validMoves = [];
                 renderBoard();
+            }, (error) => {
+                console.log("Room listener error");
             });
         }
 
@@ -874,7 +900,6 @@ HTML_CONTENT = """
                     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) sq.classList.add("selected");
                     if (validMoves.some(m => m.r === r && m.c === c)) sq.classList.add("highlight");
                     
-                    # ពិនិត្យដាក់ Class last-move លើក្រឡាដើម និងក្រឡាគោលដៅ
                     if (lastMove && ((lastMove.fromR === r && lastMove.fromC === c) || (lastMove.toR === r && lastMove.toC === c))) {
                         sq.classList.add("last-move");
                     }
@@ -923,7 +948,6 @@ HTML_CONTENT = """
                     board[r][c] = { p: movingCell.p, b: isBokedNow };
                     board[fromR][fromC] = { p: "", b: false };
                     
-                    # កត់ត្រា Last Move
                     lastMove = { fromR: fromR, fromC: fromC, toR: r, toC: c };
 
                     let nextTurn = turn === 'white' ? 'black' : 'white';
@@ -944,7 +968,7 @@ HTML_CONTENT = """
                     } else {
                         update(ref(db, `rooms/${currentRoomId}`), {
                             board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, message: msg || nextStatusMsg, lastMove: lastMove
-                        });
+                        }).catch(e => console.log(e));
                     }
                 }
                 selectedPiece = null; validMoves = [];
@@ -960,10 +984,7 @@ HTML_CONTENT = """
 
         window.leaveRoom = async function() {
             if (!isVsAI && currentRoomId) {
-                await remove(ref(db, `rooms/${currentRoomId}/players/${myRole}`));
-                if (!(await get(ref(db, `rooms/${currentRoomId}/players`))).exists()) {
-                    await remove(ref(db, `rooms/${currentRoomId}`));
-                }
+                remove(ref(db, `rooms/${currentRoomId}/players/${myRole}`)).catch(e => {});
             }
             isVsAI = false;
             document.getElementById("gameOverModal").classList.add("hidden");
