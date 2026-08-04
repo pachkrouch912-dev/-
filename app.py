@@ -10,14 +10,14 @@ async def health_check():
 @app.get("/manifest.json")
 async def get_manifest():
     return JSONResponse({
-        "name": "អុកខ្មែរអនឡាញ & ពានរង្វាន់ ១លានកាក់",
+        "name": "អុកខ្មែរអនឡាញ - តារាងចំណាត់ថ្នាក់ជើងខ្លាំង",
         "short_name": "អុកខ្មែរ",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#0a0f18",
         "theme_color": "#1b2838",
-        "description": "ហ្គេមអុកខ្មែរអនឡាញ និងប្រកួតដណ្ដើមពានរង្វាន់",
-        "id": "Oukkhmer912",
+        "description": "ហ្គេមអុកខ្មែរអនឡាញ និងប្រកួតដណ្ដើមពិន្ទុចំណាត់ថ្នាក់",
+        "id": "OukkhmerRanking",
         "icons": [
             {
                 "src": "https://dummyimage.com/192x192/1b2838/ffffff.png&text=Ouk",
@@ -53,7 +53,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>អុកខ្មែរអនឡាញ - ប្រកួតដណ្ដើមពានរង្វាន់</title>
+    <title>អុកខ្មែរអនឡាញ - តារាងចំណាត់ថ្នាក់</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1b2838">
@@ -109,7 +109,7 @@ HTML_CONTENT = """
             margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
             font-size: 13px; font-weight: bold; width: 100%;
         }
-        .coin-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
+        .points-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
         .stats-badge { color: #2ecc71; font-size: 11px; }
 
         input {
@@ -161,7 +161,7 @@ HTML_CONTENT = """
         .leaderboard-box {
             margin-top: 4px; background: rgba(0, 0, 0, 0.4);
             border-radius: 10px; padding: 6px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 75px; overflow-y: auto;
+            text-align: left; width: 100%; max-height: 85px; overflow-y: auto;
         }
         .leaderboard-title { color: #f1c40f; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 2px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 11px; padding: 1px 3px; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -235,7 +235,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ អុកខ្មែរដណ្ដើមពានរង្វាន់ ♟️</h1>
+        <h1>♟️ អុកខ្មែរដណ្ដើមពិន្ទុជើងខ្លាំង ♟️</h1>
 
         <div id="login-box" class="card hidden">
             <h3 style="color: #f1c40f; margin: 0 0 12px 0; font-size: 15px;">សូមចូលរួមលេងហ្គេម</h3>
@@ -250,21 +250,21 @@ HTML_CONTENT = """
                     <span id="welcome-msg" style="color: #f1c40f; display: block;"></span>
                     <span class="stats-badge">ឈ្នះ: <span id="statWins">0</span> | ចាញ់: <span id="statLosses">0</span></span>
                 </div>
-                <span class="coin-badge">🪙 <span id="userCoins">0</span></span>
+                <span class="points-badge">⭐ ពិន្ទុ៖ <span id="userPoints">0</span></span>
             </div>
 
             <div class="deco-board-container">
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-gold" onclick="startTournamentRoom()">🏆 ប្រកួតដណ្ដើមពាន (រង្វាន់ 1 លានកាក់)</button>
+            <button class="btn-gold" onclick="startTournamentRoom()">🏆 ប្រកួតដណ្ដើមពាន (ជម្រុះយកពិន្ទុខ្ពស់)</button>
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (ជាមួយ AI)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
 
             <div class="leaderboard-box">
-                <div class="leaderboard-title">🏆 តារាងជើងខ្លាំងប្រចាំសង្វៀន 🏆</div>
+                <div class="leaderboard-title">🏆 តារាងចំណាត់ថ្នាក់ពូកែលេងជាងគេ 🏆</div>
                 <div id="leaderboardList">កំពុងទាញយក...</div>
             </div>
         </div>
@@ -377,7 +377,7 @@ HTML_CONTENT = """
             [ {p:"♖", b:false}, {p:"♘", b:false}, {p:"♗", b:false}, {p:"♕", b:false}, {p:"♔", b:false}, {p:"♗", b:false}, {p:"♘", b:false}, {p:"♖", b:false} ]
         ];
 
-        let myUid = "", myName = "", rawDisplayName = "", myCoins = 1000, myWins = 0, myLosses = 0;
+        let myUid = "", myName = "", rawDisplayName = "", myPoints = 100, myWins = 0, myLosses = 0;
         let currentRoomId = "", myRole = "", board = JSON.parse(JSON.stringify(initialBoard));
         let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false, isTournament = false;
         let lastMove = null;
@@ -463,19 +463,20 @@ HTML_CONTENT = """
                 let usersData = snapshot.val();
                 let usersArray = [];
                 for (let u in usersData) {
-                    usersArray.push({ name: usersData[u].name || "អ្នកលេង", coins: usersData[u].coins || 0 });
+                    usersArray.push({ name: usersData[u].name || "អ្នកលេង", points: usersData[u].points || 0 });
                 }
-                usersArray.sort((a, b) => b.coins - a.coins);
+                // រៀបចំតម្រៀបតាមពិន្ទុច្រើនជាងគេឡើងមុន (Rank)
+                usersArray.sort((a, b) => b.points - a.points);
                 lbEl.innerHTML = "";
-                usersArray.slice(0, 3).forEach((user, index) => {
-                    let rankIcon = index === 0 ? "🥇" : (index === 1 ? "🥈" : "🥉");
+                usersArray.slice(0, 5).forEach((user, index) => {
+                    let rankIcon = index === 0 ? "🥇" : (index === 1 ? "🥈" : (index === 2 ? "🥉" : `🏅 #${index+1}`));
                     let item = document.createElement("div");
                     item.className = "lb-item";
-                    item.innerHTML = `<span>${rankIcon} ${user.name}</span> <span style="color:#f1c40f;">🪙 ${user.coins}</span>`;
+                    item.innerHTML = `<span>${rankIcon} ${user.name}</span> <span style="color:#f1c40f;">⭐ ${user.points} ពិន្ទុ</span>`;
                     lbEl.appendChild(item);
                 });
             }, (error) => {
-                document.getElementById("leaderboardList").innerHTML = "<div style='text-align:center; color:#888;'>ផ្អាកតារាងពិន្ទុបណ្តោះអាសន្ន</div>";
+                document.getElementById("leaderboardList").innerHTML = "<div style='text-align:center; color:#888;'>ផ្អាកតារាងចំណាត់ថ្នាក់បណ្តោះអាសន្ន</div>";
             });
         }
         loadLeaderboard();
@@ -491,12 +492,12 @@ HTML_CONTENT = """
 
                 if (snapshot.exists()) {
                     let data = snapshot.val();
-                    myCoins = data.coins ?? 1000;
+                    myPoints = data.points ?? 100;
                     myWins = data.wins ?? 0;
                     myLosses = data.losses ?? 0;
                 } else {
-                    myCoins = 1000; myWins = 0; myLosses = 0;
-                    await set(userRef, { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses });
+                    myPoints = 100; myWins = 0; myLosses = 0;
+                    await set(userRef, { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses });
                 }
 
                 updateUIStats();
@@ -520,7 +521,7 @@ HTML_CONTENT = """
         }
 
         function updateUIStats() {
-            document.getElementById("userCoins").textContent = myCoins;
+            document.getElementById("userPoints").textContent = myPoints;
             document.getElementById("statWins").textContent = myWins;
             document.getElementById("statLosses").textContent = myLosses;
         }
@@ -528,20 +529,20 @@ HTML_CONTENT = """
         async function recordGameResult(didWin, tournamentWin = false) {
             if (tournamentWin) {
                 myWins += 1; 
-                myCoins += 1000000; // ទទួលបាន ១ លានកាក់ ពីជើងឯកពានរង្វាន់!
+                myPoints += 50; // បន្ថែម ៥០ ពិន្ទុពេលឈ្នះវគ្គពានរង្វាន់
                 playSound('win');
             } else if (didWin) { 
                 myWins += 1; 
-                myCoins += 100; 
+                myPoints += 15; // បន្ថែម ១៥ ពិន្ទុពេលឈ្នះធម្មតា
                 playSound('win'); 
             } else { 
                 myLosses += 1; 
-                myCoins = Math.max(0, myCoins - 100); 
+                myPoints = Math.max(0, myPoints - 10); // ដក ១០ ពិន្ទុពេលចាញ់
                 playSound('lose'); 
             }
             updateUIStats();
             if (myUid) {
-                await update(ref(db, `users/${myUid}`), { name: rawDisplayName, coins: myCoins, wins: myWins, losses: myLosses }).catch(e => console.log(e));
+                await update(ref(db, `users/${myUid}`), { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses }).catch(e => console.log(e));
             }
         }
 
@@ -764,11 +765,7 @@ HTML_CONTENT = """
 
             if (targetPiece === "♔") {
                 gameOver = true;
-                if (isTournament) {
-                    showGameOverModal("😔 អ្នកបានចាញ់វគ្គពានរង្វាន់ហើយ!", false, false);
-                } else {
-                    showGameOverModal("😔 អ្នកបានចាញ់គូប្រកួតហើយ!", false, false);
-                }
+                showGameOverModal("😔 អ្នកបានចាញ់គូប្រកួតហើយ!", false, false);
             } else {
                 turn = "white";
                 let statusMsg = `វេន៖ ស (អ្នក)`;
@@ -801,7 +798,6 @@ HTML_CONTENT = """
             window.leaveRoom();
         }
 
-        // មុខងារប្រកួតដណ្ដើមពានរង្វាន់ (Tournament Mode ជាមួយ AI កម្រិតខ្ពស់ ឬប្រកួតយក 1 លានកាក់)
         window.startTournamentRoom = function() {
             initAudio(); 
             isVsAI = true;
@@ -816,7 +812,7 @@ HTML_CONTENT = """
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("room-title").textContent = `🏆 វគ្គផ្ដាច់ព្រ័ត្រដណ្ដើមពានរង្វាន់ (1 លានកាក់)`;
+            document.getElementById("room-title").textContent = `🏆 វគ្គប្រកួតដណ្ដើមពិន្ទុជើងខ្លាំង`;
             document.getElementById("status").textContent = `វេន៖ ស (អ្នក) - ប្រយ័ត្ន! គូប្រកួតខ្លាំងណាស់!`;
             renderBoard();
         }
@@ -900,7 +896,7 @@ HTML_CONTENT = """
                     gameOver = true;
                     if (myRole !== "observer") {
                         let didWin = (data.winnerRole === myRole);
-                        showGameOverModal(didWin ? "🎉 អ្នកឈ្នះហ្គេមនេះហើយ (+100 កាក់)!" : "😔 អ្នកបានចាញ់ហ្គេមនេះ (-100 កាក់)!", didWin, false);
+                        showGameOverModal(didWin ? "🎉 អ្នកឈ្នះហ្គេមនេះហើយ (+15 ពិន្ទុ)!" : "😔 អ្នកបានចាញ់ហ្គេមនេះ (-10 ពិន្ទុ)!", didWin, false);
                     }
                 } else { gameOver = data.gameOver; }
 
@@ -974,7 +970,7 @@ HTML_CONTENT = """
                     let isOver = false, msg = "", winRole = "";
 
                     if (targetPiece !== "") playSound('capture'); else playSound('move');
-                    if (targetPiece === "♚") { isOver = true; msg = "🏆 អបអរសាទរ! អ្នកជាម្ចាស់ពានរង្វាន់ជើងឯក!"; winRole = "white"; }
+                    if (targetPiece === "♚") { isOver = true; msg = "🏆 អបអរសាទរ! អ្នកឈ្នះការប្រកួតនេះ!"; winRole = "white"; }
                     else if (targetPiece === "♔") { isOver = true; msg = "🎉 ភាគី ខ្មៅ ឈ្នះ!"; winRole = "black"; }
 
                     let isBokedNow = movingCell.b;
@@ -998,9 +994,9 @@ HTML_CONTENT = """
                         gameOver = isOver;
                         if (gameOver) { 
                             if (isTournament) {
-                                showGameOverModal("🏆 អស្ចារ្យណាស់! អ្នកបានយកឈ្នះវគ្គផ្ដាច់ព្រ័ត្រ និងទទួលបានរង្វាន់ ១ លានកាក់!", true, true);
+                                showGameOverModal("🏆 អស្ចារ្យណាស់! អ្នកបានឈ្នះការប្រកួតពានរង្វាន់ (+50 ពិន្ទុ)!", true, true);
                             } else {
-                                showGameOverModal("🎉 អ្នកឈ្នះគូប្រកួតយ៉ាងអស្ចារ្យ!", true, false);
+                                showGameOverModal("🎉 អ្នកឈ្នះគូប្រកួតយ៉ាងអស្ចារ្យ (+15 ពិន្ទុ)!", true, false);
                             }
                             return; 
                         }
