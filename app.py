@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 app = FastAPI()
 
-# 1. Manifest Endpoint សម្រាប់ឱ្យ PWABuilder និងទូរស័ព្ទស្គាល់
+# 1. Manifest Endpoint សម្រាប់ស្ដង់ដារ PWA និង PWABuilder
 @app.get("/manifest.json")
 async def get_manifest():
     return JSONResponse({
@@ -13,14 +13,16 @@ async def get_manifest():
         "display": "standalone",
         "background_color": "#0a0f18",
         "theme_color": "#1b2838",
+        "description": "ហ្គេមអុកខ្មែរអនឡាញជាមួយ AI Bot",
+        "id": "Oukkhmer912",
         "icons": [
             {
-                "src": "https://img.icons8.com/color/192/chess.png",
+                "src": "https://dummyimage.com/192x192/1b2838/ffffff.png&text=Ouk",
                 "sizes": "192x192",
                 "type": "image/png"
             },
             {
-                "src": "https://img.icons8.com/color/512/chess.png",
+                "src": "https://dummyimage.com/512x512/1b2838/ffffff.png&text=Ouk",
                 "sizes": "512x512",
                 "type": "image/png"
             }
