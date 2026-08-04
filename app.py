@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 app = FastAPI()
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
     return {"status": "ok"}
 
@@ -710,7 +710,6 @@ HTML_CONTENT = """
             let allMoves = getAllValidMovesForColor(board, false);
             if (allMoves.length === 0) return;
 
-            // ធ្វើឱ្យវាមានលក្ខណៈបត់បែនដូចមនុស្ស (មានឱកាសដើរខុសខ្លះដើម្បីឱ្យងាយឈ្នះ)
             let bestMove;
             if (Math.random() < 0.25) {
                 bestMove = allMoves[Math.floor(Math.random() * allMoves.length)];
@@ -792,7 +791,6 @@ HTML_CONTENT = """
                     targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
                     await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "កំពុងស្វែងរកគូប្រកួត...", players: { white: myName } });
                     
-                    // หน่วงពេល 3 វិនាទី បើគ្មានអ្នកលេងចូលទេ នឹងប្តូរជា AI កំដរដោយស្វ័យប្រវត្តិ
                     setTimeout(async () => {
                         let checkSnap = await get(ref(db, `rooms/${targetRoom}/players`));
                         if (checkSnap.exists() && Object.keys(checkSnap.val()).length === 1) {
@@ -968,7 +966,6 @@ HTML_CONTENT = """
                         document.getElementById("status").textContent = `គូប្រកួតកំពុងគិត...`;
                         renderBoard();
                         
-                        // หน่วงពេលចន្លោះពី ៣ ទៅ ៥ វិនាទី (3000ms ដល់ 5000ms)
                         let randomDelay = Math.floor(Math.random() * 2000) + 3000;
                         setTimeout(aiMakeMove, randomDelay);
                     } else {
