@@ -1,2 +1,6 @@
 fastapi==0.110.0
 uvicorn==0.28.0
+google-generativeai
+fastapi
+uvicorn
+# (បន្ថែម package អ្វីផ្សេងទៀតដែល project របស់អ្នកត្រូវការនៅទីនេះ)
