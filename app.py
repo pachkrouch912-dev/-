@@ -616,8 +616,9 @@ HTML_CONTENT = """
         function getValidMovesForBoard(r, c, cell, currentBoard) {
             let moves = [];
             let piece = cell.p, isWhite = isWhitePiece(piece);
+            
             if (piece === "♔" || piece === "♚") {
-                // ដើរ១ប្រឡោះជុំវិញខ្លួនធម្មតា
+                // ស្ដេចដើរ ១ប្រឡោះជុំវិញខ្លួន
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
@@ -626,7 +627,7 @@ HTML_CONTENT = """
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                     }
                 }
-                // ក្បួនពិសេសស្ដេចខ្មែរ៖ លោតខ្វែង១ប្រឡោះ (ស្រដៀងគ្រាប់គោ) បន្ថែមប្រសិនបើមិនទាន់ជាប់អ៊ុក
+                // ស្តេចលោតខ្វែង១ប្រឡោះ (ស្រដៀងគ្រាប់គោ)
                 let jumpingDirections = [[-2, -2], [-2, 2], [2, -2], [2, 2]];
                 for (let jd of jumpingDirections) {
                     let nr = r + jd[0], nc = c + jd[1];
@@ -638,6 +639,7 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♕" || piece === "♛") {
+                // គ្រាប់នាង (ផ្កា) ដើរខ្វែង១ប្រឡោះគ្រប់ទិស
                 let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
@@ -647,6 +649,7 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♗" || piece === "♝") {
+                // គ្រាប់គូ (គែន/ទា) ដើរទៅមុខ ឬថយក្រោយឆៀង១ប្រឡោះ (រួមទាំងទិសកូដខ្មែរ)
                 let directions = isWhite ? [[-1,0], [-1,-1], [-1,1], [1,-1], [1,1]] : [[1,0], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
@@ -656,6 +659,7 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♘" || piece === "♞") {
+                // គ្រាប់គោ (សេះ) លោតខ្វែង២ប្រឡោះ (L-shape)
                 let jmps = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
                 for (let d of jmps) {
                     let nr = r + d[0], nc = c + d[1];
@@ -665,6 +669,7 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♖" || piece === "♜") {
+                // គ្រាប់ទូក (រនុក) ដើរបញ្ឈរ និងផ្ដេក បានឆ្ងាយ
                 let directions = [[-1,0], [1,0], [0,-1], [0,1]];
                 for (let d of directions) {
                     let step = 1;
@@ -681,6 +686,7 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♙" || piece === "♟") {
+                // គ្រាប់កំប៉ោង / ត្រី
                 if (cell.b) {
                     let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                     for (let d of directions) {
