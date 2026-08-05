@@ -168,14 +168,14 @@ HTML_CONTENT = """
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            justify-content: center; margin: 6px auto;
+            justify-content: center; margin: 4px auto;
             border: 4px solid #2c3e50; background-color: #2c3e50;
-            border-radius: 10px; width: 85vw; height: 85vw; max-width: 350px; max-height: 350px;
+            border-radius: 10px; width: 72vw; height: 72vw; max-width: 300px; max-height: 300px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.7);
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 24px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #95a5a6; color: #111; }
@@ -275,9 +275,23 @@ HTML_CONTENT = """
 
         <div id="game-container" class="card hidden">
             <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 13px;">បន្ទប់ប្រកួត</h3>
-            <div id="status" style="background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight:bold; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
+            <div id="status" style="background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight:bold; margin-bottom: 3px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
-            <button class="btn-red" style="width: 100%; margin-top: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 3px; padding: 8px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            
+            <!-- Adsterra Banner Ad 320x50 -->
+            <div style="width: 100%; display: flex; justify-content: center; margin-top: 4px; overflow: hidden;">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '5959695',
+                        'format' : 'iframe',
+                        'height' : 50,
+                        'width' : 320,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/5959695/invoke.js"></script>
+            </div>
         </div>
     </div>
 
@@ -618,7 +632,6 @@ HTML_CONTENT = """
             let piece = cell.p, isWhite = isWhitePiece(piece);
             
             if (piece === "♔" || piece === "♚") {
-                // ស្ដេចដើរ ១ប្រឡោះជុំវិញខ្លួន
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
@@ -627,7 +640,6 @@ HTML_CONTENT = """
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
                     }
                 }
-                // ស្តេចលោតខ្វែង១ប្រឡោះ (ស្រដៀងគ្រាប់គោ)
                 let jumpingDirections = [[-2, -2], [-2, 2], [2, -2], [2, 2]];
                 for (let jd of jumpingDirections) {
                     let nr = r + jd[0], nc = c + jd[1];
@@ -639,7 +651,6 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♕" || piece === "♛") {
-                // គ្រាប់នាង (ផ្កា) ដើរខ្វែង១ប្រឡោះគ្រប់ទិស
                 let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
@@ -649,7 +660,6 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♗" || piece === "♝") {
-                // គ្រាប់គូ (គែន/ទា) ដើរទៅមុខ ឬថយក្រោយឆៀង១ប្រឡោះ (រួមទាំងទិសកូដខ្មែរ)
                 let directions = isWhite ? [[-1,0], [-1,-1], [-1,1], [1,-1], [1,1]] : [[1,0], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
@@ -659,7 +669,6 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♘" || piece === "♞") {
-                // គ្រាប់គោ (សេះ) លោតខ្វែង២ប្រឡោះ (L-shape)
                 let jmps = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
                 for (let d of jmps) {
                     let nr = r + d[0], nc = c + d[1];
@@ -669,7 +678,6 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♖" || piece === "♜") {
-                // គ្រាប់ទូក (រនុក) ដើរបញ្ឈរ និងផ្ដេក បានឆ្ងាយ
                 let directions = [[-1,0], [1,0], [0,-1], [0,1]];
                 for (let d of directions) {
                     let step = 1;
@@ -686,7 +694,6 @@ HTML_CONTENT = """
                     }
                 }
             } else if (piece === "♙" || piece === "♟") {
-                // គ្រាប់កំប៉ោង / ត្រី
                 if (cell.b) {
                     let directions = [[-1,-1], [-1,1], [1,-1], [1,1]];
                     for (let d of directions) {
