@@ -6,7 +6,6 @@ import google.generativeai as genai
 
 app = FastAPI()
 
-# កំណត់ API Key របស់ Gemini (សូមជំនួសកន្លែងនេះដោយ Gemini API Key របស់អ្នកផ្ទាល់ ឬប្រើ Environment Variable)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
 if GEMINI_API_KEY != "YOUR_GEMINI_API_KEY_HERE":
     genai.configure(api_key=GEMINI_API_KEY)
@@ -18,7 +17,6 @@ class ChatRequest(BaseModel):
 @app.post("/api/gemini-chat")
 async def gemini_chat(req: ChatRequest):
     if GEMINI_API_KEY == "YOUR_GEMINI_API_KEY_HERE":
-        # បើមិនទាន់ដាក់ Key ឱ្យវាឆ្លើយបែបកំប្លែងស្វ័យប្រវត្តិ
         return {"reply": "ហាសហា! ខ្ញុំត្រៀមខ្លួនរួចជាស្រេចហើយ ចាំមើលរឿងអស្ចារ្យលើក្ដារអុកនេះ!"}
     
     try:
@@ -36,14 +34,14 @@ async def health_check():
 @app.get("/manifest.json")
 async def get_manifest():
     return JSONResponse({
-        "name": "អុកខ្មែរអនឡាញ - ជើងខ្លាំងកំប្លែង",
+        "name": "អុកខ្មែរអនឡាញ - WebRTC & Gemini",
         "short_name": "អុកខ្មែរ",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#0a0f18",
         "theme_color": "#1b2838",
-        "description": "ហ្គេមអុកខ្មែរអនឡាញ ជជែកកម្សាន្តជាមួយ Gemini AI យ៉ាងសប្បាយរីករាយ",
-        "id": "OukkhmerRanking",
+        "description": "ហ្គេមអុកខ្មែរអនឡាញ ជាមួយ WebRTC Voice Call និង Gemini AI",
+        "id": "OukkhmerWebRTC",
         "icons": [
             {
                 "src": "https://dummyimage.com/192x192/1b2838/ffffff.png&text=Ouk",
@@ -75,7 +73,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>អុកខ្មែរអនឡាញ - ជើងខ្លាំងកំប្លែង</title>
+    <title>អុកខ្មែរអនឡាញ - WebRTC Voice & AI</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1b2838">
@@ -87,9 +85,9 @@ HTML_CONTENT = """
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(circle at center, #1b2838, #0a0f18);
-            text-align: center; margin: 0; padding: 4px; color: #fff; 
+            text-align: center; margin: 0; padding: 2px; color: #fff; 
             height: 100vh; height: 100dvh; overflow: hidden; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
         }
 
         .bg-chess {
@@ -108,21 +106,33 @@ HTML_CONTENT = """
         .container { 
             position: relative; z-index: 1; width: 100%; max-width: 420px; 
             height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
-            padding: 4px;
+            padding: 2px;
         }
         
         h1 { 
             color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            font-size: 15px; margin: 2px 0; letter-spacing: 0.5px;
+            font-size: 13px; margin: 2px 0; letter-spacing: 0.5px;
         }
 
         .card {
             background: rgba(15, 25, 35, 0.95); backdrop-filter: blur(15px);
             padding: 8px 10px; border-radius: 14px; display: flex; flex-direction: column;
             justify-content: flex-start; align-items: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
             width: 100%; border: 2px solid rgba(241, 196, 15, 0.3);
             max-height: 90dvh; overflow-y: auto; margin: auto 0;
+        }
+
+        /* លុប Card Box ព័ទ្ធជុំវិញក្ដារអុកក្នុងពេលលេង និងពង្រីកពេញអេក្រង់ */
+        .game-clean-layout {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            height: 100% !important;
+            justify-content: space-between !important;
         }
 
         .user-profile {
@@ -141,7 +151,6 @@ HTML_CONTENT = """
         }
         input:focus { border-color: #f1c40f; box-shadow: 0 0 8px rgba(241,196,15,0.5); }
 
-        /* រចនាប័ទ្មប៊ូតុងបែបប្រអប់មានរូបតំណាងនៅខាងលើ អក្សរខាងក្រោម */
         .menu-grid {
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin: 4px 0;
         }
@@ -152,17 +161,14 @@ HTML_CONTENT = """
             box-shadow: 0 4px 10px rgba(0,0,0,0.4); color: #fff; text-decoration: none;
         }
         .menu-box-btn:hover { transform: translateY(-2px); border-color: #f1c40f; background: rgba(40, 55, 75, 0.95); }
-        .menu-box-btn:active { transform: translateY(1px); }
         .menu-icon { font-size: 22px; margin-bottom: 4px; }
         .menu-label { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.2; }
 
         .btn-gold-box { border-color: #f1c40f; background: linear-gradient(to bottom, rgba(241,196,15,0.2), rgba(212,172,13,0.3)); }
         .btn-green-box { border-color: #2ecc71; background: linear-gradient(to bottom, rgba(46,204,113,0.2), rgba(39,174,96,0.3)); }
         .btn-blue-box { border-color: #3498db; background: linear-gradient(to bottom, rgba(52,152,219,0.2), rgba(41,128,185,0.3)); }
-
         .full-width-box { grid-column: span 2; display: flex; flex-direction: row; gap: 6px; align-items: center; padding: 6px 10px; }
         .full-width-box input { margin: 0; flex-grow: 1; }
-        .full-width-box button { width: auto; padding: 7px 12px; font-size: 11px; }
 
         button {
             padding: 8px 12px; font-size: 12px; font-weight: 800; text-transform: uppercase;
@@ -174,6 +180,7 @@ HTML_CONTENT = """
         .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); border: 1px solid #1e8449; }
         .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; }
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
+        .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; }
 
         .deco-board-container {
             margin: 2px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
@@ -198,42 +205,37 @@ HTML_CONTENT = """
         .leaderboard-box {
             margin-top: 4px; background: rgba(0, 0, 0, 0.4);
             border-radius: 8px; padding: 4px 6px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 60px; overflow-y: auto;
+            text-align: left; width: 100%; max-height: 55px; overflow-y: auto;
         }
         .leaderboard-title { color: #f1c40f; font-size: 9px; font-weight: bold; text-align: center; margin-bottom: 2px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 9px; padding: 1px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* Game UI Layout */
         .player-hud {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(30, 40, 55, 0.9); padding: 5px 8px; border-radius: 10px;
-            width: 100%; border: 1px solid rgba(241, 196, 15, 0.3); font-size: 11px;
+            background: rgba(30, 40, 55, 0.85); padding: 4px 8px; border-radius: 8px;
+            width: 100%; border: 1px solid rgba(241, 196, 15, 0.2); font-size: 11px;
         }
         .hud-user-info { display: flex; align-items: center; gap: 6px; }
-        .hud-avatar { width: 28px; height: 28px; background: #34495e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 1px solid #f1c40f; }
-        .hud-timer { background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .hud-avatar { width: 24px; height: 24px; background: #34495e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 1px solid #f1c40f; }
+        .hud-timer { background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 6px; font-family: monospace; font-size: 11px; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
 
         .bubble-speech {
-            background: #f1c40f; color: #111; padding: 4px 12px; border-radius: 12px;
-            font-size: 11px; font-weight: bold; box-shadow: 0 4px 8px rgba(241,196,15,0.4);
-            position: relative; margin: 2px auto; max-width: 100%; word-break: break-word;
-        }
-        .bubble-speech::after {
-            content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
-            border-width: 0 5px 5px 5px; border-style: solid; border-color: transparent transparent #f1c40f transparent;
+            background: #f1c40f; color: #111; padding: 3px 10px; border-radius: 10px;
+            font-size: 10px; font-weight: bold; box-shadow: 0 3px 6px rgba(241,196,15,0.4);
+            position: relative; margin: 1px auto; max-width: 100%; word-break: break-word;
         }
 
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             justify-content: center; margin: 2px auto;
-            border: 3px solid #2c3e50; background-color: #2c3e50;
-            border-radius: 6px; width: 62vw; height: 62vw; max-width: 240px; max-height: 240px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+            border: 2px solid #2c3e50; background-color: #2c3e50;
+            border-radius: 6px; width: 85vw; height: 85vw; max-width: 330px; max-height: 330px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.8);
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 24px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #95a5a6; color: #111; }
@@ -260,11 +262,16 @@ HTML_CONTENT = """
             font-weight: bold;
         }
 
+        .webrtc-controls {
+            display: flex; gap: 6px; width: 100%; justify-content: center; margin: 2px 0;
+        }
+        .webrtc-controls button { width: auto; padding: 4px 10px; font-size: 10px; margin: 0; }
+
         .chat-box {
             display: flex; gap: 4px; width: 100%; margin: 2px 0;
         }
-        .chat-box input { margin: 0; flex-grow: 1; padding: 5px; font-size: 11px; }
-        .chat-box button { width: 55px; margin: 0; padding: 5px; font-size: 11px; }
+        .chat-box input { margin: 0; flex-grow: 1; padding: 4px 6px; font-size: 11px; }
+        .chat-box button { width: 50px; margin: 0; padding: 4px; font-size: 11px; }
 
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -293,7 +300,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ អុកខ្មែរដណ្ដើមពិន្ទុជើងខ្លាំង ♟️</h1>
+        <h1>♟️ អុកខ្មែរ WebRTC & ជើងខ្លាំង ♟️</h1>
 
         <div id="login-box" class="card hidden">
             <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 6px 0; font-size: 13px;">ចូលគណនីរបស់អ្នក</h3>
@@ -318,7 +325,6 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <!-- ប៊ូតុងរៀបចំជាប្រអប់ Grid មានរូបតំណាងខាងលើ និងអក្សរខាងក្រោម -->
             <div class="menu-grid">
                 <div class="menu-box-btn btn-gold-box" onclick="startTournamentRoom()">
                     <div class="menu-icon">🏆</div>
@@ -338,7 +344,7 @@ HTML_CONTENT = """
                 </div>
                 <div class="menu-box-btn full-width-box btn-blue-box" style="grid-column: span 2; padding: 4px 8px;">
                     <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដ (ឧ. Room_1234)">
-                    <button class="btn-green" onclick="joinPrivateRoom()" style="margin: 0; width: auto;">ចូល</button>
+                    <button class="btn-green" onclick="joinPrivateRoom()" style="margin: 0; width: auto; padding: 5px 10px;">ចូល</button>
                 </div>
             </div>
 
@@ -350,11 +356,12 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <div id="game-container" class="card hidden">
+        <!-- ហ្គេមពេញអេក្រង់ និងគ្មាន Card Box ព័ទ្ធជុំវិញ -->
+        <div id="game-container" class="card game-clean-layout hidden">
             <!-- គូប្រកួតនៅខាងលើ -->
             <div class="player-hud">
                 <div class="hud-user-info">
-                    <div class="hud-avatar">🤖</div>
+                    <div class="hud-avatar" id="oppAvatarIcon">🤖</div>
                     <div>
                         <div id="opponentName" style="font-weight: bold; color: #f1c40f;">Gemini AI ជើងខ្លាំង</div>
                         <div id="opponentStatus" style="font-size: 9px; color: #aaa;">Online & Ready</div>
@@ -363,14 +370,20 @@ HTML_CONTENT = """
                 <div class="hud-timer" id="timerTop">09:28</div>
             </div>
 
-            <!-- សារនិយាយឆ្លើយឆ្លងកំប្លែងពី Gemini AI -->
+            <!-- សារនិយាយឆ្លើយឆ្លង និង WebRTC Voice Control -->
             <div class="bubble-speech" id="bubbleMsg">សួស្តី! ត្រៀមខ្លួនចាញ់កលល្បិចអុកខ្ញុំហើយឬនៅ? ហាសហា!</div>
+            
+            <div class="webrtc-controls" id="webrtcBox">
+                <button class="btn-purple" onclick="toggleVoiceCall()" id="callBtn">📞 បើកសំឡេងនិយាយគ្នា</button>
+                <span id="callStatus" style="font-size: 10px; color: #2ecc71; align-self: center;"></span>
+            </div>
+            <audio id="remoteAudio" autoplay></audio>
 
             <div id="board"></div>
 
-            <!-- ប្រអប់ឆាតអត្ថបទជជែកជាមួយ Gemini AI -->
+            <!-- ប្រអប់ឆាតអត្ថបទជជែក -->
             <div class="chat-box">
-                <input type="text" id="chatInput" placeholder="និយាយអ្វីមួយជាមួយ Gemini AI...">
+                <input type="text" id="chatInput" placeholder="និយាយអ្វីមួយជាមួយគូប្រកួត...">
                 <button class="btn-blue" onclick="sendChatMsg()">ផ្ញើ</button>
             </div>
 
@@ -386,7 +399,7 @@ HTML_CONTENT = """
                 <div class="hud-timer" id="timerBottom">09:30</div>
             </div>
 
-            <button class="btn-red" style="width: 100%; margin-top: 2px; padding: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 2px; padding: 4px; font-size: 11px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
             
             <!-- Adsterra Banner Ad 320x50 -->
             <div style="width: 100%; display: flex; justify-content: center; margin-top: 2px; overflow: hidden;">
@@ -522,6 +535,12 @@ HTML_CONTENT = """
         let currentRoomId = "", myRole = "", board = JSON.parse(JSON.stringify(initialBoard));
         let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false, isTournament = false;
         let lastMove = null;
+
+        // WebRTC Variables
+        let peerConnection = null;
+        let localStream = null;
+        let isCallActive = false;
+        const servers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
         let decoTurn = "white", decoInterval = null;
@@ -909,24 +928,28 @@ HTML_CONTENT = """
 
         window.startTournamentRoom = function() {
             initAudio(); isVsAI = true; isTournament = true;
+            document.getElementById("webrtcBox").classList.add("hidden");
             board = JSON.parse(JSON.stringify(initialBoard));
             turn = "white"; gameOver = false; selectedPiece = null; validMoves = []; lastMove = null;
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("opponentName").textContent = "Gemini AI ជើងខ្លាំង";
+            document.getElementById("oppAvatarIcon").textContent = "🤖";
             updateStatusDisplay();
             renderBoard();
         }
 
         window.quickJoinRoom = function() {
             initAudio(); isVsAI = true; isTournament = false;
+            document.getElementById("webrtcBox").classList.add("hidden");
             board = JSON.parse(JSON.stringify(initialBoard));
             turn = "white"; gameOver = false; selectedPiece = null; validMoves = []; lastMove = null;
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("opponentName").textContent = "Gemini AI រហ័ស";
+            document.getElementById("oppAvatarIcon").textContent = "🤖";
             updateStatusDisplay();
             renderBoard();
         }
@@ -953,6 +976,7 @@ HTML_CONTENT = """
 
         async function joinRoomProcess(roomId) {
             currentRoomId = roomId;
+            document.getElementById("webrtcBox").classList.remove("hidden");
             try {
                 const pSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
                 let players = pSnap.exists() ? pSnap.val() : {};
@@ -967,6 +991,7 @@ HTML_CONTENT = """
 
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
+            document.getElementById("oppAvatarIcon").textContent = "👤";
             listenToRoom();
             renderBoard();
         }
@@ -981,16 +1006,16 @@ HTML_CONTENT = """
                 myTurnSt.textContent = "● Your turn";
                 myTurnSt.style.color = "#2ecc71";
                 oppStatus.textContent = "Online & Ready";
-                if (!bubble.dataset.aiSpoken) bubble.textContent = "វេនអ្នកដើរហើយ! រក្សាស្មារតីឱ្យបានល្អ!";
+                if (isVsAI && !bubble.dataset.aiSpoken) bubble.textContent = "វេនអ្នកដើរហើយ! រក្សាស្មារតីឱ្យបានល្អ!";
             } else {
                 myTurnSt.textContent = "Waiting...";
                 myTurnSt.style.color = "#aaa";
                 oppStatus.textContent = "● Thinking...";
-                bubble.textContent = "Gemini AI កំពុងគិតកលល្បិចឌឺដង...";
+                if (isVsAI) bubble.textContent = "Gemini AI កំពុងគិតកលល្បិចឌឺដង...";
             }
             if (isKingInCheck(board, isMyTurn ? (isVsAI ? true : myRole === 'white') : (isVsAI ? false : myRole !== 'white'))) {
                 playSound('warning');
-                bubble.textContent = "⚠️ ប្រយ័ត្នរងគ្រោះថ្នាក់ស្តេចហើយមិត្តសម្លាញ់!";
+                if (isVsAI) bubble.textContent = "⚠️ ប្រយ័ត្នរងគ្រោះថ្នាក់ស្តេចហើយមិត្តសម្លាញ់!";
             }
         }
 
@@ -1010,8 +1035,30 @@ HTML_CONTENT = """
                 }
                 document.getElementById("myHudName").textContent = rawDisplayName + ` (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
 
-                if (data.chat) {
+                if (data.chat && isVsAI) {
                     document.getElementById("bubbleMsg").textContent = data.chat;
+                } else if (data.chat && !isVsAI) {
+                    document.getElementById("bubbleMsg").textContent = data.chat;
+                }
+
+                // WebRTC Signaling Handling via Firebase
+                if (!isVsAI && data.rtc) {
+                    if (data.rtc.offer && myRole === 'black' && !peerConnection) {
+                        await setupWebRTC();
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.rtc.offer));
+                        let answer = await peerConnection.createAnswer();
+                        await peerConnection.setLocalDescription(answer);
+                        await update(ref(db, `rooms/${currentRoomId}/rtc`), { answer: { type: answer.type, sdp: answer.sdp } });
+                    } else if (data.rtc.answer && myRole === 'white' && peerConnection && !peerConnection.remoteDescription) {
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.rtc.answer));
+                    }
+                    if (data.rtc.candidate) {
+                        try {
+                            if (peerConnection && peerConnection.remoteDescription) {
+                                await peerConnection.addIceCandidate(new RTCIceCandidate(data.rtc.candidate));
+                            }
+                        } catch(err) {}
+                    }
                 }
 
                 if (data.gameOver && !gameOver) {
@@ -1028,17 +1075,64 @@ HTML_CONTENT = """
             });
         }
 
+        // WebRTC Setup & Control Functions
+        window.toggleVoiceCall = async function() {
+            if (!isCallActive) {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    await setupWebRTC();
+                    
+                    if (myRole === 'white') {
+                        let offer = await peerConnection.createOffer();
+                        await peerConnection.setLocalDescription(offer);
+                        await update(ref(db, `rooms/${currentRoomId}/rtc`), { offer: { type: offer.type, sdp: offer.sdp } });
+                    }
+                    isCallActive = true;
+                    document.getElementById("callBtn").textContent = "📞 បិទសំឡេង";
+                    document.getElementById("callStatus").textContent = "កំពុងតភ្ជាប់សំឡេង...";
+                } catch(e) {
+                    alert("មិនអាចបើកមីក្រូហ្វូនបានទេ៖ " + e.message);
+                }
+            } else {
+                if (localStream) localStream.getTracks().forEach(t => t.stop());
+                if (peerConnection) peerConnection.close();
+                peerConnection = null;
+                isCallActive = false;
+                document.getElementById("callBtn").textContent = "📞 បើកសំឡេងនិយាយគ្នា";
+                document.getElementById("callStatus").textContent = "បានបិទសំឡេង";
+            }
+        }
+
+        async function setupWebRTC() {
+            if (peerConnection) return;
+            peerConnection = new RTCPeerConnection(servers);
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            }
+
+            peerConnection.ontrack = (event) => {
+                let remoteAudio = document.getElementById("remoteAudio");
+                remoteAudio.srcObject = event.streams[0];
+                document.getElementById("callStatus").textContent = "កំពុងនិយាយគ្នា...";
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate && currentRoomId) {
+                    update(ref(db, `rooms/${currentRoomId}/rtc`), { candidate: event.candidate.toJSON() });
+                }
+            };
+        }
+
         window.sendChatMsg = async function() {
             let txt = document.getElementById("chatInput").value.trim();
             if (!txt) return;
             document.getElementById("chatInput").value = "";
             
             if (isVsAI) {
-                // បង្ហាញសារអ្នកលេងភ្លាម
                 document.getElementById("bubbleMsg").dataset.aiSpoken = "true";
                 document.getElementById("bubbleMsg").textContent = `${rawDisplayName}: ${txt}`;
                 
-                // ហៅ Gemini API មកឆ្លើយឆ្លងកំប្លែង
                 try {
                     let res = await fetch("/api/gemini-chat", {
                         method: "POST",
@@ -1151,6 +1245,13 @@ HTML_CONTENT = """
         }
 
         window.leaveRoom = async function() {
+            if (isCallActive) {
+                if (localStream) localStream.getTracks().forEach(t => t.stop());
+                if (peerConnection) peerConnection.close();
+                peerConnection = null;
+                isCallActive = false;
+                document.getElementById("callBtn").textContent = "📞 បើកសំឡេងនិយាយគ្នា";
+            }
             if (!isVsAI && currentRoomId) {
                 remove(ref(db, `rooms/${currentRoomId}/players/${myRole}`)).catch(e => {});
             }
