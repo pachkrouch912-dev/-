@@ -288,7 +288,7 @@ HTML_CONTENT = """
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         if ('serviceWorker' in navigator) {
@@ -480,11 +480,6 @@ HTML_CONTENT = """
         }
         loadLeaderboard();
 
-        // ដោះស្រាយការ Redirect ពេល Login ចូលគណនី Google
-        getRedirectResult(auth).catch((error) => {
-            console.error("Redirect Auth Error:", error);
-        });
-
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 myUid = user.uid;
@@ -517,10 +512,10 @@ HTML_CONTENT = """
         window.loginWithGoogle = async function() {
             initAudio();
             try {
-                await signInWithRedirect(auth, googleProvider);
+                await signInWithPopup(auth, googleProvider);
             } catch (error) {
                 console.error(error);
-                alert("ការចូលគណនី Google មានបញ្ហា៖ " + error.message);
+                alert("การចូលគណនី Google មានបញ្ហា៖ " + error.message);
             }
         }
 
