@@ -60,12 +60,15 @@ HTML_CONTENT = """
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Adsterra Native Banner Script -->
+    <script async data-cfasync="false" src="//pl25752495.profitablecpmrate.com/d6511b0e35dc8f52dbb050f4430f3c5b/invoke.js"></script>
+
     <style>
         * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(circle at center, #1b2838, #0a0f18);
-            text-align: center; margin: 0; padding: 10px; color: #fff; 
+            text-align: center; margin: 0; padding: 5px; color: #fff; 
             height: 100vh; height: 100dvh; overflow: hidden; 
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
@@ -86,107 +89,104 @@ HTML_CONTENT = """
         .container { 
             position: relative; z-index: 1; width: 100%; max-width: 480px; 
             height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
-            padding: 5px;
+            padding: 2px;
         }
         
         h1 { 
             color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            font-size: 19px; margin: 4px 0; letter-spacing: 1px;
+            font-size: 17px; margin: 2px 0; letter-spacing: 1px;
         }
 
         .card {
             background: rgba(15, 25, 35, 0.92); backdrop-filter: blur(15px);
-            padding: 12px; border-radius: 20px; display: flex; flex-direction: column;
+            padding: 8px; border-radius: 15px; display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
             width: 100%; border: 2px solid rgba(241, 196, 15, 0.3);
-            flex-grow: 1; margin: 4px 0;
+            flex-grow: 1; margin: 2px 0;
         }
 
         .user-profile {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 12px;
-            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
-            font-size: 13px; font-weight: bold; width: 100%;
+            background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 10px;
+            margin-bottom: 4px; border: 1px solid rgba(241, 196, 15, 0.2);
+            font-size: 12px; font-weight: bold; width: 100%;
         }
         .points-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
-        .stats-badge { color: #2ecc71; font-size: 11px; }
+        .stats-badge { color: #2ecc71; font-size: 10px; }
 
         input {
-            padding: 10px; font-size: 14px; border: 2px solid #34495e; border-radius: 12px;
-            margin: 4px 0; width: 100%; background: rgba(0, 0, 0, 0.6);
+            padding: 8px; font-size: 13px; border: 2px solid #34495e; border-radius: 10px;
+            margin: 3px 0; width: 100%; background: rgba(0, 0, 0, 0.6);
             color: #fff; text-align: center; outline: none; transition: 0.3s;
         }
         input:focus { border-color: #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
 
         button {
-            padding: 10px 16px; font-size: 14px; font-weight: 800; text-transform: uppercase;
-            color: white; border: none; border-radius: 30px; cursor: pointer; 
-            margin: 5px 0; width: 100%; letter-spacing: 0.5px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -3px 4px rgba(0,0,0,0.4);
-            transition: all 0.2s ease; position: relative; overflow: hidden;
+            padding: 8px 14px; font-size: 13px; font-weight: 800; text-transform: uppercase;
+            color: white; border: none; border-radius: 25px; cursor: pointer; 
+            margin: 3px 0; width: 100%; letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.4);
+            transition: all 0.2s ease;
         }
-        button:hover { transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 7px 20px rgba(0,0,0,0.6), inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 4px rgba(0,0,0,0.4); }
-        button:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 2px 2px rgba(0,0,0,0.3); }
+        button:hover { transform: translateY(-2px); filter: brightness(1.15); }
+        button:active { transform: translateY(2px); }
 
-        .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); border: 1px solid #1e8449; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .btn-gold { background: linear-gradient(to bottom, #f1c40f, #d4ac0d); border: 1px solid #b7950b; color: #111; text-shadow: none; }
-        .btn-google { background: linear-gradient(to bottom, #ea4335, #c5221f); border: 1px solid #a51d18; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); border: 1px solid #1e8449; }
+        .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; }
+        .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
+        .btn-gold { background: linear-gradient(to bottom, #f1c40f, #d4ac0d); border: 1px solid #b7950b; color: #111; }
+        .btn-google { background: linear-gradient(to bottom, #ea4335, #c5221f); border: 1px solid #a51d18; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
         .deco-board-container {
-            margin: 4px 0; width: 100%; display: flex; justify-content: center;
+            margin: 2px 0; width: 100%; display: flex; justify-content: center;
             pointer-events: none;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #34495e; background-color: #34495e;
-            border-radius: 8px; width: 130px; height: 130px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border-radius: 6px; width: 110px; height: 110px;
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 11px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 10px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
         .deco-boked {
-            position: absolute; bottom: 0px; right: 0px; font-size: 4px;
+            position: absolute; bottom: 0px; right: 0px; font-size: 3px;
             background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
             font-weight: bold;
         }
 
         .leaderboard-box {
-            margin-top: 4px; background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px; padding: 6px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 85px; overflow-y: auto;
+            margin-top: 3px; background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px; padding: 4px 6px; border: 1px solid rgba(241, 196, 15, 0.2);
+            text-align: left; width: 100%; max-height: 70px; overflow-y: auto;
         }
-        .leaderboard-title { color: #f1c40f; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 2px; }
-        .lb-item { display: flex; justify-content: space-between; font-size: 11px; padding: 1px 3px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leaderboard-title { color: #f1c40f; font-size: 10px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 10px; padding: 1px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            justify-content: center; margin: 6px auto;
-            border: 4px solid #2c3e50; background-color: #2c3e50;
-            border-radius: 10px; width: 85vw; height: 85vw; max-width: 350px; max-height: 350px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            justify-content: center; margin: 4px auto;
+            border: 3px solid #2c3e50; background-color: #2c3e50;
+            border-radius: 8px; width: 80vw; height: 80vw; max-width: 320px; max-height: 320px;
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 26px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 24px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #95a5a6; color: #111; }
         .dark { background-color: #34495e; color: #fff; }
-        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 10px #fff; }
+        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 8px #fff; }
         .highlight { background-color: #2ecc71 !important; }
         
         .last-move {
             background-color: rgba(241, 196, 15, 0.45) !important;
-            box-shadow: inset 0 0 8px rgba(241, 196, 15, 0.8);
         }
 
         .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; }
@@ -195,7 +195,6 @@ HTML_CONTENT = """
         .king-warning {
             background-color: #e74c3c !important;
             animation: pulseWarning 0.8s infinite alternate;
-            box-shadow: 0 0 15px #e74c3c;
         }
         @keyframes pulseWarning {
             0% { transform: scale(1); filter: brightness(1); }
@@ -203,8 +202,8 @@ HTML_CONTENT = """
         }
 
         .boked-badge {
-            position: absolute; bottom: 2px; right: 2px; font-size: 8px;
-            background: #e74c3c; color: #fff; padding: 1px 3px; border-radius: 3px;
+            position: absolute; bottom: 2px; right: 2px; font-size: 7px;
+            background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 2px;
             font-weight: bold;
         }
 
@@ -214,12 +213,11 @@ HTML_CONTENT = """
             z-index: 10; backdrop-filter: blur(5px);
         }
         .modal-content {
-            background: #1b2838; border: 2px solid #f1c40f; padding: 20px;
-            border-radius: 20px; text-align: center; width: 90%; max-width: 320px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+            background: #1b2838; border: 2px solid #f1c40f; padding: 15px;
+            border-radius: 15px; text-align: center; width: 90%; max-width: 300px;
         }
-        .modal-title { font-size: 20px; color: #f1c40f; margin-bottom: 10px; font-weight: bold; }
-        .modal-text { font-size: 14px; margin-bottom: 15px; color: #ddd; }
+        .modal-title { font-size: 18px; color: #f1c40f; margin-bottom: 8px; font-weight: bold; }
+        .modal-text { font-size: 13px; margin-bottom: 12px; color: #ddd; }
 
         .hidden { display: none !important; }
     </style>
@@ -238,7 +236,7 @@ HTML_CONTENT = """
         <h1>♟️ អុកខ្មែរដណ្ដើមពិន្ទុជើងខ្លាំង ♟️</h1>
 
         <div id="login-box" class="card hidden">
-            <h3 style="color: #f1c40f; margin: 0 0 12px 0; font-size: 15px;">សូមចូលរួមលេងហ្គេម</h3>
+            <h3 style="color: #f1c40f; margin: 0 0 10px 0; font-size: 14px;">សូមចូលរួមលេងហ្គេម</h3>
             <button class="btn-google" onclick="loginWithGoogle()">
                 <span>🌐</span> ចូលគណនីជាមួយ Google
             </button>
@@ -257,11 +255,16 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-gold" onclick="startTournamentRoom()">🏆 ប្រកួតដណ្ដើមពាន (ជម្រុះយកពិន្ទុខ្ពស់)</button>
+            <button class="btn-gold" onclick="startTournamentRoom()">🏆 ប្រកួតដណ្ដើមពាន (ជម្រុះយកពិន្ទុ)</button>
             <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (ជាមួយ AI)</button>
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
+
+            <!-- Adsterra Native Banner Container (ID: 30593028) -->
+            <div style="text-align: center; margin: 4px 0; width: 100%; display: flex; justify-content: center;">
+                <div id="container-d6511b0e35dc8f52dbb050f4430f3c5b-30593028"></div>
+            </div>
 
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងចំណាត់ថ្នាក់ពូកែលេងជាងគេ 🏆</div>
@@ -270,10 +273,10 @@ HTML_CONTENT = """
         </div>
 
         <div id="game-container" class="card hidden">
-            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 13px;">បន្ទប់ប្រកួត</h3>
-            <div id="status" style="background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight:bold; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
+            <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 12px;">បន្ទប់ប្រកួត</h3>
+            <div id="status" style="background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight:bold; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
-            <button class="btn-red" style="width: 100%; margin-top: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 4px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
         </div>
     </div>
 
@@ -480,7 +483,6 @@ HTML_CONTENT = """
         }
         loadLeaderboard();
 
-        // ដោះស្រាយការ Redirect ពេល Login ចូលគណនី Google
         getRedirectResult(auth).catch((error) => {
             console.error("Redirect Auth Error:", error);
         });
@@ -520,7 +522,7 @@ HTML_CONTENT = """
                 await signInWithRedirect(auth, googleProvider);
             } catch (error) {
                 console.error(error);
-                alert("ការចូលគណនី Google មានបញ្ហា៖ " + error.message);
+                alert("การចូលគណនី Google មានបញ្ហា៖ " + error.message);
             }
         }
 
