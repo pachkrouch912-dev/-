@@ -1,7 +1,33 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from pydantic import BaseModel
+import os
+import google.generativeai as genai
 
 app = FastAPI()
+
+# កំណត់ API Key របស់ Gemini (សូមជំនួសកន្លែងនេះដោយ Gemini API Key របស់អ្នកផ្ទាល់ ឬប្រើ Environment Variable)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
+if GEMINI_API_KEY != "YOUR_GEMINI_API_KEY_HERE":
+    genai.configure(api_key=GEMINI_API_KEY)
+
+class ChatRequest(BaseModel):
+    message: str
+    opponent_name: str = "Gemini ជើងខ្លាំង"
+
+@app.post("/api/gemini-chat")
+async def gemini_chat(req: ChatRequest):
+    if GEMINI_API_KEY == "YOUR_GEMINI_API_KEY_HERE":
+        # បើមិនទាន់ដាក់ Key ឱ្យវាឆ្លើយបែបកំប្លែងស្វ័យប្រវត្តិ
+        return {"reply": "ហាសហា! ខ្ញុំត្រៀមខ្លួនរួចជាស្រេចហើយ ចាំមើលរឿងអស្ចារ្យលើក្ដារអុកនេះ!"}
+    
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        prompt = f"អ្នកគឺជាគូប្រកួតអុកខ្មែរដ៏កំប្លែង ឌឺដងបន្តិច ប៉ុន្តែរួសរាយ និងស្រស់ស្រាយ។ អ្នកលេងបាននិយាយមកកាន់អ្នកថា: '{req.message}'។ សូមតបមកវិញជាភាសាខ្មែរខ្លីៗ ប្រកបដោយភាពកំប្លែង ស្វាហាប់ និងរស់រវើកក្នុងនាមជាគូប្រកួតអុក។"
+        response = model.generate_content(prompt)
+        return {"reply": response.text.strip()}
+    except Exception as e:
+        return {"reply": "អូ៎ អ៊ីនធឺណិតរាងទាក់បន្តិចហើយ ប៉ុន្តែទឹកមុខខ្ញុំនៅតែញញឹមហៅគូប្រកួតលេងដដែល!"}
 
 @app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
@@ -10,13 +36,13 @@ async def health_check():
 @app.get("/manifest.json")
 async def get_manifest():
     return JSONResponse({
-        "name": "អុកខ្មែរអនឡាញ - តារាងចំណាត់ថ្នាក់ជើងខ្លាំង",
+        "name": "អុកខ្មែរអនឡាញ - ជើងខ្លាំងកំប្លែង",
         "short_name": "អុកខ្មែរ",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#0a0f18",
         "theme_color": "#1b2838",
-        "description": "ហ្គេមអុកខ្មែរអនឡាញ និងប្រកួតដណ្ដើមពិន្ទុចំណាត់ថ្នាក់",
+        "description": "ហ្គេមអុកខ្មែរអនឡាញ ជជែកកម្សាន្តជាមួយ Gemini AI យ៉ាងសប្បាយរីករាយ",
         "id": "OukkhmerRanking",
         "icons": [
             {
@@ -35,12 +61,8 @@ async def get_manifest():
 @app.get("/sw.js")
 async def get_sw():
     sw_code = """
-    self.addEventListener('install', (event) => {
-        self.skipWaiting();
-    });
-    self.addEventListener('activate', (event) => {
-        return self.clients.claim();
-    });
+    self.addEventListener('install', (event) => { self.skipWaiting(); });
+    self.addEventListener('activate', (event) => { return self.clients.claim(); });
     self.addEventListener('fetch', (event) => {
         event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
     });
@@ -53,7 +75,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>អុកខ្មែរអនឡាញ - តារាងចំណាត់ថ្នាក់</title>
+    <title>អុកខ្មែរអនឡាញ - ជើងខ្លាំងកំប្លែង</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1b2838">
@@ -65,7 +87,7 @@ HTML_CONTENT = """
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(circle at center, #1b2838, #0a0f18);
-            text-align: center; margin: 0; padding: 5px; color: #fff; 
+            text-align: center; margin: 0; padding: 4px; color: #fff; 
             height: 100vh; height: 100dvh; overflow: hidden; 
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
@@ -84,69 +106,87 @@ HTML_CONTENT = """
         }
 
         .container { 
-            position: relative; z-index: 1; width: 100%; max-width: 480px; 
+            position: relative; z-index: 1; width: 100%; max-width: 420px; 
             height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
             padding: 4px;
         }
         
         h1 { 
             color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            font-size: 17px; margin: 2px 0; letter-spacing: 1px;
+            font-size: 15px; margin: 2px 0; letter-spacing: 0.5px;
         }
 
         .card {
             background: rgba(15, 25, 35, 0.95); backdrop-filter: blur(15px);
-            padding: 8px; border-radius: 16px; display: flex; flex-direction: column;
-            justify-content: space-between; align-items: center;
+            padding: 8px 10px; border-radius: 14px; display: flex; flex-direction: column;
+            justify-content: flex-start; align-items: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
             width: 100%; border: 2px solid rgba(241, 196, 15, 0.3);
-            flex-grow: 1; margin: 2px 0; overflow-y: auto;
+            max-height: 90dvh; overflow-y: auto; margin: auto 0;
         }
 
         .user-profile {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 12px;
+            background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 10px;
             margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
-            font-size: 13px; font-weight: bold; width: 100%;
+            font-size: 12px; font-weight: bold; width: 100%;
         }
         .points-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
-        .stats-badge { color: #2ecc71; font-size: 11px; }
+        .stats-badge { color: #2ecc71; font-size: 10px; }
 
         input {
-            padding: 8px; font-size: 13px; border: 2px solid #34495e; border-radius: 10px;
+            padding: 7px; font-size: 12px; border: 2px solid #34495e; border-radius: 8px;
             margin: 3px 0; width: 100%; background: rgba(0, 0, 0, 0.6);
             color: #fff; text-align: center; outline: none; transition: 0.3s;
         }
-        input:focus { border-color: #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
+        input:focus { border-color: #f1c40f; box-shadow: 0 0 8px rgba(241,196,15,0.5); }
+
+        /* រចនាប័ទ្មប៊ូតុងបែបប្រអប់មានរូបតំណាងនៅខាងលើ អក្សរខាងក្រោម */
+        .menu-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin: 4px 0;
+        }
+        .menu-box-btn {
+            background: rgba(30, 40, 55, 0.9); border: 1px solid rgba(241, 196, 15, 0.3);
+            border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); color: #fff; text-decoration: none;
+        }
+        .menu-box-btn:hover { transform: translateY(-2px); border-color: #f1c40f; background: rgba(40, 55, 75, 0.95); }
+        .menu-box-btn:active { transform: translateY(1px); }
+        .menu-icon { font-size: 22px; margin-bottom: 4px; }
+        .menu-label { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.2; }
+
+        .btn-gold-box { border-color: #f1c40f; background: linear-gradient(to bottom, rgba(241,196,15,0.2), rgba(212,172,13,0.3)); }
+        .btn-green-box { border-color: #2ecc71; background: linear-gradient(to bottom, rgba(46,204,113,0.2), rgba(39,174,96,0.3)); }
+        .btn-blue-box { border-color: #3498db; background: linear-gradient(to bottom, rgba(52,152,219,0.2), rgba(41,128,185,0.3)); }
+
+        .full-width-box { grid-column: span 2; display: flex; flex-direction: row; gap: 6px; align-items: center; padding: 6px 10px; }
+        .full-width-box input { margin: 0; flex-grow: 1; }
+        .full-width-box button { width: auto; padding: 7px 12px; font-size: 11px; }
 
         button {
-            padding: 8px 12px; font-size: 13px; font-weight: 800; text-transform: uppercase;
-            color: white; border: none; border-radius: 25px; cursor: pointer; 
-            margin: 3px 0; width: 100%; letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.4);
-            transition: all 0.2s ease; position: relative; overflow: hidden;
+            padding: 8px 12px; font-size: 12px; font-weight: 800; text-transform: uppercase;
+            color: white; border: none; border-radius: 20px; cursor: pointer; 
+            margin: 2px 0; width: 100%; letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: all 0.2s ease;
         }
-        button:hover { transform: translateY(-2px); filter: brightness(1.15); }
-        button:active { transform: translateY(2px); }
-
+        button:hover { filter: brightness(1.15); }
         .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); border: 1px solid #1e8449; }
         .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; }
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
-        .btn-gold { background: linear-gradient(to bottom, #f1c40f, #d4ac0d); border: 1px solid #b7950b; color: #111; text-shadow: none; }
 
         .deco-board-container {
-            margin: 2px 0; width: 100%; display: flex; justify-content: center;
-            pointer-events: none;
+            margin: 2px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #34495e; background-color: #34495e;
-            border-radius: 6px; width: 110px; height: 110px;
+            border-radius: 6px; width: 90px; height: 90px;
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 10px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 9px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
@@ -156,31 +196,31 @@ HTML_CONTENT = """
         }
 
         .leaderboard-box {
-            margin-top: 2px; background: rgba(0, 0, 0, 0.4);
+            margin-top: 4px; background: rgba(0, 0, 0, 0.4);
             border-radius: 8px; padding: 4px 6px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 70px; overflow-y: auto;
+            text-align: left; width: 100%; max-height: 60px; overflow-y: auto;
         }
-        .leaderboard-title { color: #f1c40f; font-size: 10px; font-weight: bold; text-align: center; margin-bottom: 2px; }
-        .lb-item { display: flex; justify-content: space-between; font-size: 10px; padding: 1px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leaderboard-title { color: #f1c40f; font-size: 9px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 9px; padding: 1px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        /* Game UI Style Layoutដូចក្នុងរូបសំណំរស់ */
+        /* Game UI Layout */
         .player-hud {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(30, 40, 55, 0.9); padding: 6px 10px; border-radius: 12px;
-            width: 100%; border: 1px solid rgba(241, 196, 15, 0.3); font-size: 12px;
+            background: rgba(30, 40, 55, 0.9); padding: 5px 8px; border-radius: 10px;
+            width: 100%; border: 1px solid rgba(241, 196, 15, 0.3); font-size: 11px;
         }
-        .hud-user-info { display: flex; align-items: center; gap: 8px; }
-        .hud-avatar { width: 32px; height: 32px; background: #34495e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1px solid #f1c40f; }
-        .hud-timer { background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 8px; font-family: monospace; font-size: 14px; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .hud-user-info { display: flex; align-items: center; gap: 6px; }
+        .hud-avatar { width: 28px; height: 28px; background: #34495e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 1px solid #f1c40f; }
+        .hud-timer { background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
 
         .bubble-speech {
-            background: #f1c40f; color: #111; padding: 4px 14px; border-radius: 14px;
-            font-size: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(241,196,15,0.4);
-            position: relative; margin: 2px auto;
+            background: #f1c40f; color: #111; padding: 4px 12px; border-radius: 12px;
+            font-size: 11px; font-weight: bold; box-shadow: 0 4px 8px rgba(241,196,15,0.4);
+            position: relative; margin: 2px auto; max-width: 100%; word-break: break-word;
         }
         .bubble-speech::after {
-            content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
-            border-width: 0 6px 6px 6px; border-style: solid; border-color: transparent transparent #f1c40f transparent;
+            content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+            border-width: 0 5px 5px 5px; border-style: solid; border-color: transparent transparent #f1c40f transparent;
         }
 
         #board {
@@ -188,17 +228,17 @@ HTML_CONTENT = """
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             justify-content: center; margin: 2px auto;
             border: 3px solid #2c3e50; background-color: #2c3e50;
-            border-radius: 8px; width: 66vw; height: 66vw; max-width: 260px; max-height: 260px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+            border-radius: 6px; width: 62vw; height: 62vw; max-width: 240px; max-height: 240px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.7);
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 20px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #95a5a6; color: #111; }
         .dark { background-color: #34495e; color: #fff; }
-        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 8px #fff; }
+        .selected { background-color: #7b61ff !important; box-shadow: inset 0 0 6px #fff; }
         .highlight { background-color: #2ecc71 !important; }
         .last-move { background-color: rgba(241, 196, 15, 0.45) !important; }
 
@@ -215,7 +255,7 @@ HTML_CONTENT = """
         }
 
         .boked-badge {
-            position: absolute; bottom: 1px; right: 1px; font-size: 7px;
+            position: absolute; bottom: 1px; right: 1px; font-size: 6px;
             background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 2px;
             font-weight: bold;
         }
@@ -223,8 +263,8 @@ HTML_CONTENT = """
         .chat-box {
             display: flex; gap: 4px; width: 100%; margin: 2px 0;
         }
-        .chat-box input { margin: 0; flex-grow: 1; padding: 6px; font-size: 11px; }
-        .chat-box button { width: 65px; margin: 0; padding: 6px; font-size: 11px; }
+        .chat-box input { margin: 0; flex-grow: 1; padding: 5px; font-size: 11px; }
+        .chat-box button { width: 55px; margin: 0; padding: 5px; font-size: 11px; }
 
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -233,13 +273,13 @@ HTML_CONTENT = """
         }
         .modal-content {
             background: #1b2838; border: 2px solid #f1c40f; padding: 15px;
-            border-radius: 16px; text-align: center; width: 90%; max-width: 300px;
+            border-radius: 16px; text-align: center; width: 90%; max-width: 280px;
         }
-        .modal-title { font-size: 18px; color: #f1c40f; margin-bottom: 8px; font-weight: bold; }
-        .modal-text { font-size: 13px; margin-bottom: 12px; color: #ddd; }
+        .modal-title { font-size: 16px; color: #f1c40f; margin-bottom: 6px; font-weight: bold; }
+        .modal-text { font-size: 12px; margin-bottom: 10px; color: #ddd; }
 
         .hidden { display: none !important; }
-        .toggle-text { font-size: 11px; color: #3498db; cursor: pointer; margin-top: 6px; text-decoration: underline; }
+        .toggle-text { font-size: 10px; color: #3498db; cursor: pointer; margin-top: 4px; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -256,8 +296,8 @@ HTML_CONTENT = """
         <h1>♟️ អុកខ្មែរដណ្ដើមពិន្ទុជើងខ្លាំង ♟️</h1>
 
         <div id="login-box" class="card hidden">
-            <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 8px 0; font-size: 14px;">ចូលគណនីរបស់អ្នក</h3>
-            <input type="text" id="usernameInput" placeholder="ឈ្មោះអ្នកលេង (សម្រាប់ចុះឈ្មោះ)" class="hidden">
+            <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 6px 0; font-size: 13px;">ចូលគណនីរបស់អ្នក</h3>
+            <input type="text" id="usernameInput" placeholder="ឈ្មោះអ្នកលេង (ចុះឈ្មោះ)" class="hidden">
             <input type="email" id="emailInput" placeholder="អ៊ីមែល (Email)">
             <input type="password" id="passwordInput" placeholder="ពាក្យសម្ងាត់ (Password)">
             
@@ -278,12 +318,31 @@ HTML_CONTENT = """
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <button class="btn-gold" onclick="startTournamentRoom()">🏆 ប្រកួតដណ្ដើមពាន (ជម្រុះយកពិន្ទុខ្ពស់)</button>
-            <button class="btn-green" onclick="quickJoinRoom()">⚡ ចូលលេងរហ័ស (ជាមួយ AI)</button>
-            <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
-            <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
-            <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
-            <button class="btn-red" style="margin-top: 2px; padding: 5px;" onclick="logoutUser()">ចាកចេញពីគណនី</button>
+            <!-- ប៊ូតុងរៀបចំជាប្រអប់ Grid មានរូបតំណាងខាងលើ និងអក្សរខាងក្រោម -->
+            <div class="menu-grid">
+                <div class="menu-box-btn btn-gold-box" onclick="startTournamentRoom()">
+                    <div class="menu-icon">🏆</div>
+                    <div class="menu-label">ប្រកួតដណ្ដើមពាន</div>
+                </div>
+                <div class="menu-box-btn btn-green-box" onclick="quickJoinRoom()">
+                    <div class="menu-icon">⚡</div>
+                    <div class="menu-label">លេងជាមួយ AI</div>
+                </div>
+                <div class="menu-box-btn btn-blue-box" onclick="createPrivateRoom()">
+                    <div class="menu-icon">🏠</div>
+                    <div class="menu-label">បង្កើតបន្ទប់</div>
+                </div>
+                <div class="menu-box-btn btn-green-box" onclick="joinPrivateRoom()">
+                    <div class="menu-icon">🔗</div>
+                    <div class="menu-label">ចូលតាមកូដ</div>
+                </div>
+                <div class="menu-box-btn full-width-box btn-blue-box" style="grid-column: span 2; padding: 4px 8px;">
+                    <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដ (ឧ. Room_1234)">
+                    <button class="btn-green" onclick="joinPrivateRoom()" style="margin: 0; width: auto;">ចូល</button>
+                </div>
+            </div>
+
+            <button class="btn-red" style="margin-top: 2px; padding: 5px; font-size: 11px;" onclick="logoutUser()">ចាកចេញពីគណនី</button>
 
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងចំណាត់ថ្នាក់ពូកែលេងជាងគេ 🏆</div>
@@ -295,23 +354,23 @@ HTML_CONTENT = """
             <!-- គូប្រកួតនៅខាងលើ -->
             <div class="player-hud">
                 <div class="hud-user-info">
-                    <div class="hud-avatar">👤</div>
+                    <div class="hud-avatar">🤖</div>
                     <div>
-                        <div id="opponentName" style="font-weight: bold; color: #f1c40f;">គូប្រកួត</div>
-                        <div id="opponentStatus" style="font-size: 10px; color: #aaa;">Waiting...</div>
+                        <div id="opponentName" style="font-weight: bold; color: #f1c40f;">Gemini AI ជើងខ្លាំង</div>
+                        <div id="opponentStatus" style="font-size: 9px; color: #aaa;">Online & Ready</div>
                     </div>
                 </div>
                 <div class="hud-timer" id="timerTop">09:28</div>
             </div>
 
-            <!-- សារពុះពារកណ្តាល -->
-            <div class="bubble-speech" id="bubbleMsg" onclick="sendQuickChat('សុំចាញ់ទៅ...')">សុំចាញ់ទៅ...</div>
+            <!-- សារនិយាយឆ្លើយឆ្លងកំប្លែងពី Gemini AI -->
+            <div class="bubble-speech" id="bubbleMsg">សួស្តី! ត្រៀមខ្លួនចាញ់កលល្បិចអុកខ្ញុំហើយឬនៅ? ហាសហា!</div>
 
             <div id="board"></div>
 
-            <!-- ប្រអប់ឆាតអត្ថបទ -->
+            <!-- ប្រអប់ឆាតអត្ថបទជជែកជាមួយ Gemini AI -->
             <div class="chat-box">
-                <input type="text" id="chatInput" placeholder="វាយសារនិយាយគ្នាលេង...">
+                <input type="text" id="chatInput" placeholder="និយាយអ្វីមួយជាមួយ Gemini AI...">
                 <button class="btn-blue" onclick="sendChatMsg()">ផ្ញើ</button>
             </div>
 
@@ -320,14 +379,14 @@ HTML_CONTENT = """
                 <div class="hud-user-info">
                     <div class="hud-avatar" style="background: #f1c40f; color: #111;">😊</div>
                     <div>
-                        <div id="myHudName" style="font-weight: bold; color: #fff;">Player (អួត)</div>
-                        <div id="myTurnStatus" style="font-size: 10px; color: #2ecc71;">● Your turn</div>
+                        <div id="myHudName" style="font-weight: bold; color: #fff;">Player</div>
+                        <div id="myTurnStatus" style="font-size: 9px; color: #2ecc71;">● Your turn</div>
                     </div>
                 </div>
                 <div class="hud-timer" id="timerBottom">09:30</div>
             </div>
 
-            <button class="btn-red" style="width: 100%; margin-top: 2px; padding: 6px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
+            <button class="btn-red" style="width: 100%; margin-top: 2px; padding: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
             
             <!-- Adsterra Banner Ad 320x50 -->
             <div style="width: 100%; display: flex; justify-content: center; margin-top: 2px; overflow: hidden;">
@@ -855,7 +914,7 @@ HTML_CONTENT = """
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("opponentName").textContent = "AI ជើងខ្លាំង";
+            document.getElementById("opponentName").textContent = "Gemini AI ជើងខ្លាំង";
             updateStatusDisplay();
             renderBoard();
         }
@@ -867,7 +926,7 @@ HTML_CONTENT = """
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
-            document.getElementById("opponentName").textContent = "AI រហ័ស";
+            document.getElementById("opponentName").textContent = "Gemini AI រហ័ស";
             updateStatusDisplay();
             renderBoard();
         }
@@ -921,17 +980,17 @@ HTML_CONTENT = """
             if (isMyTurn) {
                 myTurnSt.textContent = "● Your turn";
                 myTurnSt.style.color = "#2ecc71";
-                oppStatus.textContent = "Waiting...";
-                bubble.textContent = "វេនអ្នកដើរហើយ!";
+                oppStatus.textContent = "Online & Ready";
+                if (!bubble.dataset.aiSpoken) bubble.textContent = "វេនអ្នកដើរហើយ! រក្សាស្មារតីឱ្យបានល្អ!";
             } else {
                 myTurnSt.textContent = "Waiting...";
                 myTurnSt.style.color = "#aaa";
-                oppStatus.textContent = "● Opponent's turn";
-                bubble.textContent = "គូប្រកួតកំពុងគិត...";
+                oppStatus.textContent = "● Thinking...";
+                bubble.textContent = "Gemini AI កំពុងគិតកលល្បិចឌឺដង...";
             }
             if (isKingInCheck(board, isMyTurn ? (isVsAI ? true : myRole === 'white') : (isVsAI ? false : myRole !== 'white'))) {
                 playSound('warning');
-                bubble.textContent = "⚠️ ប្រយ័ត្នរងគ្រោះថ្នាក់ស្តេច!";
+                bubble.textContent = "⚠️ ប្រយ័ត្នរងគ្រោះថ្នាក់ស្តេចហើយមិត្តសម្លាញ់!";
             }
         }
 
@@ -969,24 +1028,34 @@ HTML_CONTENT = """
             });
         }
 
-        window.sendChatMsg = function() {
+        window.sendChatMsg = async function() {
             let txt = document.getElementById("chatInput").value.trim();
             if (!txt) return;
+            document.getElementById("chatInput").value = "";
+            
             if (isVsAI) {
-                document.getElementById("bubbleMsg").textContent = txt;
-                document.getElementById("chatInput").value = "";
-                setTimeout(() => { document.getElementById("bubbleMsg").textContent = "ហ្គេមនេះស្וុបខ្លាំងណាស់!"; }, 1000);
+                // បង្ហាញសារអ្នកលេងភ្លាម
+                document.getElementById("bubbleMsg").dataset.aiSpoken = "true";
+                document.getElementById("bubbleMsg").textContent = `${rawDisplayName}: ${txt}`;
+                
+                // ហៅ Gemini API មកឆ្លើយឆ្លងកំប្លែង
+                try {
+                    let res = await fetch("/api/gemini-chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: txt })
+                    });
+                    let data = await res.json();
+                    setTimeout(() => {
+                        document.getElementById("bubbleMsg").textContent = "🤖 Gemini: " + data.reply;
+                    }, 600);
+                } catch(e) {
+                    setTimeout(() => {
+                        document.getElementById("bubbleMsg").textContent = "🤖 Gemini: ហាសហា! និយាយត្រូវចិត្តម៉ង លេងបន្តទៀតមក!";
+                    }, 600);
+                }
             } else if (currentRoomId) {
                 update(ref(db, `rooms/${currentRoomId}`), { chat: `${rawDisplayName}: ${txt}` });
-                document.getElementById("chatInput").value = "";
-            }
-        }
-
-        window.sendQuickChat = function(msg) {
-            if (currentRoomId && !isVsAI) {
-                update(ref(db, `rooms/${currentRoomId}`), { chat: `${rawDisplayName}: ${msg}` });
-            } else {
-                document.getElementById("bubbleMsg").textContent = msg;
             }
         }
 
