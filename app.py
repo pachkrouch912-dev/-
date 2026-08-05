@@ -617,12 +617,24 @@ HTML_CONTENT = """
             let moves = [];
             let piece = cell.p, isWhite = isWhitePiece(piece);
             if (piece === "♔" || piece === "♚") {
+                // ដើរ១ប្រឡោះជុំវិញខ្លួនធម្មតា
                 let directions = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
                 for (let d of directions) {
                     let nr = r + d[0], nc = c + d[1];
                     if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                         let target = currentBoard[nr][nc].p;
                         if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) moves.push({r: nr, c: nc});
+                    }
+                }
+                // ក្បួនពិសេសស្ដេចខ្មែរ៖ លោតខ្វែង១ប្រឡោះ (ស្រដៀងគ្រាប់គោ) បន្ថែមប្រសិនបើមិនទាន់ជាប់អ៊ុក
+                let jumpingDirections = [[-2, -2], [-2, 2], [2, -2], [2, 2]];
+                for (let jd of jumpingDirections) {
+                    let nr = r + jd[0], nc = c + jd[1];
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        let target = currentBoard[nr][nc].p;
+                        if (target === "" || (isWhite && isBlackPiece(target)) || (!isWhite && isWhitePiece(target))) {
+                            moves.push({r: nr, c: nc});
+                        }
                     }
                 }
             } else if (piece === "♕" || piece === "♛") {
