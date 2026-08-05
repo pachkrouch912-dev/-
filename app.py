@@ -133,7 +133,6 @@ HTML_CONTENT = """
         .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-gold { background: linear-gradient(to bottom, #f1c40f, #d4ac0d); border: 1px solid #b7950b; color: #111; text-shadow: none; }
-        .btn-google { background: linear-gradient(to bottom, #ea4335, #c5221f); border: 1px solid #a51d18; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
         .deco-board-container {
             margin: 4px 0; width: 100%; display: flex; justify-content: center;
@@ -222,6 +221,7 @@ HTML_CONTENT = """
         .modal-text { font-size: 14px; margin-bottom: 15px; color: #ddd; }
 
         .hidden { display: none !important; }
+        .toggle-text { font-size: 12px; color: #3498db; cursor: pointer; margin-top: 8px; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -238,10 +238,13 @@ HTML_CONTENT = """
         <h1>♟️ អុកខ្មែរដណ្ដើមពិន្ទុជើងខ្លាំង ♟️</h1>
 
         <div id="login-box" class="card hidden">
-            <h3 style="color: #f1c40f; margin: 0 0 12px 0; font-size: 15px;">សូមចូលរួមលេងហ្គេម</h3>
-            <button class="btn-google" onclick="loginWithGoogle()">
-                <span>🌐</span> ចូលគណនីជាមួយ Google
-            </button>
+            <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 10px 0; font-size: 15px;">ចូលគណនីរបស់អ្នក</h3>
+            <input type="text" id="usernameInput" placeholder="ឈ្មោះអ្នកលេង (សម្រាប់ចុះឈ្មោះ)" class="hidden">
+            <input type="email" id="emailInput" placeholder="អ៊ីមែល (Email)">
+            <input type="password" id="passwordInput" placeholder="ពាក្យសម្ងាត់ (Password)">
+            
+            <button id="authBtn" class="btn-green" onclick="handleAuth()">ចូលគណនី</button>
+            <div class="toggle-text" id="toggleAuthMode" onclick="toggleAuthMode()">មិនទាន់មានគណនី? ចុះឈ្មោះថ្មី</div>
         </div>
 
         <div id="main-menu" class="card hidden">
@@ -262,6 +265,7 @@ HTML_CONTENT = """
             <button class="btn-blue" onclick="createPrivateRoom()">🏠 បង្កើតបន្ទប់ផ្ទាល់ខ្លួន</button>
             <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់ (ឧ. Room_1234)">
             <button class="btn-green" onclick="joinPrivateRoom()">🔗 ចូលតាមកូដបន្ទប់</button>
+            <button class="btn-red" style="margin-top: 4px; padding: 6px;" onclick="logoutUser()">ចាកចេញពីគណនី</button>
 
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងចំណាត់ថ្នាក់ពូកែលេងជាងគេ 🏆</div>
@@ -288,7 +292,7 @@ HTML_CONTENT = """
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         if ('serviceWorker' in navigator) {
@@ -311,7 +315,47 @@ HTML_CONTENT = """
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        const googleProvider = new GoogleAuthProvider();
+
+        let isRegisterMode = false;
+        window.toggleAuthMode = function() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById("auth-title").textContent = isRegisterMode ? "ចុះឈ្មោះគណនីថ្មី" : "ចូលគណនីរបស់អ្នក";
+            document.getElementById("authBtn").textContent = isRegisterMode ? "ចុះឈ្មោះ" : "ចូលគណនី";
+            document.getElementById("toggleAuthMode").textContent = isRegisterMode ? "មានគណនីរួចហើយ? ចូលគណនី" : "មិនទាន់មានគណនី? ចុះឈ្មោះថ្មី";
+            document.getElementById("usernameInput").classList.toggle("hidden", !isRegisterMode);
+        }
+
+        window.handleAuth = async function() {
+            initAudio();
+            const email = document.getElementById("emailInput").value.trim();
+            const password = document.getElementById("passwordInput").value.trim();
+            const username = document.getElementById("usernameInput").value.trim();
+
+            if (!email || !password) {
+                alert("សូមបំពេញអ៊ីមែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+            if (isRegisterMode && !username) {
+                alert("សូមបញ្ចូលឈ្មោះអ្នកលេងរបស់អ្នក!");
+                return;
+            }
+
+            try {
+                if (isRegisterMode) {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    await set(ref(db, `users/${user.uid}`), { name: username, points: 100, wins: 0, losses: 0 });
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                alert("មានបញ្ហា៖ " + error.message);
+            }
+        }
+
+        window.logoutUser = function() {
+            signOut(auth);
+        }
 
         let audioCtx = null;
         function initAudio() {
@@ -483,21 +527,21 @@ HTML_CONTENT = """
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 myUid = user.uid;
-                rawDisplayName = user.displayName || "Google User";
-                myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
-
                 const userRef = ref(db, `users/${myUid}`);
                 const snapshot = await get(userRef);
 
                 if (snapshot.exists()) {
                     let data = snapshot.val();
+                    rawDisplayName = data.name || "អ្នកលេង";
                     myPoints = data.points ?? 100;
                     myWins = data.wins ?? 0;
                     myLosses = data.losses ?? 0;
                 } else {
+                    rawDisplayName = user.email.split('@')[0];
                     myPoints = 100; myWins = 0; myLosses = 0;
                     await set(userRef, { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses });
                 }
+                myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
 
                 updateUIStats();
                 document.getElementById("login-box").classList.add("hidden");
@@ -508,16 +552,6 @@ HTML_CONTENT = """
                 document.getElementById("main-menu").classList.add("hidden");
             }
         });
-
-        window.loginWithGoogle = async function() {
-            initAudio();
-            try {
-                await signInWithPopup(auth, googleProvider);
-            } catch (error) {
-                console.error(error);
-                alert("การចូលគណនី Google មានបញ្ហា៖ " + error.message);
-            }
-        }
 
         function updateUIStats() {
             document.getElementById("userPoints").textContent = myPoints;
