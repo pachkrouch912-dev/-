@@ -269,17 +269,11 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- ផ្នែក Game Container ដែលមានបន្ថែម Adsterra នៅពីក្រោមប៊ូតុង -->
         <div id="game-container" class="card hidden">
             <h3 id="room-title" style="color: #f1c40f; margin: 2px 0; font-size: 13px;">បន្ទប់ប្រកួត</h3>
             <div id="status" style="background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight:bold; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.2);">រង់ចាំគូប្រកួត...</div>
             <div id="board"></div>
             <button class="btn-red" style="width: 100%; margin-top: 5px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
-
-            <!-- Adsterra Native Banner ក្នុងពេលលេងហ្គេម -->
-            <div style="text-align: center; margin: 4px 0; width: 100%; display: flex; justify-content: center;">
-                <div id="container-d6511b0e35dc8f52dbb050f4430f3c5b-30593028"></div>
-            </div>
         </div>
     </div>
 
@@ -486,6 +480,7 @@ HTML_CONTENT = """
         }
         loadLeaderboard();
 
+        // ដោះស្រាយការ Redirect ពេល Login ចូលគណនី Google
         getRedirectResult(auth).catch((error) => {
             console.error("Redirect Auth Error:", error);
         });
