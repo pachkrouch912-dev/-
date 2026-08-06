@@ -109,10 +109,53 @@ HTML_CONTENT = """
             padding: 4px;
         }
         
+        /* Header Container with Logo Profile in Title Row */
+        .header-row {
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; margin: 4px 0; position: relative; z-index: 30;
+        }
+
         h1 { 
             color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            font-size: 13px; margin: 4px 0; letter-spacing: 0.5px;
+            font-size: 11px; margin: 0; letter-spacing: 0.2px; flex-grow: 1; text-align: center;
         }
+
+        .profile-dropdown-container {
+            position: relative; display: inline-block; text-align: left;
+        }
+
+        .user-logo-btn {
+            width: 32px; height: 32px; background: rgba(15, 25, 35, 0.95);
+            border-radius: 50%; border: 1px solid rgba(241, 196, 15, 0.6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; cursor: pointer; color: #f1c40f;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: 0.2s;
+        }
+        .user-logo-btn:hover { background: rgba(30, 45, 65, 0.95); border-color: #f1c40f; transform: scale(1.05); }
+
+        .dropdown-menu {
+            position: absolute; top: 120%; left: 0; background: #1b2838;
+            border: 1px solid rgba(241, 196, 15, 0.4); border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.8); width: 180px; display: none;
+            flex-direction: column; overflow: hidden; z-index: 100;
+        }
+        .dropdown-menu.show { display: flex; }
+        
+        .dropdown-header-info {
+            padding: 10px; background: rgba(241, 196, 15, 0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center;
+        }
+        .dropdown-username { font-size: 12px; font-weight: bold; color: #f1c40f; margin-bottom: 2px; }
+        .dropdown-points { font-size: 10px; color: #ddd; }
+
+        .dropdown-item {
+            padding: 8px 12px; font-size: 11px; color: #fff; text-decoration: none;
+            display: flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .dropdown-item:hover { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+        .dropdown-item.logout { color: #e74c3c; border-bottom: none; }
+        .dropdown-item.logout:hover { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
 
         .clean-menu-layout {
             background: transparent !important;
@@ -138,49 +181,6 @@ HTML_CONTENT = """
             margin: 0 !important;
             height: 100% !important;
             justify-content: space-between !important;
-        }
-
-        /* Top Bar for Profile Dropdown & Points */
-        .top-bar-header {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%; margin-bottom: 4px; position: relative; z-index: 20;
-        }
-
-        .profile-dropdown-container {
-            position: relative; display: inline-block; text-align: left;
-        }
-
-        .user-profile-btn {
-            display: flex; align-items: center; gap: 6px;
-            background: rgba(15, 25, 35, 0.95); padding: 5px 10px; border-radius: 10px;
-            border: 1px solid rgba(241, 196, 15, 0.4);
-            font-size: 11px; font-weight: bold; cursor: pointer; color: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.2s;
-        }
-        .user-profile-btn:hover { background: rgba(30, 45, 65, 0.95); border-color: #f1c40f; }
-        .dropdown-arrow { font-size: 9px; color: #f1c40f; margin-left: 2px; }
-
-        .dropdown-menu {
-            position: absolute; top: 110%; left: 0; background: #1b2838;
-            border: 1px solid rgba(241, 196, 15, 0.4); border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.8); width: 160px; display: none;
-            flex-direction: column; overflow: hidden; z-index: 100;
-        }
-        .dropdown-menu.show { display: flex; }
-        .dropdown-item {
-            padding: 8px 12px; font-size: 11px; color: #fff; text-decoration: none;
-            display: flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .dropdown-item:hover { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
-        .dropdown-item.logout { color: #e74c3c; border-bottom: none; }
-        .dropdown-item.logout:hover { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
-
-        .points-badge-top {
-            background: rgba(15, 25, 35, 0.95); padding: 5px 10px; border-radius: 10px;
-            border: 1px solid rgba(241, 196, 15, 0.4); color: #f1c40f;
-            font-size: 11px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            display: flex; align-items: center; gap: 4px;
         }
 
         input {
@@ -343,7 +343,30 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ សូមគិតអោយបានឆ្ងាយមុនសម្រេចចិត្ត ♟️</h1>
+        <!-- Header with Logo Profile in the same row as title -->
+        <div class="header-row">
+            <div class="profile-dropdown-container">
+                <div class="user-logo-btn" onclick="toggleProfileDropdown(event)" title="ប្រវត្តិរូប">
+                    👤
+                </div>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <div class="dropdown-header-info">
+                        <div class="dropdown-username" id="dropdownUsername">អ្នកលេង</div>
+                        <div class="dropdown-points">⭐ <span id="userPoints">0</span> ពិន្ទុ</div>
+                    </div>
+                    <div class="dropdown-item" style="cursor: default;">
+                        📊 ឈ្នះ: <span id="statWins">0</span> | ចាញ់: <span id="statLosses">0</span>
+                    </div>
+                    <div class="dropdown-item logout" onclick="logoutUser()">
+                        🚪 ចាកចេញពីគណនី
+                    </div>
+                </div>
+            </div>
+
+            <h1>♟️ សូមគិតអោយបានឆ្ងាយមុនសម្រេចចិត្ត ♟️</h1>
+            
+            <div style="width: 32px;"></div> <!-- Spacer to center title perfectly -->
+        </div>
 
         <div id="login-box" class="clean-menu-layout hidden">
             <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 8px 0; font-size: 14px;">ចូលគណនីរបស់អ្នក</h3>
@@ -356,26 +379,6 @@ HTML_CONTENT = """
         </div>
 
         <div id="main-menu" class="clean-menu-layout hidden">
-            <div class="top-bar-header">
-                <div class="profile-dropdown-container">
-                    <div class="user-profile-btn" onclick="toggleProfileDropdown(event)">
-                        👤 <span id="welcome-msg">អ្នកលេង</span> <span class="dropdown-arrow">▼</span>
-                    </div>
-                    <div class="dropdown-menu" id="profileDropdown">
-                        <div class="dropdown-item" style="cursor: default; background: rgba(255,255,255,0.03);">
-                            ឈ្នះ: <span id="statWins">0</span> | ចាញ់: <span id="statLosses">0</span>
-                        </div>
-                        <div class="dropdown-item logout" onclick="logoutUser()">
-                            🚪 ចាកចេញពីគណនី
-                        </div>
-                    </div>
-                </div>
-
-                <div class="points-badge-top">
-                    ⭐ <span id="userPoints">0</span> ពិន្ទុ
-                </div>
-            </div>
-
             <div class="deco-board-container">
                 <div class="deco-board" id="decoBoard"></div>
             </div>
@@ -711,7 +714,7 @@ HTML_CONTENT = """
                 updateUIStats();
                 document.getElementById("login-box").classList.add("hidden");
                 document.getElementById("main-menu").classList.remove("hidden");
-                document.getElementById("welcome-msg").textContent = `${rawDisplayName}`;
+                document.getElementById("dropdownUsername").textContent = rawDisplayName;
             } else {
                 document.getElementById("login-box").classList.remove("hidden");
                 document.getElementById("main-menu").classList.add("hidden");
