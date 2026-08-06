@@ -106,24 +106,30 @@ HTML_CONTENT = """
         .container { 
             position: relative; z-index: 1; width: 100%; max-width: 420px; 
             height: 100%; display: flex; flex-direction: column; justify-content: space-between; 
-            padding: 2px;
+            padding: 4px;
         }
         
         h1 { 
             color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            font-size: 13px; margin: 2px 0; letter-spacing: 0.5px;
+            font-size: 14px; margin: 4px 0; letter-spacing: 0.5px;
         }
 
-        .card {
-            background: rgba(15, 25, 35, 0.95); backdrop-filter: blur(15px);
-            padding: 8px 10px; border-radius: 14px; display: flex; flex-direction: column;
-            justify-content: flex-start; align-items: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-            width: 100%; border: 2px solid rgba(241, 196, 15, 0.3);
-            max-height: 90dvh; overflow-y: auto; margin: auto 0;
+        /* លុប Card Box ធំចេញទាំងស្រុង ជំនួសដោយទម្រង់គ្មានស៊ុមព័ទ្ធ ស្អាតដាច់ដោយឡែក */
+        .clean-menu-layout {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            padding: 0 !important;
+            margin: auto 0 !important;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-height: 94dvh;
+            overflow-y: auto;
         }
 
-        /* លុប Card Box ព័ទ្ធជុំវិញក្ដារអុកក្នុងពេលលេង និងពង្រីកពេញអេក្រង់ */
         .game-clean-layout {
             background: transparent !important;
             border: none !important;
@@ -137,9 +143,10 @@ HTML_CONTENT = """
 
         .user-profile {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 10px;
-            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.2);
+            background: rgba(15, 25, 35, 0.85); padding: 6px 12px; border-radius: 12px;
+            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.25);
             font-size: 12px; font-weight: bold; width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         .points-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
         .stats-badge { color: #2ecc71; font-size: 10px; }
@@ -155,18 +162,18 @@ HTML_CONTENT = """
             display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin: 4px 0;
         }
         .menu-box-btn {
-            background: rgba(30, 40, 55, 0.9); border: 1px solid rgba(241, 196, 15, 0.3);
+            background: rgba(20, 30, 45, 0.95); border: 1px solid rgba(241, 196, 15, 0.3);
             border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4); color: #fff; text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); color: #fff; text-decoration: none;
         }
-        .menu-box-btn:hover { transform: translateY(-2px); border-color: #f1c40f; background: rgba(40, 55, 75, 0.95); }
+        .menu-box-btn:hover { transform: translateY(-2px); border-color: #f1c40f; background: rgba(30, 45, 65, 0.95); }
         .menu-icon { font-size: 22px; margin-bottom: 4px; }
         .menu-label { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.2; }
 
-        .btn-gold-box { border-color: #f1c40f; background: linear-gradient(to bottom, rgba(241,196,15,0.2), rgba(212,172,13,0.3)); }
-        .btn-green-box { border-color: #2ecc71; background: linear-gradient(to bottom, rgba(46,204,113,0.2), rgba(39,174,96,0.3)); }
-        .btn-blue-box { border-color: #3498db; background: linear-gradient(to bottom, rgba(52,152,219,0.2), rgba(41,128,185,0.3)); }
+        .btn-gold-box { border-color: #f1c40f; background: linear-gradient(to bottom, rgba(241,196,15,0.2), rgba(212,172,13,0.35)); }
+        .btn-green-box { border-color: #2ecc71; background: linear-gradient(to bottom, rgba(46,204,113,0.2), rgba(39,174,96,0.35)); }
+        .btn-blue-box { border-color: #3498db; background: linear-gradient(to bottom, rgba(52,152,219,0.2), rgba(41,128,185,0.35)); }
         .full-width-box { grid-column: span 2; display: flex; flex-direction: row; gap: 6px; align-items: center; padding: 6px 10px; }
         .full-width-box input { margin: 0; flex-grow: 1; }
 
@@ -182,33 +189,37 @@ HTML_CONTENT = """
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
         .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; }
 
+        /* ពង្រីកក្ដារអុកតូចនៅលើមីនុយឱ្យធំស្អាត */
         .deco-board-container {
-            margin: 2px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
+            margin: 4px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            border: 2px solid #34495e; background-color: #34495e;
-            border-radius: 6px; width: 90px; height: 90px;
+            border: 2px solid #f1c40f; background-color: #2c3e50;
+            border-radius: 8px; width: 140px; height: 140px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 9px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 14px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
         .deco-boked {
-            position: absolute; bottom: 0px; right: 0px; font-size: 3px;
-            background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
+            position: absolute; bottom: 0px; right: 0px; font-size: 5px;
+            background: #e74c3c; color: #fff; padding: 0px 2px; border-radius: 2px;
+            font-weight: bold;
         }
 
         .leaderboard-box {
-            margin-top: 4px; background: rgba(0, 0, 0, 0.4);
-            border-radius: 8px; padding: 4px 6px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 55px; overflow-y: auto;
+            margin-top: 4px; background: rgba(15, 25, 35, 0.85);
+            border-radius: 10px; padding: 6px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
+            text-align: left; width: 100%; max-height: 70px; overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
-        .leaderboard-title { color: #f1c40f; font-size: 9px; font-weight: bold; text-align: center; margin-bottom: 2px; }
-        .lb-item { display: flex; justify-content: space-between; font-size: 9px; padding: 1px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leaderboard-title { color: #f1c40f; font-size: 10px; font-weight: bold; text-align: center; margin-bottom: 3px; }
+        .lb-item { display: flex; justify-content: space-between; font-size: 10px; padding: 2px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         .player-hud {
             display: flex; justify-content: space-between; align-items: center;
@@ -302,8 +313,8 @@ HTML_CONTENT = """
     <div class="container">
         <h1>♟️ អុកខ្មែរ WebRTC & ជើងខ្លាំង ♟️</h1>
 
-        <div id="login-box" class="card hidden">
-            <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 6px 0; font-size: 13px;">ចូលគណនីរបស់អ្នក</h3>
+        <div id="login-box" class="clean-menu-layout hidden">
+            <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 8px 0; font-size: 14px;">ចូលគណនីរបស់អ្នក</h3>
             <input type="text" id="usernameInput" placeholder="ឈ្មោះអ្នកលេង (ចុះឈ្មោះ)" class="hidden">
             <input type="email" id="emailInput" placeholder="អ៊ីមែល (Email)">
             <input type="password" id="passwordInput" placeholder="ពាក្យសម្ងាត់ (Password)">
@@ -312,7 +323,8 @@ HTML_CONTENT = """
             <div class="toggle-text" id="toggleAuthMode" onclick="toggleAuthMode()">មិនទាន់មានគណនី? ចុះឈ្មោះថ្មី</div>
         </div>
 
-        <div id="main-menu" class="card hidden">
+        <!-- មីនុយដើមគ្មាន Card Box ធំ ព្រមទាំងពង្រីកក្ដារអុកឱ្យធំស្អាត -->
+        <div id="main-menu" class="clean-menu-layout hidden">
             <div class="user-profile">
                 <div>
                     <span id="welcome-msg" style="color: #f1c40f; display: block;"></span>
@@ -348,7 +360,7 @@ HTML_CONTENT = """
                 </div>
             </div>
 
-            <button class="btn-red" style="margin-top: 2px; padding: 5px; font-size: 11px;" onclick="logoutUser()">ចាកចេញពីគណនី</button>
+            <button class="btn-red" style="margin-top: 4px; padding: 6px; font-size: 11px;" onclick="logoutUser()">ចាកចេញពីគណនី</button>
 
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងចំណាត់ថ្នាក់ពូកែលេងជាងគេ 🏆</div>
@@ -357,7 +369,7 @@ HTML_CONTENT = """
         </div>
 
         <!-- ហ្គេមពេញអេក្រង់ និងគ្មាន Card Box ព័ទ្ធជុំវិញ -->
-        <div id="game-container" class="card game-clean-layout hidden">
+        <div id="game-container" class="clean-menu-layout game-clean-layout hidden">
             <!-- គូប្រកួតនៅខាងលើ -->
             <div class="player-hud">
                 <div class="hud-user-info">
@@ -971,7 +983,7 @@ HTML_CONTENT = """
             try {
                 if (!(await get(ref(db, `rooms/${rCode}`))).exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
                 await joinRoomProcess(rCode);
-            } catch(e) { alert("មានបញ្ហាក្នុងការចូលបន្ទប់!"); }
+            } catch(e) { alert("មានបញ្ហាក្នុងการចូលបន្ទប់!"); }
         }
 
         async function joinRoomProcess(roomId) {
