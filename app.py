@@ -21,7 +21,7 @@ async def gemini_chat(req: ChatRequest):
     
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
-        prompt = f"អ្នកគឺជាគូប្រកួតអុកខ្មែរដ៏កំប្លែង ឌឺដងបន្តិច ប៉ុន្តែរួសរាយ និងស្រស់ស្រាយ។ អ្នកលេងបាននិយាយមកកាន់អ្នកថា: '{req.message}'។ សូមតបមកវិញជាភាសាខ្មែរខ្លីៗ ប្រកបដោយភាពកំប្លែង ស្វាហាប់ និងរស់រវើកក្នុងនាមជាគូប្រកួតអុក។"
+        prompt = f"អ្នកគឺជាគូប្រកួតអុកខ្មែរដ៏កំប្លែង ឌឺដងបន្តិច ប៉ុន្តែរួសរាយ និងស្រស់ស្រាយ។ អ្នកលេងបាននិយាយមកកាន់អ្នកថា: '{req.message}'។ សូមតបមកវិញជាភាសាខ្មែរខ្លីៗ ប្រកបដោយភាពកំប្លែង ស្វាហាប់ និងរស់រវើកក្នុងនាមជាគូប្រកួតអុក。"
         response = model.generate_content(prompt)
         return {"reply": response.text.strip()}
     except Exception as e:
@@ -188,24 +188,25 @@ HTML_CONTENT = """
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
         .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; }
 
+        /* កែទំហំក្ដារអុកលម្អ (Deco Board) ឱ្យធំស្អាតពេញល្មម */
         .deco-board-container {
-            margin: 4px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
+            margin: 6px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #f1c40f; background-color: #2c3e50;
-            border-radius: 8px; width: 140px; height: 140px;
+            border-radius: 10px; width: 180px; height: 180px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.7);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 16px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
         .deco-boked {
-            position: absolute; bottom: 0px; right: 0px; font-size: 4px;
+            position: absolute; bottom: 0px; right: 0px; font-size: 5px;
             background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
             font-weight: bold;
         }
@@ -234,7 +235,6 @@ HTML_CONTENT = """
             position: relative; margin: 1px auto; max-width: 100%; word-break: break-word;
         }
 
-        /* កែសម្រួលទំហំក្ដារអុក និងកូនអុកឱ្យសមល្មម មិនហៀរចេញក្រឡា និងរក្សា Animation ដើម */
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
