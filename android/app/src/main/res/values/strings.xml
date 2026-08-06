@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">oukkhmer</string>
+    <string name="title_activity_main">oukkhmer</string>
+    <string name="package_name">comoukkhmerchaktrang.app</string>
+    <string name="custom_url_scheme">comoukkhmerchaktrang.app</string>
+</resources>
