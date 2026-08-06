@@ -109,7 +109,6 @@ HTML_CONTENT = """
             padding: 4px;
         }
         
-        /* Header Container with Logo Profile in Title Row */
         .header-row {
             display: flex; align-items: center; justify-content: space-between;
             width: 100%; margin: 4px 0; position: relative; z-index: 30;
@@ -221,7 +220,7 @@ HTML_CONTENT = """
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
         .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; }
 
-        /* កែទំហំក្ដារអុកលម្អ (Deco Board) ឱ្យធំស្អាតពេញល្មម */
+        /* ពង្រីកក្ដារអុកលម្អ (Deco Board) ឱ្យធំស្អាតពេញល្មម */
         .deco-board-container {
             margin: 4px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
         }
@@ -229,12 +228,12 @@ HTML_CONTENT = """
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #f1c40f; background-color: #2c3e50;
-            border-radius: 10px; width: 175px; height: 175px;
+            border-radius: 10px; width: 240px; height: 240px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.7);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 15px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 20px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
@@ -343,7 +342,6 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <!-- Header with Logo Profile in the same row as title -->
         <div class="header-row">
             <div class="profile-dropdown-container">
                 <div class="user-logo-btn" onclick="toggleProfileDropdown(event)" title="ប្រវត្តិរូប">
@@ -365,7 +363,7 @@ HTML_CONTENT = """
 
             <h1>♟️ សូមគិតអោយបានឆ្ងាយមុនសម្រេចចិត្ត ♟️</h1>
             
-            <div style="width: 32px;"></div> <!-- Spacer to center title perfectly -->
+            <div style="width: 32px;"></div>
         </div>
 
         <div id="login-box" class="clean-menu-layout hidden">
