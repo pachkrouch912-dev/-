@@ -114,7 +114,6 @@ HTML_CONTENT = """
             font-size: 14px; margin: 4px 0; letter-spacing: 0.5px;
         }
 
-        /* លុប Card Box ធំចេញទាំងស្រុង ជំនួសដោយទម្រង់គ្មានស៊ុមព័ទ្ធ ស្អាតដាច់ដោយឡែក */
         .clean-menu-layout {
             background: transparent !important;
             border: none !important;
@@ -189,7 +188,6 @@ HTML_CONTENT = """
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
         .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; }
 
-        /* ពង្រីកក្ដារអុកតូចនៅលើមីនុយឱ្យធំស្អាត */
         .deco-board-container {
             margin: 4px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
         }
@@ -202,13 +200,13 @@ HTML_CONTENT = """
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 12px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
         .deco-boked {
-            position: absolute; bottom: 0px; right: 0px; font-size: 5px;
-            background: #e74c3c; color: #fff; padding: 0px 2px; border-radius: 2px;
+            position: absolute; bottom: 0px; right: 0px; font-size: 4px;
+            background: #e74c3c; color: #fff; padding: 0px 1px; border-radius: 2px;
             font-weight: bold;
         }
 
@@ -236,17 +234,18 @@ HTML_CONTENT = """
             position: relative; margin: 1px auto; max-width: 100%; word-break: break-word;
         }
 
+        /* កែសម្រួលទំហំក្ដារអុក និងកូនអុកឱ្យសមល្មម មិនហៀរចេញក្រឡា និងរក្សា Animation ដើម */
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             justify-content: center; margin: 2px auto;
             border: 2px solid #2c3e50; background-color: #2c3e50;
-            border-radius: 6px; width: 85vw; height: 85vw; max-width: 330px; max-height: 330px;
+            border-radius: 6px; width: 78vw; height: 78vw; max-width: 290px; max-height: 290px;
             box-shadow: 0 6px 15px rgba(0,0,0,0.8);
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 20px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #95a5a6; color: #111; }
@@ -255,8 +254,8 @@ HTML_CONTENT = """
         .highlight { background-color: #2ecc71 !important; }
         .last-move { background-color: rgba(241, 196, 15, 0.45) !important; }
 
-        .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; }
-        .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; }
+        .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; font-size: 22px; }
+        .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; font-size: 22px; }
         
         .king-warning {
             background-color: #e74c3c !important;
@@ -268,7 +267,7 @@ HTML_CONTENT = """
         }
 
         .boked-badge {
-            position: absolute; bottom: 1px; right: 1px; font-size: 6px;
+            position: absolute; bottom: 1px; right: 1px; font-size: 5px;
             background: #e74c3c; color: #fff; padding: 1px 2px; border-radius: 2px;
             font-weight: bold;
         }
@@ -323,7 +322,6 @@ HTML_CONTENT = """
             <div class="toggle-text" id="toggleAuthMode" onclick="toggleAuthMode()">មិនទាន់មានគណនី? ចុះឈ្មោះថ្មី</div>
         </div>
 
-        <!-- មីនុយដើមគ្មាន Card Box ធំ ព្រមទាំងពង្រីកក្ដារអុកឱ្យធំស្អាត -->
         <div id="main-menu" class="clean-menu-layout hidden">
             <div class="user-profile">
                 <div>
@@ -368,9 +366,7 @@ HTML_CONTENT = """
             </div>
         </div>
 
-        <!-- ហ្គេមពេញអេក្រង់ និងគ្មាន Card Box ព័ទ្ធជុំវិញ -->
         <div id="game-container" class="clean-menu-layout game-clean-layout hidden">
-            <!-- គូប្រកួតនៅខាងលើ -->
             <div class="player-hud">
                 <div class="hud-user-info">
                     <div class="hud-avatar" id="oppAvatarIcon">🤖</div>
@@ -382,7 +378,6 @@ HTML_CONTENT = """
                 <div class="hud-timer" id="timerTop">09:28</div>
             </div>
 
-            <!-- សារនិយាយឆ្លើយឆ្លង និង WebRTC Voice Control -->
             <div class="bubble-speech" id="bubbleMsg">សួស្តី! ត្រៀមខ្លួនចាញ់កលល្បិចអុកខ្ញុំហើយឬនៅ? ហាសហា!</div>
             
             <div class="webrtc-controls" id="webrtcBox">
@@ -393,13 +388,11 @@ HTML_CONTENT = """
 
             <div id="board"></div>
 
-            <!-- ប្រអប់ឆាតអត្ថបទជជែក -->
             <div class="chat-box">
                 <input type="text" id="chatInput" placeholder="និយាយអ្វីមួយជាមួយគូប្រកួត...">
                 <button class="btn-blue" onclick="sendChatMsg()">ផ្ញើ</button>
             </div>
 
-            <!-- យើងនៅខាងក្រោម -->
             <div class="player-hud">
                 <div class="hud-user-info">
                     <div class="hud-avatar" style="background: #f1c40f; color: #111;">😊</div>
@@ -413,7 +406,6 @@ HTML_CONTENT = """
 
             <button class="btn-red" style="width: 100%; margin-top: 2px; padding: 4px; font-size: 11px;" onclick="leaveRoom()">ចាកចេញពីបន្ទប់</button>
             
-            <!-- Adsterra Banner Ad 320x50 -->
             <div style="width: 100%; display: flex; justify-content: center; margin-top: 2px; overflow: hidden;">
                 <script type="text/javascript">
                     atOptions = {
@@ -548,7 +540,6 @@ HTML_CONTENT = """
         let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false, isTournament = false;
         let lastMove = null;
 
-        // WebRTC Variables
         let peerConnection = null;
         let localStream = null;
         let isCallActive = false;
@@ -983,7 +974,7 @@ HTML_CONTENT = """
             try {
                 if (!(await get(ref(db, `rooms/${rCode}`))).exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
                 await joinRoomProcess(rCode);
-            } catch(e) { alert("មានបញ្ហាក្នុងการចូលបន្ទប់!"); }
+            } catch(e) { alert("មានបញ្ហាក្នុងការចូលបន្ទប់!"); }
         }
 
         async function joinRoomProcess(roomId) {
@@ -1053,7 +1044,6 @@ HTML_CONTENT = """
                     document.getElementById("bubbleMsg").textContent = data.chat;
                 }
 
-                // WebRTC Signaling Handling via Firebase
                 if (!isVsAI && data.rtc) {
                     if (data.rtc.offer && myRole === 'black' && !peerConnection) {
                         await setupWebRTC();
@@ -1087,7 +1077,6 @@ HTML_CONTENT = """
             });
         }
 
-        // WebRTC Setup & Control Functions
         window.toggleVoiceCall = async function() {
             if (!isCallActive) {
                 try {
