@@ -220,7 +220,6 @@ HTML_CONTENT = """
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
         .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; }
 
-        /* ពង្រីកក្ដារអុកលម្អ (Deco Board) ឱ្យធំស្អាតពេញល្មម */
         .deco-board-container {
             margin: 4px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
         }
@@ -267,12 +266,27 @@ HTML_CONTENT = """
             position: relative; margin: 1px auto; max-width: 100%; word-break: break-word;
         }
 
+        /* ផ្នែកកែប្រែទំហំក្ដារអុកឱ្យធំពេញល្មម និងទុក Margin ១០ភីកសែល (10px) សងខាង */
+        .chessboard-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10px; /* ទុកគម្លាត Margin សងខាង ១០px */
+            box-sizing: border-box;
+            margin: 2px auto;
+        }
+
         #board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
-            justify-content: center; margin: 2px auto;
+            justify-content: center;
             border: 2px solid #2c3e50; background-color: #2c3e50;
-            border-radius: 6px; width: 78vw; height: 78vw; max-width: 290px; max-height: 290px;
+            border-radius: 6px; 
+            width: calc(100vw - 20px); /* ទទឹងពេញអេក្រង់ ដក ២០px សម្រាប់សងខាង (១០px ម្នាក់) */
+            max-width: 360px;          /* ទំហំអតិបរមា កុំឱ្យធំពេកលើអេក្រង់ធំ */
+            height: auto;
+            aspect-ratio: 1 / 1;       /* រក្សាទម្រង់ជាការ៉េស្មើគ្នា */
             box-shadow: 0 6px 15px rgba(0,0,0,0.8);
         }
         .square {
@@ -286,8 +300,8 @@ HTML_CONTENT = """
         .highlight { background-color: #2ecc71 !important; }
         .last-move { background-color: rgba(241, 196, 15, 0.45) !important; }
 
-        .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; font-size: 22px; }
-        .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; font-size: 22px; }
+        .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; font-size: 24px; }
+        .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; font-size: 24px; }
         
         .king-warning {
             background-color: #e74c3c !important;
@@ -430,7 +444,10 @@ HTML_CONTENT = """
             </div>
             <audio id="remoteAudio" autoplay></audio>
 
-            <div id="board"></div>
+            <!-- ក្ដារអុកដាក់ក្នុង wrapper ដែលមាន Margin 10px សងខាង -->
+            <div class="chessboard-wrapper">
+                <div id="board"></div>
+            </div>
 
             <div class="chat-box">
                 <input type="text" id="chatInput" placeholder="និយាយអ្វីមួយជាមួយគូប្រកួត...">
