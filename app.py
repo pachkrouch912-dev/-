@@ -111,7 +111,7 @@ HTML_CONTENT = """
         
         h1 { 
             color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            font-size: 14px; margin: 4px 0; letter-spacing: 0.5px;
+            font-size: 13px; margin: 4px 0; letter-spacing: 0.5px;
         }
 
         .clean-menu-layout {
@@ -126,7 +126,7 @@ HTML_CONTENT = """
             flex-direction: column;
             align-items: center;
             max-height: 94dvh;
-            overflow-y: auto;
+            overflow-y: visible;
         }
 
         .game-clean-layout {
@@ -140,15 +140,48 @@ HTML_CONTENT = """
             justify-content: space-between !important;
         }
 
-        .user-profile {
+        /* Top Bar for Profile Dropdown & Points */
+        .top-bar-header {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(15, 25, 35, 0.85); padding: 6px 12px; border-radius: 12px;
-            margin-bottom: 6px; border: 1px solid rgba(241, 196, 15, 0.25);
-            font-size: 12px; font-weight: bold; width: 100%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 100%; margin-bottom: 4px; position: relative; z-index: 20;
         }
-        .points-badge { color: #f1c40f; display: flex; align-items: center; gap: 4px; }
-        .stats-badge { color: #2ecc71; font-size: 10px; }
+
+        .profile-dropdown-container {
+            position: relative; display: inline-block; text-align: left;
+        }
+
+        .user-profile-btn {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(15, 25, 35, 0.95); padding: 5px 10px; border-radius: 10px;
+            border: 1px solid rgba(241, 196, 15, 0.4);
+            font-size: 11px; font-weight: bold; cursor: pointer; color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.2s;
+        }
+        .user-profile-btn:hover { background: rgba(30, 45, 65, 0.95); border-color: #f1c40f; }
+        .dropdown-arrow { font-size: 9px; color: #f1c40f; margin-left: 2px; }
+
+        .dropdown-menu {
+            position: absolute; top: 110%; left: 0; background: #1b2838;
+            border: 1px solid rgba(241, 196, 15, 0.4); border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.8); width: 160px; display: none;
+            flex-direction: column; overflow: hidden; z-index: 100;
+        }
+        .dropdown-menu.show { display: flex; }
+        .dropdown-item {
+            padding: 8px 12px; font-size: 11px; color: #fff; text-decoration: none;
+            display: flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .dropdown-item:hover { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+        .dropdown-item.logout { color: #e74c3c; border-bottom: none; }
+        .dropdown-item.logout:hover { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+
+        .points-badge-top {
+            background: rgba(15, 25, 35, 0.95); padding: 5px 10px; border-radius: 10px;
+            border: 1px solid rgba(241, 196, 15, 0.4); color: #f1c40f;
+            font-size: 11px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 4px;
+        }
 
         input {
             padding: 7px; font-size: 12px; border: 2px solid #34495e; border-radius: 8px;
@@ -190,18 +223,18 @@ HTML_CONTENT = """
 
         /* កែទំហំក្ដារអុកលម្អ (Deco Board) ឱ្យធំស្អាតពេញល្មម */
         .deco-board-container {
-            margin: 6px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
+            margin: 4px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
         }
         .deco-board {
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #f1c40f; background-color: #2c3e50;
-            border-radius: 10px; width: 180px; height: 180px;
+            border-radius: 10px; width: 175px; height: 175px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.7);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 16px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 15px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
@@ -214,7 +247,7 @@ HTML_CONTENT = """
         .leaderboard-box {
             margin-top: 4px; background: rgba(15, 25, 35, 0.85);
             border-radius: 10px; padding: 6px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 70px; overflow-y: auto;
+            text-align: left; width: 100%; max-height: 68px; overflow-y: auto;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         .leaderboard-title { color: #f1c40f; font-size: 10px; font-weight: bold; text-align: center; margin-bottom: 3px; }
@@ -310,7 +343,7 @@ HTML_CONTENT = """
     </div>
 
     <div class="container">
-        <h1>♟️ អុកខ្មែរ WebRTC & ជើងខ្លាំង ♟️</h1>
+        <h1>♟️ សូមគិតអោយបានឆ្ងាយមុនសម្រេចចិត្ត ♟️</h1>
 
         <div id="login-box" class="clean-menu-layout hidden">
             <h3 id="auth-title" style="color: #f1c40f; margin: 0 0 8px 0; font-size: 14px;">ចូលគណនីរបស់អ្នក</h3>
@@ -323,12 +356,24 @@ HTML_CONTENT = """
         </div>
 
         <div id="main-menu" class="clean-menu-layout hidden">
-            <div class="user-profile">
-                <div>
-                    <span id="welcome-msg" style="color: #f1c40f; display: block;"></span>
-                    <span class="stats-badge">ឈ្នះ: <span id="statWins">0</span> | ចាញ់: <span id="statLosses">0</span></span>
+            <div class="top-bar-header">
+                <div class="profile-dropdown-container">
+                    <div class="user-profile-btn" onclick="toggleProfileDropdown(event)">
+                        👤 <span id="welcome-msg">អ្នកលេង</span> <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <div class="dropdown-item" style="cursor: default; background: rgba(255,255,255,0.03);">
+                            ឈ្នះ: <span id="statWins">0</span> | ចាញ់: <span id="statLosses">0</span>
+                        </div>
+                        <div class="dropdown-item logout" onclick="logoutUser()">
+                            🚪 ចាកចេញពីគណនី
+                        </div>
+                    </div>
                 </div>
-                <span class="points-badge">⭐ ពិន្ទុ៖ <span id="userPoints">0</span></span>
+
+                <div class="points-badge-top">
+                    ⭐ <span id="userPoints">0</span> ពិន្ទុ
+                </div>
             </div>
 
             <div class="deco-board-container">
@@ -357,8 +402,6 @@ HTML_CONTENT = """
                     <button class="btn-green" onclick="joinPrivateRoom()" style="margin: 0; width: auto; padding: 5px 10px;">ចូល</button>
                 </div>
             </div>
-
-            <button class="btn-red" style="margin-top: 4px; padding: 6px; font-size: 11px;" onclick="logoutUser()">ចាកចេញពីគណនី</button>
 
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងចំណាត់ថ្នាក់ពូកែលេងជាងគេ 🏆</div>
@@ -464,6 +507,19 @@ HTML_CONTENT = """
             document.getElementById("toggleAuthMode").textContent = isRegisterMode ? "មានគណនីរួចហើយ? ចូលគណនី" : "មិនទាន់មានគណនី? ចុះឈ្មោះថ្មី";
             document.getElementById("usernameInput").classList.toggle("hidden", !isRegisterMode);
         }
+
+        window.toggleProfileDropdown = function(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById("profileDropdown");
+            dropdown.classList.toggle("show");
+        }
+
+        window.addEventListener('click', () => {
+            const dropdown = document.getElementById("profileDropdown");
+            if (dropdown && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         window.handleAuth = async function() {
             initAudio();
