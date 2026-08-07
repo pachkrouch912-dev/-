@@ -280,6 +280,7 @@
             
             <button id="authBtn" class="btn-green" onclick="handleAuth()">ចូលគណនី</button>
             <div class="toggle-text" id="toggleAuthMode" onclick="toggleAuthMode()">មិនទាន់មានគណនី? ចុះឈ្មោះថ្មី</div>
+            <div class="toggle-text" style="color: #2ecc71; margin-top: 8px;" onclick="skipLoginOffline()">យល់ព្រមលេងແບບ Offline (Local)</div>
         </div>
 
         <div id="main-menu" class="clean-menu-layout hidden">
@@ -371,10 +372,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
@@ -392,10 +392,14 @@
             measurementId: "G-QZY7PJNR11"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getDatabase(app);
+        } catch(e) {
+            console.log("Firebase Init Offline Fallback");
+        }
 
         let isRegisterMode = false;
         window.toggleAuthMode = function() {
@@ -417,11 +421,31 @@
             if (dropdown && dropdown.classList.contains('show')) dropdown.classList.remove('show');
         });
 
+        window.skipLoginOffline = function() {
+            initAudio();
+            myUid = "offline_user_" + Math.floor(Math.random()*1000);
+            rawDisplayName = "អ្នកលេងក្រៅបណ្តាញ";
+            myPoints = parseInt(localStorage.getItem('local_points') || "100");
+            myWins = parseInt(localStorage.getItem('local_wins') || "0");
+            myLosses = parseInt(localStorage.getItem('local_losses') || "0");
+            myName = rawDisplayName;
+            updateUIStats();
+            document.getElementById("login-box").classList.add("hidden");
+            document.getElementById("main-menu").classList.remove("hidden");
+            document.getElementById("dropdownUsername").textContent = rawDisplayName;
+            loadOfflineLeaderboard();
+        }
+
         window.handleAuth = async function() {
             initAudio();
             const email = document.getElementById("emailInput").value.trim();
             const password = document.getElementById("passwordInput").value.trim();
             const username = document.getElementById("usernameInput").value.trim();
+
+            if (!navigator.onLine) {
+                skipLoginOffline();
+                return;
+            }
 
             if (!email || !password) { alert("សូមបំពេញអ៊ីមែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!"); return; }
             if (isRegisterMode && !username) { alert("សូមបញ្ចូលឈ្មោះអ្នកលេងរបស់អ្នក!"); return; }
@@ -433,10 +457,16 @@
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
                 }
-            } catch (error) { alert("មានបញ្ហា៖ " + error.message); }
+            } catch (error) { 
+                alert("មិនអាចភ្ជាប់ទៅកាន់ Server ទេ៖ កំពុងប្តូរចូលជាទម្រង់ Offline ស្វ័យប្រវត្ត!");
+                skipLoginOffline();
+            }
         }
 
-        window.logoutUser = function() { signOut(auth); }
+        window.logoutUser = function() { 
+            if(auth && auth.currentUser) { signOut(auth); }
+            skipLoginOffline();
+        }
 
         let audioCtx = null;
         function initAudio() {
@@ -566,10 +596,14 @@
         startDecoAutoPlay();
 
         function loadLeaderboard() {
+            if (!navigator.onLine || !db) {
+                loadOfflineLeaderboard();
+                return;
+            }
             onValue(ref(db, 'users'), (snapshot) => {
                 const lbEl = document.getElementById("leaderboardList");
                 if (!lbEl) return;
-                if (!snapshot.exists()) { lbEl.innerHTML = "<div style='text-align:center; color:#888;'>មិនទាន់មានទិន្នន័យ</div>"; return; }
+                if (!snapshot.exists()) { loadOfflineLeaderboard(); return; }
                 let usersData = snapshot.val();
                 let usersArray = [];
                 for (let u in usersData) { usersArray.push({ name: usersData[u].name || "អ្នកលេង", points: usersData[u].points || 0 }); }
@@ -582,40 +616,63 @@
                     item.innerHTML = `<span>${rankIcon} ${user.name}</span> <span style="color:#f1c40f;">⭐ ${user.points} ពិន្ទុ</span>`;
                     lbEl.appendChild(item);
                 });
+            }, (error) => {
+                loadOfflineLeaderboard();
             });
+        }
+
+        function loadOfflineLeaderboard() {
+            const lbEl = document.getElementById("leaderboardList");
+            if (!lbEl) return;
+            lbEl.innerHTML = "";
+            let item = document.createElement("div");
+            item.className = "lb-item";
+            item.innerHTML = `<span>🥇 ${rawDisplayName || 'អ្នកលេង'}</span> <span style="color:#f1c40f;">⭐ ${myPoints} ពិន្ទុ</span>`;
+            lbEl.appendChild(item);
         }
         loadLeaderboard();
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                myUid = user.uid;
-                const snapshot = await get(ref(db, `users/${myUid}`));
-                if (snapshot.exists()) {
-                    let data = snapshot.val();
-                    rawDisplayName = data.name || "អ្នកលេង";
-                    myPoints = data.points ?? 100;
-                    myWins = data.wins ?? 0;
-                    myLosses = data.losses ?? 0;
+        if (auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    myUid = user.uid;
+                    try {
+                        const snapshot = await get(ref(db, `users/${myUid}`));
+                        if (snapshot.exists()) {
+                            let data = snapshot.val();
+                            rawDisplayName = data.name || "អ្នកលេង";
+                            myPoints = data.points ?? 100;
+                            myWins = data.wins ?? 0;
+                            myLosses = data.losses ?? 0;
+                        } else {
+                            rawDisplayName = user.email ? user.email.split('@')[0] : "អ្នកលេង";
+                            myPoints = 100; myWins = 0; myLosses = 0;
+                            await set(ref(db, `users/${myUid}`), { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses });
+                        }
+                    } catch(e) {
+                        rawDisplayName = "អ្នកលេងអនាមិក";
+                    }
+                    myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
+                    updateUIStats();
+                    document.getElementById("login-box").classList.add("hidden");
+                    document.getElementById("main-menu").classList.remove("hidden");
+                    document.getElementById("dropdownUsername").textContent = rawDisplayName;
                 } else {
-                    rawDisplayName = user.email.split('@')[0];
-                    myPoints = 100; myWins = 0; myLosses = 0;
-                    await set(ref(db, `users/${myUid}`), { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses });
+                    document.getElementById("login-box").classList.remove("hidden");
+                    document.getElementById("main-menu").classList.add("hidden");
                 }
-                myName = rawDisplayName.replace(/[.#$\/\[\]]/g, "_");
-                updateUIStats();
-                document.getElementById("login-box").classList.add("hidden");
-                document.getElementById("main-menu").classList.remove("hidden");
-                document.getElementById("dropdownUsername").textContent = rawDisplayName;
-            } else {
-                document.getElementById("login-box").classList.remove("hidden");
-                document.getElementById("main-menu").classList.add("hidden");
-            }
-        });
+            });
+        } else {
+            skipLoginOffline();
+        }
 
         function updateUIStats() {
             document.getElementById("userPoints").textContent = myPoints;
             document.getElementById("statWins").textContent = myWins;
             document.getElementById("statLosses").textContent = myLosses;
+            localStorage.setItem('local_points', myPoints);
+            localStorage.setItem('local_wins', myWins);
+            localStorage.setItem('local_losses', myLosses);
         }
 
         async function recordGameResult(didWin, tournamentWin = false) {
@@ -623,7 +680,7 @@
             else if (didWin) { myWins += 1; myPoints += 15; playSound('win'); }
             else { myLosses += 1; myPoints = Math.max(0, myPoints - 10); playSound('lose'); }
             updateUIStats();
-            if (myUid) {
+            if (myUid && db && navigator.onLine) {
                 await update(ref(db, `users/${myUid}`), { name: rawDisplayName, points: myPoints, wins: myWins, losses: myLosses }).catch(e => {});
             }
         }
@@ -909,6 +966,10 @@
 
         window.createPrivateRoom = async function() {
             initAudio(); isVsAI = false; isTournament = false;
+            if (!navigator.onLine || !db) {
+                alert("មិនមានអ៊ីនធឺណិតទេ! មិនអាចបង្កើតបន្ទប់អនឡាញបានទេ។ សូមលេងជាមួយ AI វិញ។");
+                return;
+            }
             try {
                 const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
                 await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
@@ -919,6 +980,10 @@
 
         window.joinPrivateRoom = async function() {
             initAudio(); isVsAI = false; isTournament = false;
+            if (!navigator.onLine || !db) {
+                alert("មិនមានអ៊ីនធឺណិតទេ! មិនអាចចូលបន្ទប់អនឡាញបានទេ។");
+                return;
+            }
             const rCode = document.getElementById("roomCodeInput").value.trim();
             if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
             try {
@@ -973,6 +1038,7 @@
         }
 
         function listenToRoom() {
+            if (!db) return;
             onValue(ref(db, `rooms/${currentRoomId}`), async (snapshot) => {
                 if (!snapshot.exists()) return;
                 const data = snapshot.val();
@@ -1065,7 +1131,7 @@
             };
 
             peerConnection.onicecandidate = (event) => {
-                if (event.candidate && currentRoomId) {
+                if (event.candidate && currentRoomId && db) {
                     update(ref(db, `rooms/${currentRoomId}/rtc`), { candidate: event.candidate.toJSON() });
                 }
             };
@@ -1079,23 +1145,10 @@
             if (isVsAI) {
                 document.getElementById("bubbleMsg").dataset.aiSpoken = "true";
                 document.getElementById("bubbleMsg").textContent = `${rawDisplayName}: ${txt}`;
-                
-                try {
-                    let res = await fetch("/api/gemini-chat", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ message: txt })
-                    });
-                    let data = await res.json();
-                    setTimeout(() => {
-                        document.getElementById("bubbleMsg").textContent = "🤖 Gemini: " + data.reply;
-                    }, 600);
-                } catch(e) {
-                    setTimeout(() => {
-                        document.getElementById("bubbleMsg").textContent = "🤖 Gemini: ហាសហា! និយាយត្រូវចិត្តម៉ង លេងបន្តទៀតមក!";
-                    }, 600);
-                }
-            } else if (currentRoomId) {
+                setTimeout(() => {
+                    document.getElementById("bubbleMsg").textContent = "🤖 Gemini: លេងបានល្អណាស់! ប្រកួតគ្នាបន្តទៀតមក!";
+                }, 600);
+            } else if (currentRoomId && db) {
                 update(ref(db, `rooms/${currentRoomId}`), { chat: `${rawDisplayName}: ${txt}` });
             }
         }
@@ -1174,7 +1227,7 @@
                         updateStatusDisplay();
                         renderBoard();
                         setTimeout(aiMakeMove, Math.floor(Math.random() * 800) + 1200);
-                    } else {
+                    } else if (db) {
                         update(ref(db, `rooms/${currentRoomId}`), {
                             board: board, turn: nextTurn, gameOver: isOver, winnerRole: winRole, lastMove: lastMove
                         }).catch(e => {});
@@ -1199,7 +1252,7 @@
                 isCallActive = false;
                 document.getElementById("callBtn").textContent = "📞 បើកសំឡេងនិយាយគ្នា";
             }
-            if (!isVsAI && currentRoomId) {
+            if (!isVsAI && currentRoomId && db) {
                 remove(ref(db, `rooms/${currentRoomId}/players/${myRole}`)).catch(e => {});
             }
             isVsAI = false; isTournament = false;
@@ -1208,49 +1261,36 @@
             document.getElementById("main-menu").classList.remove("hidden");
         }
 
-        window.addEventListener('online',  updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-
-        function updateOnlineStatus() {
-          if (navigator.onLine) {
-              console.log("មានអ៊ីនធឺណិត៖ កំពុងភ្ជាប់ទៅ Server...");
-                  // បើកមុខងារ Online Matchmaking
-                    } else {
-                        console.log("គ្មានអ៊ីនធឺណិត៖ កំពុងប្រើមុខងារ Offline...");
-                            // ប្តូរទៅមុខងារលេងជាមួយ AI
-                              }
-                              }
-
-
+        window.addEventListener('online',  () => { console.log("មានអ៊ីនធឺណិត"); });
+        window.addEventListener('offline', () => { console.log("គ្មានអ៊ីនធឺណិត (ប្រើប្រាស់ទម្រង់ Offline)"); });
     </script>
     <script>
         document.addEventListener('deviceready', onDeviceReady, false);
 
         function onDeviceReady() {
             if(window.admob) {
-                    admob.banner.config({
-                                id: 'ca-app-pub-6474610805895211/8421971951',
-                                            autoShow: true
-                                                    });
-                                                            admob.banner.prepare();
+                admob.banner.config({
+                    id: 'ca-app-pub-6474610805895211/8421971951',
+                    autoShow: true
+                });
+                admob.banner.prepare();
 
-                                                                    const today = new Date().toLocaleDateString();
-                                                                            const lastShown = localStorage.getItem('lastRewardedDate');
+                const today = new Date().toLocaleDateString();
+                const lastShown = localStorage.getItem('lastRewardedDate');
 
-                                                                                    if (lastShown !== today) {
-                                                                                                admob.rewarded.config({
-                                                                                                                id: 'ca-app-pub-6474610805895211/4129810053'
-                                                                                                                            });
-                                                                                                                                        
-                                                                                                                                                    admob.rewarded.prepare().then(() => {
-                                                                                                                                                                    admob.rewarded.show();
-                                                                                                                                                                                    localStorage.setItem('lastRewardedDate', today);
-                                                                                                                                                                                                });
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                            </script>
-                                                                                                                                                                                                            
+                if (lastShown !== today) {
+                    admob.rewarded.config({
+                        id: 'ca-app-pub-6474610805895211/4129810053'
+                    });
+                    
+                    admob.rewarded.prepare().then(() => {
+                        admob.rewarded.show();
+                        localStorage.setItem('lastRewardedDate', today);
+                    });
+                }
+            }
+        }
+    </script>
 </body>
 </html>
 
