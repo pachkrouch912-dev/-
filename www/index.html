@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>អុកខ្មែរអនឡាញ</title>
+    <title>អុកខ្មែរ</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1b2838">
@@ -121,10 +121,9 @@
         .btn-green-box { border-color: #2ecc71; background: linear-gradient(to bottom, rgba(46,204,113,0.2), rgba(39,174,96,0.35)); }
         .btn-purple { border-color: #9b59b6; background: linear-gradient(to bottom, rgba(155,89,182,0.2), rgba(142,68,173,0.35)); }
         .btn-blue-box { border-color: #3498db; background: linear-gradient(to bottom, rgba(52,152,219,0.2), rgba(41,128,185,0.35)); }
-        .btn-gold-box { border-color: #f1c40f; background: linear-gradient(to bottom, rgba(241,196,15,0.25), rgba(211,84,0,0.35)); }
         
         .online-section {
-            margin-top: 6px; width: 100%; border-top: 1px dashed rgba(241,196,15,0.3); padding-top: 6px;
+            margin-top: 10px; width: 100%; border-top: 1px dashed rgba(241,196,15,0.3); padding-top: 8px;
         }
 
         button {
@@ -138,7 +137,6 @@
         .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); border: 1px solid #1f618d; }
         .btn-red { background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 1px solid #922b21; }
         .btn-purple { background: linear-gradient(to bottom, #9b59b6, #8e44ad); border: 1px solid #6c3483; }
-        .btn-gold { background: linear-gradient(to bottom, #f1c40f, #d35400); border: 1px solid #b7950b; color: #111; }
 
         .deco-board-container {
             margin: 4px 0; width: 100%; display: flex; justify-content: center; pointer-events: none;
@@ -147,12 +145,12 @@
             display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); gap: 1px;
             border: 2px solid #f1c40f; background-color: #2c3e50;
-            border-radius: 10px; width: 220px; height: 220px;
+            border-radius: 10px; width: 250px; height: 250px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.7);
         }
         .deco-square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 16px; user-select: none; width: 100%; height: 100%; position: relative;
+            font-size: 18px; user-select: none; width: 100%; height: 100%; position: relative;
         }
         .deco-light { background-color: #95a5a6; color: #2c3e50; }
         .deco-dark { background-color: #34495e; color: #ecf0f1; }
@@ -164,20 +162,11 @@
         .leaderboard-box {
             margin-top: 4px; background: rgba(15, 25, 35, 0.85);
             border-radius: 10px; padding: 6px 8px; border: 1px solid rgba(241, 196, 15, 0.2);
-            text-align: left; width: 100%; max-height: 45px; overflow-y: auto;
+            text-align: left; width: 100%; max-height: 55px; overflow-y: auto;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         .leaderboard-title { color: #f1c40f; font-size: 9px; font-weight: bold; text-align: center; margin-bottom: 2px; }
         .lb-item { display: flex; justify-content: space-between; font-size: 9px; padding: 1px 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        /* Tournament Bracket UI styling */
-        #tournament-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; text-align: left; }
-        .bracket-scroll { flex-grow: 1; overflow-y: auto; margin: 4px 0; padding-right: 4px; }
-        .bracket-round { margin-bottom: 8px; }
-        .bracket-round-title { font-size: 11px; color: #f1c40f; font-weight: bold; border-bottom: 1px solid rgba(241,196,15,0.3); margin-bottom: 4px; padding-bottom: 2px; }
-        .match-card { background: rgba(30, 40, 55, 0.9); border: 1px solid rgba(241,196,15,0.3); border-radius: 6px; padding: 4px 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; }
-        .match-players { display: flex; flex-direction: column; gap: 2px; }
-        .match-actions button { font-size: 9px; padding: 3px 8px; width: auto; margin: 0; }
 
         .player-hud {
             display: flex; justify-content: space-between; align-items: center;
@@ -208,7 +197,7 @@
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px; font-weight: bold; cursor: pointer; user-select: none;
+            font-size: 20px; font-weight: bold; cursor: pointer; user-select: none;
             width: 100%; height: 100%; transition: background 0.2s; position: relative;
         }
         .light { background-color: #95a5a6; color: #111; }
@@ -217,8 +206,8 @@
         .highlight { background-color: #2ecc71 !important; }
         .last-move { background-color: rgba(241, 196, 15, 0.45) !important; }
 
-        .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; font-size: 22px; }
-        .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; font-size: 22px; }
+        .white-piece { color: #ffffff; text-shadow: 0 2px 4px #000; font-size: 24px; }
+        .black-piece { color: #111111; text-shadow: 0 2px 4px #fff; font-size: 24px; }
         
         .king-warning {
             background-color: #e74c3c !important;
@@ -281,7 +270,7 @@
                 </div>
             </div>
 
-            <h1>♟️ អុកខ្មែរអនឡាញ (Tournament 16) ♟️</h1>
+            <h1>♟️ អុកខ្មែរអនឡាញ♟️</h1>
             <div style="width: 32px;"></div>
         </div>
 
@@ -301,15 +290,11 @@
                 <div class="deco-board" id="decoBoard"></div>
             </div>
 
-            <!-- 🏆 ប៊ូតុងចូលរួម Tournament អនឡាញ ១៦នាក់ -->
+            <!-- 🟢 ប៊ូតុង Offline ត្រឹមតែ ២ តាមសំណើ -->
             <div class="menu-grid">
-                <div class="menu-box-btn btn-gold-box" onclick="openTournamentLobby()">
-                    <div class="menu-icon">🏆</div>
-                    <div class="menu-label">ចូលរួមប្រកួត Tournament (១៦នាក់ Online)</div>
-                </div>
                 <div class="menu-box-btn btn-green-box" onclick="startHardAIGame()">
                     <div class="menu-icon">🤖</div>
-                    <div class="menu-label">លេងជាមួយ ម៉ាស៊ីន (AI)</div>
+                    <div class="menu-label">លេងជាមួយ ម៉ាស៊ីន</div>
                 </div>
                 <div class="menu-box-btn btn-purple" onclick="startLocalTwoPlayerGame()">
                     <div class="menu-icon">👥</div>
@@ -317,23 +302,20 @@
                 </div>
             </div>
 
+            <!-- 🌐 មុខងារ Online បន្ថែមខាងក្រោម -->
+            <div class="online-section">
+                <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                    <button class="btn-blue" onclick="createPrivateRoom()" style="font-size: 10px; padding: 6px;">🏠 បង្កើតបន្ទប់ Online</button>
+                </div>
+                <div style="display: flex; gap: 4px;">
+                    <input type="text" id="roomCodeInput" placeholder="បញ្ចូលកូដបន្ទប់..." style="margin:0; font-size: 10px; padding: 4px;">
+                    <button class="btn-green" onclick="joinPrivateRoom()" style="margin:0; width: auto; font-size: 10px; padding: 4px 10px;">ចូល</button>
+                </div>
+            </div>
+
             <div class="leaderboard-box">
                 <div class="leaderboard-title">🏆 តារាងចំណាត់ថ្នាក់ពូកែលេងជាងគេ 🏆</div>
                 <div id="leaderboardList">កំពុងទាញយក...</div>
-            </div>
-        </div>
-
-        <!-- 🏆 Tournament Lobby & Bracket View -->
-        <div id="tournament-container" class="clean-menu-layout hidden">
-            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <div style="font-size: 12px; color: #f1c40f; font-weight: bold;">🏆 តារាងប្រកួត Tournament (១៦នាក់)</div>
-                <button class="btn-red" style="width: auto; padding: 4px 10px; font-size: 10px; margin:0;" onclick="leaveTournamentLobby()">ចេញ</button>
-            </div>
-            <div id="tournamentJoinArea" style="width: 100%; margin-bottom: 6px;">
-                <button class="btn-gold" onclick="registerForTournament()">ចុះឈ្មោះចូលរួម (Slot ទំនេរ)</button>
-            </div>
-            <div class="bracket-scroll" id="bracketScrollArea">
-                <!-- Bracket rounds will be dynamically rendered here -->
             </div>
         </div>
 
@@ -395,6 +377,12 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
+            });
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyB2A-i0K1APedqO21pllsOisHIu-gb4HeI",
             authDomain: "ouk-e348e.firebaseapp.com",
@@ -501,6 +489,10 @@
                 osc.type = 'triangle'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
                 gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'warning') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, now); osc.frequency.setValueAtTime(900, now + 0.12);
+                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now); osc.stop(now + 0.35);
             } else if (type === 'win') {
                 osc.type = 'square'; osc.frequency.setValueAtTime(300, now); osc.frequency.setValueAtTime(450, now + 0.1);
                 gainNode.gain.setValueAtTime(0.25, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
@@ -525,10 +517,11 @@
 
         let myUid = "", myName = "", rawDisplayName = "", myPoints = 100, myWins = 0, myLosses = 0;
         let currentRoomId = "", myRole = "", board = JSON.parse(JSON.stringify(initialBoard));
-        let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false, isLocalTwoPlayer = false, isTournamentMode = false;
-        let lastMove = null, activeTournamentId = "main_tournament_16";
+        let turn = "white", gameOver = false, selectedPiece = null, validMoves = [], isVsAI = false, isLocalTwoPlayer = false;
+        let lastMove = null;
 
         let peerConnection = null, localStream = null, isCallActive = false;
+        const servers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
         let decoBoardState = JSON.parse(JSON.stringify(initialBoard));
         let decoTurn = "white", decoInterval = null;
@@ -869,8 +862,11 @@
             }
         }
 
+        // 🤖 ប៊ូតុងបើក AI កម្រិតសាហាវ
         window.startHardAIGame = function() {
-            initAudio(); isVsAI = true; isLocalTwoPlayer = false; isTournamentMode = false;
+            initAudio(); 
+            isVsAI = true; 
+            isLocalTwoPlayer = false;
             document.getElementById("webrtcBox").classList.add("hidden");
             board = JSON.parse(JSON.stringify(initialBoard));
             turn = "white"; gameOver = false; selectedPiece = null; validMoves = []; lastMove = null;
@@ -884,8 +880,11 @@
             renderBoard();
         }
 
+        // 👥 ប៊ូតុងបើកលេង ២នាក់លើទូរស័ព្ទតែមួយ
         window.startLocalTwoPlayerGame = function() {
-            initAudio(); isVsAI = false; isLocalTwoPlayer = true; isTournamentMode = false;
+            initAudio(); 
+            isVsAI = false; 
+            isLocalTwoPlayer = true;
             document.getElementById("webrtcBox").classList.add("hidden");
             board = JSON.parse(JSON.stringify(initialBoard));
             turn = "white"; gameOver = false; selectedPiece = null; validMoves = []; lastMove = null;
@@ -897,131 +896,6 @@
             document.getElementById("myHudName").textContent = (rawDisplayName || "អ្នកលេងទី ១") + " (ស)";
             updateLocalTwoPlayerStatus();
             renderBoard();
-        }
-
-        // 🏆 Online 16-Player Tournament Logic
-        window.openTournamentLobby = async function() {
-            initAudio();
-            if (!navigator.onLine || !db) { alert("មុខងារ Tournament ទាមទារការតភ្ជាប់ Online!"); return; }
-            document.getElementById("main-menu").classList.add("hidden");
-            document.getElementById("tournament-container").classList.remove("hidden");
-
-            // Initialize or fetch tournament bracket state
-            const tRef = ref(db, `tournaments/${activeTournamentId}`);
-            const snap = await get(tRef);
-            if (!snap.exists()) {
-                let initialBracket = {
-                    round16: {
-                        match1: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match2: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match3: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match4: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match5: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match6: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match7: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match8: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""}
-                    },
-                    quarter: {
-                        match1: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match2: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match3: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match4: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""}
-                    },
-                    semi: {
-                        match1: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""},
-                        match2: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""}
-                    },
-                    final: {
-                        match1: {p1: "រង់ចាំ...", p2: "រង់ចាំ...", winner: ""}
-                    }
-                };
-                await set(tRef, initialBracket);
-            }
-            listenToTournamentBracket();
-        }
-
-        function listenToTournamentBracket() {
-            if (!db) return;
-            onValue(ref(db, `tournaments/${activeTournamentId}`), (snapshot) => {
-                if (!snapshot.exists()) return;
-                let data = snapshot.val();
-                renderBracketUI(data);
-            });
-        }
-
-        function renderBracketUI(bracketData) {
-            const scrollArea = document.getElementById("bracketScrollArea");
-            scrollArea.innerHTML = "";
-
-            let rounds = [
-                {key: "round16", title: "វគ្គ ១៦នាក់ (Round of 16)"},
-                {key: "quarter", title: "វគ្គ ៨នាក់ចុងក្រោយ (Quarter-finals)"},
-                {key: "semi", title: "វគ្គពាក់កណ្តាលផ្តាច់ព្រាត់ (Semi-finals)"},
-                {key: "final", title: "វគ្គផ្តាច់ព្រាត់ (Final)"}
-            ];
-
-            rounds.forEach(r => {
-                let roundDiv = document.createElement("div");
-                roundDiv.className = "bracket-round";
-                roundDiv.innerHTML = `<div class="bracket-round-title">${r.title}</div>`;
-
-                let matches = bracketData[r.key] || {};
-                for (let mKey in matches) {
-                    let match = matches[mKey];
-                    let card = document.createElement("div");
-                    card.className = "match-card";
-                    card.innerHTML = `
-                        <div class="match-players">
-                            <div>⚔️ ${match.p1 || 'រង់ចាំ...'} vs ${match.p2 || 'រង់ចាំ...'}</div>
-                            <div style="color: #2ecc71; font-size: 9px;">អ្នកឈ្នះ៖ ${match.winner || 'រង់ចាំការប្រកួត'}</div>
-                        </div>
-                        <div class="match-actions">
-                            <button class="btn-green" onclick="joinTournamentMatch('${r.key}', '${mKey}')">ចូលប្រកួត</button>
-                        </div>
-                    `;
-                    roundDiv.appendChild(card);
-                }
-                scrollArea.appendChild(roundDiv);
-            });
-        }
-
-        window.registerForTournament = async function() {
-            if (!navigator.onLine || !db) return;
-            const tRef = ref(db, `tournaments/${activeTournamentId}/round16`);
-            const snap = await get(tRef);
-            if (!snap.exists()) return;
-            let matches = snap.val();
-
-            let registered = false;
-            for (let mKey in matches) {
-                if (matches[mKey].p1 === "រង់ចាំ..." || matches[mKey].p1 === "") {
-                    matches[mKey].p1 = rawDisplayName;
-                    registered = true; break;
-                } else if (matches[mKey].p2 === "រង់ចាំ..." || matches[mKey].p2 === "") {
-                    matches[mKey].p2 = rawDisplayName;
-                    registered = true; break;
-                }
-            }
-            if (registered) {
-                await update(tRef, matches);
-                alert("បានចុះឈ្មោះក្នុង Tournament ដោយជោគជ័យ!");
-            } else {
-                alert("តារាងប្រកួតពេញអស់ហើយ!");
-            }
-        }
-
-        window.joinTournamentMatch = async function(roundKey, matchKey) {
-            initAudio(); isTournamentMode = true; isVsAI = false; isLocalTwoPlayer = false;
-            // Join specific room or match state
-            currentRoomId = `tourney_${activeTournamentId}_${roundKey}_${matchKey}`;
-            document.getElementById("webrtcBox").classList.remove("hidden");
-            await joinRoomProcess(currentRoomId);
-            document.getElementById("tournament-container").classList.add("hidden");
-        }
-
-        window.leaveTournamentLobby = function() {
-            document.getElementById("tournament-container").classList.add("hidden");
-            document.getElementById("main-menu").classList.remove("hidden");
         }
 
         function aiMakeMove() {
@@ -1039,6 +913,7 @@
                 tempBoard[m.toR][m.toC] = { p: movingCell.p, b: isBokedNow };
                 tempBoard[m.fromR][m.fromC] = { p: "", b: false };
                 
+                // Depth = 3 សម្រាប់កម្រិតសាហាវ
                 let evalScore = minimax(tempBoard, 3, -Infinity, Infinity, false);
                 if (evalScore > bestEval) { bestEval = evalScore; bestMoves = [m]; }
                 else if (evalScore === bestEval) { bestMoves.push(m); }
@@ -1076,7 +951,7 @@
         window.playAgain = function() {
             if (isVsAI) startHardAIGame();
             else if (isLocalTwoPlayer) startLocalTwoPlayerGame();
-            else openTournamentLobby();
+            else quickJoinRoom();
         }
 
         window.closeModalAndMenu = function() {
@@ -1084,13 +959,36 @@
             window.leaveRoom();
         }
 
+        window.createPrivateRoom = async function() {
+            initAudio(); isVsAI = false; isLocalTwoPlayer = false;
+            if (!navigator.onLine || !db) { alert("មិនមានអ៊ីនធឺណិតទេ!"); return; }
+            try {
+                const targetRoom = "Room_" + Math.floor(Math.random() * 9000 + 1000);
+                await set(ref(db, `rooms/${targetRoom}`), { board: initialBoard, turn: "white", gameOver: false, message: "រង់ចាំគូប្រកួត...", players: {} });
+                await joinRoomProcess(targetRoom);
+                alert(`កូដបន្ទប់របស់អ្នក៖ ${targetRoom}`);
+            } catch (error) { alert("មានបញ្ហាក្នុងការបង្កើតបន្ទប់!"); }
+        }
+
+        window.joinPrivateRoom = async function() {
+            initAudio(); isVsAI = false; isLocalTwoPlayer = false;
+            if (!navigator.onLine || !db) { alert("មិនមានអ៊ីនធឺណិតទេ!"); return; }
+            const rCode = document.getElementById("roomCodeInput").value.trim();
+            if (!rCode) { alert("សូមបញ្ចូលកូដបន្ទប់សិន!"); return; }
+            try {
+                if (!(await get(ref(db, `rooms/${rCode}`))).exists()) { alert("រកមិនឃើញបន្ទប់នេះទេ!"); return; }
+                await joinRoomProcess(rCode);
+            } catch(e) { alert("មានបញ្ហាក្នុងការចូលបន្ទប់!"); }
+        }
+
         async function joinRoomProcess(roomId) {
             currentRoomId = roomId;
+            document.getElementById("webrtcBox").classList.remove("hidden");
             try {
                 const pSnap = await get(ref(db, `rooms/${currentRoomId}/players`));
                 let players = pSnap.exists() ? pSnap.val() : {};
-                if (!players.white) { myRole = "white"; players.white = rawDisplayName; }
-                else if (!players.black) { myRole = "black"; players.black = rawDisplayName; }
+                if (!players.white) { myRole = "white"; players.white = myName; }
+                else if (!players.black) { myRole = "black"; players.black = myName; }
                 else { myRole = "observer"; }
 
                 await update(ref(db, `rooms/${currentRoomId}`), { players: players });
@@ -1099,7 +997,6 @@
             } catch(e) { myRole = "white"; }
 
             document.getElementById("main-menu").classList.add("hidden");
-            document.getElementById("tournament-container").classList.add("hidden");
             document.getElementById("game-container").classList.remove("hidden");
             document.getElementById("oppAvatarIcon").textContent = "👤";
             listenToRoom();
@@ -1150,7 +1047,7 @@
                 const data = snapshot.val();
                 if (!data.players || Object.keys(data.players).length === 0) { await remove(ref(db, `rooms/${currentRoomId}`)); return; }
 
-                board = data.board || initialBoard; turn = data.turn || "white"; lastMove = data.lastMove || null;
+                board = data.board; turn = data.turn; lastMove = data.lastMove || null;
                 let players = data.players || {};
                 document.getElementById("opponentName").textContent = (myRole === 'white') ? (players.black || "រង់ចាំ...") : (players.white || "រង់ចាំ...");
                 document.getElementById("myHudName").textContent = rawDisplayName + ` (${myRole === 'white' ? 'ស' : 'ខ្មៅ'})`;
@@ -1163,7 +1060,7 @@
                         let didWin = (data.winnerRole === myRole);
                         showGameOverModal(didWin ? "🎉 អ្នកឈ្នះហ្គេមនេះហើយ!" : "😔 អ្នកបានចាញ់ហ្គេមនេះ!", didWin);
                     }
-                } else { gameOver = data.gameOver || false; }
+                } else { gameOver = data.gameOver; }
 
                 selectedPiece = null; validMoves = [];
                 renderBoard();
@@ -1308,16 +1205,11 @@
             if (!isVsAI && !isLocalTwoPlayer && currentRoomId && db) {
                 remove(ref(db, `rooms/${currentRoomId}/players/${myRole}`)).catch(e => {});
             }
-            isVsAI = false; isLocalTwoPlayer = false; isTournamentMode = false;
+            isVsAI = false; isLocalTwoPlayer = false;
             document.getElementById("gameOverModal").classList.add("hidden");
             document.getElementById("game-container").classList.add("hidden");
-            if (isTournamentMode) {
-                document.getElementById("tournament-container").classList.remove("hidden");
-            } else {
-                document.getElementById("main-menu").classList.remove("hidden");
-            }
+            document.getElementById("main-menu").classList.remove("hidden");
         }
     </script>
 </body>
 </html>
-
