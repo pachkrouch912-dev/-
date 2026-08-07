@@ -373,6 +373,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { enableIndexedDbPersistence } from "firebase/firestore";
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -394,6 +395,14 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        enableIndexedDbPersistence(db)
+          .catch((err) => {
+                if (err.code == 'failed-precondition') {
+                          // Multiple tabs open, persistence can only be enabled in one
+                                } else if (err.code == 'unimplemented') {
+                                          // The current browser does not support all of the features required to enable persistence
+                                                }
+                                                  });
 
         let isRegisterMode = false;
         window.toggleAuthMode = function() {
@@ -1205,6 +1214,21 @@
             document.getElementById("game-container").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
         }
+
+        window.addEventListener('online',  updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        function updateOnlineStatus() {
+          if (navigator.onLine) {
+              console.log("មានអ៊ីនធឺណិត៖ កំពុងភ្ជាប់ទៅ Server...");
+                  // បើកមុខងារ Online Matchmaking
+                    } else {
+                        console.log("គ្មានអ៊ីនធឺណិត៖ កំពុងប្រើមុខងារ Offline...");
+                            // ប្តូរទៅមុខងារលេងជាមួយ AI
+                              }
+                              }
+
+
     </script>
     <script>
         document.addEventListener('deviceready', onDeviceReady, false);
