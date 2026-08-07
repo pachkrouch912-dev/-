@@ -1206,6 +1206,34 @@
             document.getElementById("main-menu").classList.remove("hidden");
         }
     </script>
+    <script>
+        document.addEventListener('deviceready', onDeviceReady, false);
+
+        function onDeviceReady() {
+            if(window.admob) {
+                    admob.banner.config({
+                                id: 'ca-app-pub-6474610805895211/8421971951',
+                                            autoShow: true
+                                                    });
+                                                            admob.banner.prepare();
+
+                                                                    const today = new Date().toLocaleDateString();
+                                                                            const lastShown = localStorage.getItem('lastRewardedDate');
+
+                                                                                    if (lastShown !== today) {
+                                                                                                admob.rewarded.config({
+                                                                                                                id: 'ca-app-pub-6474610805895211/4129810053'
+                                                                                                                            });
+                                                                                                                                        
+                                                                                                                                                    admob.rewarded.prepare().then(() => {
+                                                                                                                                                                    admob.rewarded.show();
+                                                                                                                                                                                    localStorage.setItem('lastRewardedDate', today);
+                                                                                                                                                                                                });
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                            }
+                                                                                                                                                                                                            }
+                                                                                                                                                                                                            </script>
+                                                                                                                                                                                                            
 </body>
 </html>
 
